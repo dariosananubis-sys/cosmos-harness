@@ -1,7 +1,7 @@
 ---
 cosmos: planeta
 nombre: taller-herramientas
-padre: sistema-solar/construccion
+padre: construccion
 resumen: Proyecto ficticio dedicado a utilidades pequeñas y comprobables.
 ---
 

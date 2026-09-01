@@ -1,7 +1,7 @@
 ---
 cosmos: planeta
 nombre: observatorio-datos
-padre: sistema-solar/analisis
+padre: analisis
 resumen: Proyecto ficticio que explora conjuntos de datos sintéticos.
 ---
 

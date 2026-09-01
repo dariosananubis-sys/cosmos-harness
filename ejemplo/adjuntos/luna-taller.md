@@ -1,7 +1,7 @@
 ---
 cosmos: luna
 nombre: inspector-taller
-orbita: planeta/taller-herramientas
+orbita: construccion/taller-herramientas
 resumen: Representa un subagente ficticio que inspecciona resultados locales.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: sistema-solar
 nombre: analisis
-padre: galaxia/cosmos-ejemplo
+padre: ""
 resumen: Reúne métodos para estudiar información estructurada.
 ---
 

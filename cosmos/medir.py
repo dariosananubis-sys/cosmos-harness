@@ -156,9 +156,9 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
     """Materializa exactamente los nombres/resúmenes visibles antes de bajar."""
 
     seleccion = normalizar_nichos(arbol, nichos)
-    con_resumen = {"ciudad", "pueblo", "rio"}
+    con_resumen = {"pueblo", "rio"}
     solo_nombre = {"planeta", "continente", "pais", "provincia"}
-    invocables = {"ciudad", "pueblo"}
+    invocables = {"pueblo"}
     orden_agua = {"rio": len(RANGOS) + 1}
 
     def clave(nodo: Nodo) -> tuple[int, str]:

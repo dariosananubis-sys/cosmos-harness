@@ -31,8 +31,8 @@ existe para quitar.
 | `E06` | `nombre` es único dentro de su padre | nombre duplicado entre hermanos |
 | `E07` | `resumen` presente y ≤ 120 caracteres | resumen ausente o pasado de largo |
 | `E08` | El `resumen` aporta al menos una palabra con contenido que no está en el `nombre` | resumen que no informa |
-| `E09` | `cosmos` es uno de los 16 niveles válidos | nivel desconocido |
-| `E10` | Todo nodo de agua declara `moja` (lista, vacía solo en `rio` y `lluvia`) | agua sin alcance |
+| `E09` | `cosmos` es uno de los 14 niveles válidos | nivel desconocido |
+| `E10` | Todo nodo de agua declara `moja` (lista, vacía solo en `rio` y `lluvia`, y **obligatoriamente vacía** en `lluvia`) | agua sin alcance |
 | `E11` | Solo `oceano` puede cubrirlo todo: ningún otro agua tiene cobertura total ni patrones que no nombren nada (`NUCLEO.md` §9) | océano encubierto |
 | `E12` | El número de océanos no supera el umbral configurado | exceso de contexto global |
 | `E13` | `ilumina` / `orbita` apuntan a un nodo existente y del tipo correcto | adjunto colgado del aire |
@@ -116,7 +116,7 @@ COSMOS  rojo  3 errores  (presupuesto por defecto: no hay cosmos.toml)
 
 E03  spec/../arbol/pueblo/foo.md:4
      'padre: pueblo/bar' — un pueblo no puede contener a un pueblo.
-     Cuelga foo de una provincia o de una ciudad.
+     Cuelga foo de una provincia o de un país.
 
 E11  arbol/mar/estilo.md:6
      'moja: ["**/*"]' — cubre las 12 sondas del corpus: solo un océano puede mojarlo todo.

@@ -1,8 +1,7 @@
 ---
 cosmos: lluvia
 nombre: migracion-puente
-moja:
-  - "puente/**"
+moja: []
 resumen: Cuatro piezas del arnés de origen adaptadas a COSMOS en puente/, con 35 tests y 8 mutaciones en rojo.
 ---
 

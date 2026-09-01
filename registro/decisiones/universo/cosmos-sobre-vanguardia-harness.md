@@ -1,9 +1,7 @@
 ---
 cosmos: lluvia
 nombre: cosmos-sobre-vanguardia-harness
-moja:
-  - "spec/**"
-  - "cosmos/**"
+moja: []
 resumen: COSMOS se construye encima de VanguardIA-Harness; su maquinaria ya funciona y no se reescribe.
 ---
 

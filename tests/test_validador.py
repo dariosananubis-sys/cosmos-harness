@@ -152,6 +152,22 @@ class PruebasInvariantes(unittest.TestCase):
         self.escribir("mar.md", documento("mar", "regional", "Aplica una regla sintética a una región.", moja=[]))
         self.exigir("E10")
 
+    def test_e10_lluvia_con_alcance_se_cobraria_sin_cargarse(self) -> None:
+        """H20: una memoria con `moja` no se carga (GOAL §4) pero sí entra en el presupuesto.
+
+        Medido el 2026-09-01 al conectar el registro al árbol: dos entradas con
+        alcance sumaban 7.700 tokens a `agua_condicional`, por ficheros que nunca
+        se abren. La regla de `spec/REGISTRO.md` —«ni una línea»— pasa a E10.
+        """
+
+        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintético que se consulta a mano.", moja=["puente/**"]))
+        resultado = self.exigir("E10")
+        culpables = [error for error in resultado.errores if error.codigo == "E10"]
+        self.assertTrue(any("moja" in error.mensaje for error in culpables), culpables)
+        # Y con el alcance vacío, la misma memoria pasa: lo que salta es el alcance.
+        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintético que se consulta a mano.", moja=[]))
+        self.assertNotIn("E10", self.validar().codigos())
+
     def test_e11_oceano_encubierto(self) -> None:
         self.escribir("mar.md", documento("mar", "global-disfrazado", "Simula una regla regional demasiado amplia.", moja=["**"]))
         self.exigir("E11")
@@ -350,8 +366,11 @@ class PruebasValidadorComplementarias(unittest.TestCase):
                 "planeta-b.md": documento("planeta", "dos", "Representa la segunda rama ficticia.", padre="modo"),
                 "provincia-a.md": documento("provincia", "revision", "Agrupa referencias de la primera rama.", padre="modo/uno"),
                 "provincia-b.md": documento("provincia", "revision", "Agrupa referencias de la segunda rama.", padre="modo/dos"),
-                "casa-a.md": documento("casa", "detalle", "Guarda una referencia ficticia de la primera rama.", padre="modo/uno/revision"),
-                "casa-b.md": documento("casa", "detalle", "Guarda una referencia ficticia de la segunda rama.", padre="modo/dos/revision"),
+                # Las hojas eran dos `casa` homónimas, y `casa` se retiró en H20. No se
+                # sustituyen por pueblos: el único nivel que cuelga de una provincia es
+                # `pueblo`, que se aplana, y dos pueblos homónimos son E18 —una colisión
+                # real— mientras que dos provincias homónimas son legales. El sujeto del
+                # test son ellas, y siguen aquí.
             }
             for nombre, texto in archivos.items():
                 (raiz / nombre).write_text(texto, encoding="utf-8")
@@ -363,6 +382,10 @@ class PruebasValidadorComplementarias(unittest.TestCase):
             self.assertTrue(resultado.valido, validador.formatear_validacion(resultado))
             self.assertEqual(1, len(arbol.buscar("modo/uno/revision")))
             self.assertEqual(1, len(arbol.buscar("modo/dos/revision")))
+            self.assertNotEqual(
+                arbol.buscar("modo/uno/revision")[0].ruta_relativa,
+                arbol.buscar("modo/dos/revision")[0].ruta_relativa,
+            )
 
     def test_validar_no_depende_de_que_exista_tokenizador(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:
@@ -416,7 +439,7 @@ class PruebasAciclicidad(unittest.TestCase):
             "sistema.md": documento("sistema-solar", "modo", "Agrupa proyectos ficticios encadenados.", padre=""),
             "planeta.md": documento("planeta", "uno", "Representa la primera rama ficticia.", padre="modo"),
             "provincia.md": documento("provincia", "revision", "Agrupa referencias de la rama ficticia.", padre="modo/uno"),
-            "casa.md": documento("casa", "detalle", "Guarda una referencia ficticia de la rama.", padre="modo/uno/revision"),
+            "pueblo.md": documento("pueblo", "detalle", "Inspecciona una salida ficticia de la rama.", padre="modo/uno/revision"),
         }
         for nombre, texto in archivos.items():
             (raiz / nombre).write_text(texto, encoding="utf-8")

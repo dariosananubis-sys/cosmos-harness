@@ -38,7 +38,10 @@ class PruebasCompilacion(unittest.TestCase):
             self.arbol_dir / "sistema.md": documento("sistema-solar", "modo", "Agrupa capacidades ficticias compilables.", padre=""),
             self.arbol_dir / "provincia.md": documento("provincia", "grupo", "Agrupa una capacidad ficticia invocable.", padre="modo"),
             self.skill_dir / "SKILL.md": documento("pueblo", "revisar", "Inspecciona una salida sintética controlada.", padre="modo/grupo"),
-            self.skill_dir / "referencia.md": documento("casa", "referencia", "Documenta una referencia interna de la skill.", padre="modo/grupo/revisar"),
+            # Un fichero de referencia dentro de la skill NO es un nodo (`casa` se
+            # retiró en H20): es un fichero suelto que el pueblo abre cuando lo
+            # necesita. Aquí se comprueba que `compilar` lo exporta igual.
+            self.skill_dir / "referencia.md": "# Referencia interna\n\nDatos que la skill abre cuando hacen falta.\n",
         }
         for ruta, contenido in archivos.items():
             ruta.parent.mkdir(parents=True, exist_ok=True)

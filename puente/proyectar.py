@@ -34,7 +34,7 @@ CONTRATO = "planeta.toml"
 FICHEROS_RAIZ = ("AGENTS.md", "CLAUDE.md")
 DESTINOS = (".agents", ".claude")
 PARTES_IGNORADAS = {"__pycache__", ".DS_Store", ".git", ".pytest_cache"}
-NIVELES_APLANADOS = frozenset({"ciudad", "pueblo"})
+NIVELES_APLANADOS = frozenset({"pueblo"})
 AJUSTES_CLAUDE = {
     "autoCompactEnabled": True,
     "autoMemoryEnabled": False,
@@ -205,11 +205,11 @@ def _contrato_en_blanco(nombre: str, tipo: str, nichos: list[str]) -> str:
     )
 
 
-# ------------------------------------------------------------------- ciudades y pueblos
+# ------------------------------------------------------------------------------ pueblos
 
 
 def pueblos_fuente(arbol: Arbol, nichos: tuple[str, ...]) -> dict[str, Path]:
-    """Las ciudades y pueblos de los nichos del contrato, indexados por nombre.
+    """Los pueblos de los nichos del contrato, indexados por nombre.
 
     Aquí vive E18 aplicada al repo ajeno: al aplanar se pierde la jerarquía, así que
     dos nombres iguales colapsan en la misma entrada y una gana en silencio. El
@@ -245,7 +245,7 @@ def _ficheros_fuente(origen: Path) -> dict[Path, tuple[bytes, int]]:
     ficheros: dict[Path, tuple[bytes, int]] = {}
     for ruta in sorted(origen.rglob("*")):
         if ruta.is_symlink():
-            raise ErrorProyeccion("una ciudad o pueblo fuente contiene un symlink")
+            raise ErrorProyeccion("un pueblo fuente contiene un symlink")
         if not ruta.is_file() or any(parte in PARTES_IGNORADAS for parte in ruta.parts):
             continue
         modo = 0o755 if ruta.stat().st_mode & 0o111 else 0o644
@@ -320,7 +320,7 @@ def bloque(contrato: ContratoPlaneta, arbol: Arbol) -> str:
         f"acciones externas: {'sí' if contrato.acciones_externas else 'no'}. "
         "Describen alcance; no sustituyen a los océanos.\n"
         f"- Verificación: {comandos}; visual: {'sí' if contrato.visual else 'no'}.\n"
-        f"- Nichos proyectados: {lista_nichos}. Sus ciudades y pueblos están en los "
+        f"- Nichos proyectados: {lista_nichos}. Sus pueblos están en los "
         "directorios nativos del agente.\n"
         f"{FIN}\n"
     )

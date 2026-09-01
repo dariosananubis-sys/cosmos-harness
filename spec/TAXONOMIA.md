@@ -35,14 +35,11 @@ semana que viene), pero es el primer sitio donde mirar cuando la entrada se pasa
 | **continente** | Es una **disciplina** dentro del proyecto: frontend, datos, seguridad, QA |
 | **pais** | Es una **familia de capacidades** que comparten tecnología o modelo mental |
 | **provincia** | Es un **grupo de skills hermanas** que casi siempre se usan juntas |
-| **ciudad** | Es una skill **grande**, con partes propias que a su vez se cargan por separado |
-| **pueblo** | Es una skill **atómica**: se invoca entera o no se invoca |
-| **casa** | Es un **fichero de referencia** que solo se abre desde dentro de su skill |
+| **pueblo** | Es una skill **atómica**: se invoca entera o no se invoca. Es el suelo |
 
-La frontera práctica entre **ciudad** y **pueblo** es la única que se discute a menudo, y tiene una
-prueba objetiva: si al invocarla se carga todo su contenido, es un pueblo; si tiene partes que se
-cargan por separado según el caso, es una ciudad. No es cuestión de tamaño en líneas, sino de si
-**hay algo que se pueda no cargar**.
+Un pueblo es el nivel más profundo: se invoca entero. Si necesita ficheros propios —configuración,
+plantillas, guiones—, van **dentro de su directorio** y no son nodos: `compilar` exporta el
+directorio completo, así que llegan con la skill sin que nadie tenga que declararlos.
 
 ### La frontera sistema-solar / planeta
 
@@ -108,7 +105,7 @@ El sentido de la prueba importa: se sube por una fuga observada, no por una que 
 | **Resumen que describe hijos** | «Provincia de navegación: contiene agent-browser, playwright y curl» | Describir el **grupo**, no la lista. La lista está un nivel abajo |
 | **Estrella que ha engordado** | Un `CLAUDE.md` con secciones que solo aplican a un hijo | Bajar cada sección a su sitio |
 | **Pueblo huérfano** | Una skill sin `padre` | El validador lo rechaza (E01) |
-| **Taxonomía completa por obligación** | Cadenas de 9 niveles con provincias de un hijo | Saltar niveles: `rango(padre) < rango(hijo)` lo permite |
+| **Taxonomía completa por obligación** | Cadenas de 7 niveles con provincias de un hijo | Saltar niveles: `rango(padre) < rango(hijo)` lo permite |
 | **Agua como sólido** | Una regla puesta como pueblo dentro de una provincia | Convertirla en lago con su `moja` |
 
 ## Cómo se decide, en la práctica
@@ -123,3 +120,30 @@ Ante algo nuevo, cuatro preguntas en orden:
 La cuarta se salta siempre y es la que mantiene el árbol sano. Es la que impide que la taxonomía se
 convierta en un ejercicio de rellenar casillas, que es la forma más común en que una buena
 estructura se vuelve una mala.
+
+## Lo que se retiró, y qué haría falta para traerlo de vuelta
+
+**`ciudad` y `casa`, el 2026-09-01 (hallazgo H20).** La taxonomía tenía nueve sólidos; tiene siete.
+
+El motivo no es de gusto, es de cuenta: ninguno de los dos tenía **un solo nodo** ni en la galaxia
+ni en el árbol de ejemplo, ninguno aparecía en un test que lo creara, y las 209 skills montadas son
+un único fichero cada una —la mayor, 3,5 KB—. La prueba objetiva que separaba ciudad de pueblo
+(«¿hay algo que se pueda no cargar?») no la había ganado nadie nunca, y estaba documentada aquí
+mismo como la frontera «que se discute a menudo»: una duda recurrente que no resolvía ningún caso
+real.
+
+Lo que costaban no era contexto —ni `ciudad` ni `casa` aparecen jamás en el catálogo— sino
+**crédito**: quien leía esta tabla creía que había skills compuestas, y no las hay.
+
+Qué haría falta para traerlas de vuelta, en este orden y no en otro:
+
+1. **Una skill concreta** cuyo contenido se pueda no cargar entero: partes que se abren según el
+   caso, no un fichero largo. El nodo primero, el nivel después.
+2. Volver a meter `"ciudad"` y `"casa"` en `NIVELES_SOLIDOS` (`cosmos/modelo.py`), `ciudad` en
+   `NIVELES_APLANADOS` (`cosmos/compilar.py`, `cosmos/validar.py`, `puente/proyectar.py`) y en
+   `con_resumen`/`invocables` de `catalogo_visible` (`cosmos/medir.py`).
+3. Reponer las filas en `GOAL.md` §3, `spec/FRONTMATTER.md` (rangos), `spec/NUCLEO.md` §2 y §5 y
+   `README.md`, y ajustar el número de niveles en `spec/VALIDADOR.md` (E09).
+
+Mientras eso no exista, la regla de arriba manda: **un nivel existe cuando agrupa de verdad**, y
+tener sitio reservado por si acaso es la versión lenta del mismo error.

@@ -19,8 +19,8 @@ console.log(isValidSlug('cliente-ejemplo'));                 // true
 console.log(isSafeHttpsUrl('javascript:alert(1)'));          // false
 console.log(safeSubdir('/datos', '../../etc'));              // null  -> salto de directorio
 console.log(validateBatchRange(1, 500, { max: 200 }));       // fuera de rango
-console.log(normalizeNif(' b-039.72221 '));                  // B03972221
-console.log(resolveSlugFromList([{ slug: 'ejemplo', nif: 'B03972221' }], 'b03972221'));
+console.log(normalizeNif(' b-039.72221 '));                  // B00000000
+console.log(resolveSlugFromList([{ slug: 'ejemplo', nif: 'B00000000' }], 'b00000000'));
 "
 ```
 

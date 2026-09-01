@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # mantener-sesiones.sh — que LAS DOS cuentas de Claude sigan iniciadas siempre.
 #
-# Orden de Darío (2026-08-17): *"que siempre estemos logueados en ambas y yo elijo con el
-# botón; no salir de una y dejarla apartada"*.
+# Orden de la casa: *"que las dos cuentas esten siempre iniciadas y se elija con un boton; no
+# salir de una y dejarla apartada"*.
 #
 # El problema que resuelve: cada cuenta vive en su `CLAUDE_CONFIG_DIR` aislado con su propio
 # item de llavero, así que estar en las dos a la vez YA funciona. Lo que no funciona solo es

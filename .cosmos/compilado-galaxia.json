@@ -56,6 +56,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/auditar-gasto"
     },
+    "aviso-por-chat": {
+      "hash": "8d8b16f0ec364cedac3c1ed3d9360625adec5ce3f7cc27b937d843c655918e76",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/aviso-por-chat"
+    },
     "axe-core": {
       "hash": "cebbffbf72a6cbbedffb61415617028943857aa628c327dffe25667e523bc6fa",
       "modo": "symlink",
@@ -141,6 +146,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/claude-seo-ai"
     },
+    "codigo-al-modelo": {
+      "hash": "4b0160d90f048d04fb8c6a460fa255358144f3198357706e7ba037bbf9333ee1",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/codigo-al-modelo"
+    },
     "contenedor-efimero": {
       "hash": "7ad459f09795b1c15a8050c51f7e725122db7bfcc64a689436b0b2a8223c7652",
       "modo": "symlink",
@@ -171,6 +181,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/crowdsec"
     },
+    "cuentas-del-asistente": {
+      "hash": "5492074c3844a4d1dbc53c787b0c717438b151858965c2f9eb03080fbf37a51d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/cuentas-del-asistente"
+    },
     "d2": {
       "hash": "e2262bdd89f9fe0c7a2266bcf5d066e10739ec431328154fca1b0eb0f6f2b287",
       "modo": "symlink",
@@ -191,10 +206,20 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/defectdojo"
     },
+    "delegar-generacion": {
+      "hash": "ccc4ab95fec3f8e36e8b1a0af60425239a8c77c92796d5347e75e50bb5206fac",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/delegar-generacion"
+    },
     "diagrams": {
       "hash": "c7e2dff4c5c18e87c0f8a6b4ce1d8c21436affa2ad6f23e004d6dcacf785f286",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/diagrams"
+    },
+    "diario-sin-duplicados": {
+      "hash": "0abbdab08ecbc97ed74f990731e58e85501cc75bed0365ecb75fbfcb547965ad",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/diario-sin-duplicados"
     },
     "docling": {
       "hash": "4e74432a876b4c65a2dddd61cca4c44c290dbe8aa5c8ae2fa91ca55a92bfed44",
@@ -205,6 +230,11 @@
       "hash": "80ebe15e1e52ff120da9c84d958717679a9bc371f12be857eff9a8263a440312",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/docuseal"
+    },
+    "dominios-libres": {
+      "hash": "e5b10d0e2400fcd392cc22048655b7ea138d507baaafc2b78bd4615d3b518830",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/dominios-libres"
     },
     "duckdb": {
       "hash": "37e3de8ec06885d989165de12178fdd168952a9edb96d9c2d5d7b431315b9650",
@@ -220,6 +250,11 @@
       "hash": "587f49056130b8605733c80c95f6ace89a534ccc185afa1421036ac6cae31077",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/echidna"
+    },
+    "elementor-mcp": {
+      "hash": "569b18a1228532c186a572494ea8c69e4da3859d8d689547f443cb9c829111c7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/elementor-mcp"
     },
     "esp-idf": {
       "hash": "1cbad26d715ed49b20e1678bfd4dbca76b11898900da4dc3a2bc57eee3d09918",
@@ -531,6 +566,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/openzeppelin-contracts"
     },
+    "ordenes-entre-ventanas": {
+      "hash": "301502a301950c7f8d09d7c0db30d5ebcff72b0c471cbf6699349801034e6e33",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ordenes-entre-ventanas"
+    },
     "ort": {
       "hash": "0b5e448f77d8d0b3ba3a90714f30af1d49f7c4fad55c18c25dd5850daad49ba0",
       "modo": "symlink",
@@ -570,6 +610,11 @@
       "hash": "3145e7a4e89ea66003500dcbbd73314966409ddfc4c99e49cb34e2815a16d7cf",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/pixi"
+    },
+    "plan-auditado": {
+      "hash": "02a71e0cc5e56567aaf15d49df713f8d4df38b9fad7a208ada3c977f740a2d87",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/plan-auditado"
     },
     "platformio": {
       "hash": "e475c48ed5ec617e7341d565692c67271116be7034b1ee5e05dc28d3624ac99b",
@@ -670,6 +715,11 @@
       "hash": "d43e636cb8ef5e0096967bce75d9505752b8d61fd869aa8d74ba6b145c46cbf2",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/restic"
+    },
+    "revision-cruzada": {
+      "hash": "3917200b0a855e0f5e902c34cff835341de10c300fc39069915c6e4a39e8e08f",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/revision-cruzada"
     },
     "rotki": {
       "hash": "829377cc7c895c9ff544ccc65c8bfd5a17f47fa44414db8caab555f519955477",

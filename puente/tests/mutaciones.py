@@ -11,6 +11,8 @@ que falle; luego lo deja todo como estaba.
 
 from __future__ import annotations
 
+import shutil
+import tempfile
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -98,33 +100,48 @@ MUTACIONES = (
 )
 
 
-def _ejecutar(prueba: str) -> int:
+def _ejecutar(prueba: str, raiz: Path) -> int:
     return subprocess.run(
         [sys.executable, "-m", "unittest", prueba],
-        cwd=RAIZ,
+        cwd=raiz,
         capture_output=True,
         check=False,
     ).returncode
 
 
 def main() -> int:
+    """Muta sobre una instantánea, nunca sobre el árbol de trabajo.
+
+    Antes escribía en los ficheros versionados y los restauraba en un `finally`.
+    Funciona hasta que no funciona: un SIGKILL o un corte de luz entre la escritura
+    y la restauración deja un fichero del repo corrompido. La instantánea hace que
+    ese fallo sea imposible en vez de improbable — el mismo criterio que usa
+    `gate.py` al verificar sobre el índice y no sobre el árbol sucio.
+    """
+
     fallos = 0
-    for mutacion in MUTACIONES:
-        ruta = RAIZ / mutacion.fichero
-        original = ruta.read_text(encoding="utf-8")
-        if mutacion.viejo not in original:
-            print(f"{mutacion.codigo}: NO APLICABLE (el código cambió)")
-            fallos += 1
-            continue
-        ruta.write_text(original.replace(mutacion.viejo, mutacion.nuevo, 1), encoding="utf-8")
-        try:
-            codigo = _ejecutar(mutacion.prueba)
-        finally:
-            ruta.write_text(original, encoding="utf-8")
-        estado = "ROJO (correcto)" if codigo else "VERDE (la prueba no vigila nada)"
-        if not codigo:
-            fallos += 1
-        print(f"{mutacion.codigo} {mutacion.fichero}: {estado} — {mutacion.descripcion}")
+    with tempfile.TemporaryDirectory(prefix="cosmos-mut-") as tmp:
+        copia = Path(tmp) / "repo"
+        shutil.copytree(
+            RAIZ, copia,
+            ignore=shutil.ignore_patterns(".git", "__pycache__", ".cosmos", "research"),
+        )
+        for mutacion in MUTACIONES:
+            ruta = copia / mutacion.fichero
+            original = ruta.read_text(encoding="utf-8")
+            if mutacion.viejo not in original:
+                print(f"{mutacion.codigo}: NO APLICABLE (el código cambió)")
+                fallos += 1
+                continue
+            ruta.write_text(original.replace(mutacion.viejo, mutacion.nuevo, 1), encoding="utf-8")
+            try:
+                codigo = _ejecutar(mutacion.prueba, copia)
+            finally:
+                ruta.write_text(original, encoding="utf-8")
+            estado = "ROJO (correcto)" if codigo else "VERDE (la prueba no vigila nada)"
+            if not codigo:
+                fallos += 1
+            print(f"{mutacion.codigo} {mutacion.fichero}: {estado} — {mutacion.descripcion}")
     print(f"\n{len(MUTACIONES) - fallos}/{len(MUTACIONES)} invariantes vistas fallar")
     return 1 if fallos else 0
 

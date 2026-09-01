@@ -101,7 +101,7 @@ Es lo más barato de arreglar y lo más caro de no haber arreglado.
 ## Cómo rehacer este inventario
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd <repo>
 for n in sistema-solar estrella pais pueblo oceano mar; do \
   printf "%-14s %s\n" "$n" "$(grep -rl "^cosmos: $n$" galaxia/ | wc -l)"; done
 for f in galaxia/sistemas/*.md; do n=$(grep -m1 '^nombre:' "$f" | cut -c9-); \

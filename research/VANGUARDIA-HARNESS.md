@@ -1,4 +1,4 @@
-# Auditoría técnica — VanguardIA-Harness (`/Users/dariosatino/vh-ref`) para fusión con COSMOS
+# Auditoría técnica — VanguardIA-Harness (`<harness-de-referencia>`) para fusión con COSMOS
 
 Fecha: 2026-09-01. Clon auditado: `dariosananubis-sys/VanguardIA-Harness`, commit en el HEAD del
 clon en el momento de esta auditoría (repo limpio, `git status --porcelain` vacío antes de tocar

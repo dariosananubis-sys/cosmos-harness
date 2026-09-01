@@ -1,0 +1,27 @@
+# Configuración del árbol de juguete `ejemplo/`, usado por los tests y por quien
+# quiera ver COSMOS en pequeño. El árbol real es el de `cosmos.toml`.
+#
+# Existe como fichero aparte porque `destino` y `manifiesto` son globales: dos
+# árboles en el mismo repositorio se pisan la vista plana si comparten config.
+
+[presupuesto]
+entrada = 4000
+resumen = 120
+oceanos = 7
+galaxia_lineas = 40
+solapamiento = 0.25
+
+[raiz]
+arbol = "ejemplo"
+indice = "ejemplo/COSMOS.md"
+
+[medicion]
+metodo = "aprox"
+
+[compilacion]
+destino = ".claude/skills"
+modo = "symlink"
+manifiesto = ".cosmos/compilado.json"
+
+[nichos]
+activos = []

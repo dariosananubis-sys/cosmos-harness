@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO
 
+from cosmos.guardarrailes import clave_hallazgo
+
 from .etiquetas import etiqueta_de_ruta
 
 # Rutas que COSMOS genera o que son locales por definición: si aparecen en el
@@ -149,7 +151,7 @@ class EntradaGit:
 def raiz_git(inicio: str | Path | None = None) -> Path:
     """Raíz del repositorio, preguntada a Git en vez de deducida de este fichero."""
 
-    base = Path(inicio) if inicio is not None else Path(__file__).resolve().parent.parent
+    base = Path(inicio) if inicio is not None else Path.cwd()
     resultado = subprocess.run(
         ["git", "-C", str(base), "rev-parse", "--show-toplevel"],
         capture_output=True,
@@ -399,23 +401,66 @@ def escanear(modo: str = "todo", *, raiz: str | Path | None = None) -> list[str]
     return sorted(set(hallazgos))
 
 
+NOMBRE_CONOCIDOS = "secretos-conocidos.txt"
+
+
+def leer_conocidos(ruta: str | Path | None) -> set[str]:
+    """Deuda ya inventariada. Una línea por hallazgo aceptado, sin número de línea."""
+
+    if ruta is None:
+        return set()
+    camino = Path(ruta)
+    if not camino.is_file():
+        return set()
+    conocidos = set()
+    for linea in camino.read_text(encoding="utf-8").splitlines():
+        limpia = linea.strip()
+        if limpia and not limpia.startswith("#"):
+            conocidos.add(clave_hallazgo(limpia))
+    return conocidos
+
+
+def separar_conocidos(hallazgos: list[str], conocidos: set[str]) -> tuple[list[str], list[str]]:
+    """Divide en (nuevos, ya inventariados). Solo los nuevos bloquean."""
+
+    nuevos, viejos = [], []
+    for hallazgo in hallazgos:
+        (viejos if clave_hallazgo(hallazgo) in conocidos else nuevos).append(hallazgo)
+    return nuevos, viejos
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     grupo = parser.add_mutually_exclusive_group()
     grupo.add_argument("--indice", action="store_true", help="solo los blobs que cambian en el índice")
     grupo.add_argument("--todo", action="store_true", help="todos los blobs versionados")
     parser.add_argument("--raiz", default=None, help="repositorio a escanear")
+    parser.add_argument(
+        "--conocidos",
+        default=None,
+        help=f"inventario de hallazgos aceptados; por defecto {NOMBRE_CONOCIDOS} en la raíz",
+    )
+    parser.add_argument("--sin-conocidos", action="store_true", help="ignora el inventario y falla con todo")
     args = parser.parse_args(argv)
     try:
-        hallazgos = escanear("indice" if args.indice else "todo", raiz=args.raiz)
+        raiz = raiz_git(args.raiz)
+        hallazgos = escanear("indice" if args.indice else "todo", raiz=raiz)
     except ErrorEscaneo as exc:
         print(f"ERROR: {exc}")
         return 1
-    if hallazgos:
-        for hallazgo in hallazgos:
-            print(f"ERROR: {hallazgo}")
-        print(f"secretos: {len(hallazgos)} hallazgo(s); valores y rutas ocultos")
+    inventario = None if args.sin_conocidos else (args.conocidos or raiz / NOMBRE_CONOCIDOS)
+    nuevos, viejos = separar_conocidos(hallazgos, leer_conocidos(inventario))
+    for hallazgo in viejos:
+        print(f"CONOCIDO: {hallazgo}")
+    for hallazgo in nuevos:
+        print(f"ERROR: {hallazgo}")
+    if nuevos:
+        cola = f"; {len(viejos)} ya inventariado(s)" if viejos else ""
+        print(f"secretos: {len(nuevos)} hallazgo(s) nuevo(s){cola}; valores y rutas ocultos")
         return 1
+    if viejos:
+        print(f"secretos: limpio de nuevos; {len(viejos)} hallazgo(s) inventariado(s) en {NOMBRE_CONOCIDOS}")
+        return 0
     print("secretos: limpio")
     return 0
 

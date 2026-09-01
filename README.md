@@ -46,9 +46,27 @@ El agua nunca define jerarquía. Un lago no es menos importante que un océano: 
 superficie**. Confundir alcance con importancia es como un harness llega a 27.000 tokens de prólogo,
 un párrafo global bienintencionado cada vez.
 
+## Arranque
+
+La vista plana es un **artefacto generado** y no se versiona, así que un clon recién bajado la tiene
+ausente y E19 lo canta. Un comando lo resuelve:
+
+```
+git clone <repo> && cd cosmos
+python3 -m cosmos arrancar        # compila la vista y valida; deja el clon en verde
+python3 -m cosmos enganchar       # instala el gate de pre-commit (opcional, muy recomendable)
+```
+
+`arrancar` construye la vista y vuelve a validar el árbol entero. **No** regenera el índice: si el
+índice miente, sale en rojo y te manda a `cosmos generar`. Un bootstrap que repara en silencio lo
+que el validador debería denunciar no es un bootstrap, es un encubrimiento.
+
+`cosmos.toml` apunta al árbol real (`galaxia/`). El árbol de juguete tiene su propia configuración
+en `ejemplo.toml`: `python3 -m cosmos arrancar --config ejemplo.toml`.
+
 ## Cómo se sostiene
 
-Tres piezas, y ninguna depende de que nadie se acuerde de nada:
+Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se acuerde:
 
 | Pieza | Qué hace |
 |---|---|
@@ -57,9 +75,47 @@ Tres piezas, y ninguna depende de que nadie se acuerde de nada:
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
 | `cosmos compilar` | Aplana ciudades y pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
 
+| Enganche | Cuándo corre | Se instala con |
+|---|---|---|
+| pre-commit | Antes de cada commit, sobre la **instantánea del índice** (no sobre lo que haya sucio en disco) | `cosmos enganchar` |
+| CI | En cada push y cada PR | ya está en `.github/workflows/cosmos.yml` |
+| arranque | Al clonar | `cosmos arrancar` |
+
+`cosmos enganchar` es explícito y reversible: dice qué escribió y dónde, **no pisa un pre-commit
+ajeno** —si lo hay, lo dice y no toca nada— y `cosmos desenganchar` lo quita dejando el repositorio
+exactamente como estaba. Nada se instala solo al importar el paquete.
+
 Un aviso se ignora; por eso pasarse de presupuesto es rojo. Un índice a mano se desincroniza; por
 eso se genera. Un validador que nunca ha dicho rojo no se distingue de uno roto; por eso hay un
-test por invariante que lo ve fallar a propósito.
+test por invariante que lo ve fallar a propósito. Y un validador que nadie ejecuta no se distingue
+de no tenerlo; por eso hay enganches.
+
+## La válvula de escape
+
+Todo guardarraíl duro sin válvula acaba desactivado a la fuerza: alguien tiene una urgencia real un
+viernes, el guard le estorba, y lo arranca entero. Así que COSMOS trae la suya, y usarla es más
+cómodo que saltarse el sistema:
+
+```
+python3 -m cosmos saltar E16 --motivo "importando 40 skills, se reorganiza el lunes" --caduca 7d
+python3 -m cosmos saltar --listar
+```
+
+| Propiedad | Regla |
+|---|---|
+| Acotada | Un código concreto (`E00`..`E19`), nunca «todo» |
+| Con motivo | Obligatorio. Sin `--motivo` no hay salto |
+| Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
+| Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |
+| Visible | Con un salto vivo la salida dice `verde (1 salto activo: E16, caduca en 5 d)`, nunca «verde» a secas |
+| Ruidosa al caducar | Al vencer vuelve el rojo y el mensaje recuerda el motivo que se escribió |
+
+La palabra «verde» no aparece nunca sola habiendo saltos activos. Un verde que oculta un salto es
+una mentira, y basta una para que nadie vuelva a creerse ninguna.
+
+El registro es local y no se versiona: una urgencia de una persona no puede apagar el CI de todos.
+La deuda que sí es del repositorio se inventaría aparte, en `secretos-conocidos.txt`, y ahí lo que
+no está en la lista bloquea igual.
 
 ## Estado
 

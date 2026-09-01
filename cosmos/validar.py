@@ -89,6 +89,10 @@ CAMPOS_POR_NIVEL = {
     "rio": {"moja", "invoca"},
 }
 NIVELES_APLANADOS = frozenset({"ciudad", "pueblo"})
+# Campos permitidos pero nunca obligatorios. 'usa' declara con qué se trabaja junto
+# (spec/COMPOSICION.md): un nodo sin vecinos es perfectamente válido, y forzarlo
+# llenaría el árbol de relaciones inventadas para rellenar un campo.
+CAMPOS_OPCIONALES = {nivel: {"usa"} for nivel in NIVELES_SOLIDOS}
 
 
 @dataclass(frozen=True)
@@ -163,16 +167,16 @@ def _comprobar_e00(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
         if isinstance(nodo.datos.get("nombre"), str) and not PATRON_NOMBRE.fullmatch(nodo.nombre):
             errores.append(_error("E00", nodo, f"nombre inválido: {nodo.nombre!r}", "Usa solo minúsculas ASCII, dígitos y guiones.", campo="nombre"))
         if nivel in NIVELES_VALIDOS:
-            permitidos = CAMPOS_COMUNES | CAMPOS_POR_NIVEL[nivel]
+            permitidos = CAMPOS_COMUNES | CAMPOS_POR_NIVEL[nivel] | CAMPOS_OPCIONALES.get(nivel, set())
             for campo in sorted(set(nodo.datos) - permitidos):
                 errores.append(_error("E00", nodo, f"campo no permitido para {nivel}: {campo!r}", "Elimina el campo o mueve la información al cuerpo Markdown.", campo=campo))
             for campo in CAMPOS_POR_NIVEL[nivel] - {"padre"}:
                 if campo not in nodo.datos:
                     errores.append(_error("E00", nodo, f"falta el campo obligatorio {campo!r}", f"Añade {campo!r} al frontmatter."))
             for campo, valor in nodo.datos.items():
-                if campo == "moja" and not isinstance(valor, list):
-                    errores.append(_error("E00", nodo, "'moja' debe ser una lista de texto", "Usa una lista YAML de escalares.", campo=campo))
-                elif campo != "moja" and not isinstance(valor, str):
+                if campo in {"moja", "usa"} and not isinstance(valor, list):
+                    errores.append(_error("E00", nodo, f"{campo!r} debe ser una lista de texto", "Usa una lista YAML de escalares.", campo=campo))
+                elif campo not in {"moja", "usa"} and not isinstance(valor, str):
                     errores.append(_error("E00", nodo, f"{campo!r} debe ser texto", "Usa un escalar de texto.", campo=campo))
     return errores
 
@@ -539,13 +543,52 @@ def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
     ]
 
 
+def _comprobar_e20(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
+    """E20 — `usa:` apunta a un nodo que existe, y no a uno mismo.
+
+    `usa:` es la composición que pide `spec/COMPOSICION.md`: declara con qué se
+    trabaja habitualmente **sin arrastrar carga**. Por eso se valida su destino pero
+    no se carga nada: una dependencia automática sería una cadena de arrastre —cargas
+    uno y vienen cinco— que es como un gestor de paquetes acaba trayendo medio
+    internet.
+
+    Lo que sí evita esta comprobación es el fallo silencioso: un `usa:` que apunta a
+    un nicho renombrado no da error en ningún sitio y deja al lector buscando algo
+    que ya no se llama así.
+    """
+
+    rutas = {nodo.referencia for nodo in arbol.nodos}
+    rutas |= {nodo.ruta_cosmos for nodo in arbol.nodos if hasattr(nodo, "ruta_cosmos")}
+    nombres = {nodo.nombre for nodo in arbol.nodos if nodo.cosmos in NIVELES_SOLIDOS}
+
+    errores: list[ErrorValidacion] = []
+    for nodo in arbol.nodos:
+        vecinos = nodo.datos.get("usa")
+        if vecinos is None:
+            continue
+        if not isinstance(vecinos, list):
+            errores.append(_error("E20", nodo, "'usa' debe ser una lista de rutas",
+                                  "Escríbelo como lista, una ruta por línea."))
+            continue
+        for vecino in vecinos:
+            destino = str(vecino).strip()
+            if destino == nodo.nombre or destino == nodo.referencia:
+                errores.append(_error("E20", nodo, f"'usa' apunta a sí mismo: {destino}",
+                                      "Un nodo no se acompaña de sí mismo; quita la línea."))
+            elif destino not in rutas and destino not in nombres:
+                errores.append(_error("E20", nodo, f"vecino inexistente en 'usa': {destino}",
+                                      "Corrige la ruta o quita la línea: un vecino que no existe "
+                                      "manda a buscar algo que ya no se llama así."))
+    return errores
+
+
 Comprobacion = Callable[[Arbol, Configuracion, Path], list[ErrorValidacion]]
 COMPROBACIONES: tuple[Comprobacion, ...] = (
     _comprobar_e00, _comprobar_e01, _comprobar_e02, _comprobar_e03,
     _comprobar_e05, _comprobar_e06, _comprobar_e07, _comprobar_e08, _comprobar_e09,
     _comprobar_e10, _comprobar_e11, _comprobar_e12, _comprobar_e13, _comprobar_e14,
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,
-    _comprobar_e19,
+    _comprobar_e19, _comprobar_e20,
 )
 
 

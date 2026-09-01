@@ -40,7 +40,7 @@ ni exigir nombres únicos en todo el árbol.
 su `nombre` es único **dentro de su nivel** (dos lagos no pueden llamarse igual; un lago y un mar,
 sí).
 
-## 2. `contexto_inicial(árbol)`: una definición, byte a byte
+## 2. `contexto_inicial(árbol, nichos=None)`: una definición, byte a byte
 
 **El problema (B2):** `MEDIDOR.md` contaba «índice + océanos + catálogo» sin decir si el catálogo
 repite lo que el índice ya trae. Repetía: el índice lista los sistemas solares con su resumen y el
@@ -52,7 +52,7 @@ mal.
 ```
 1. indice(árbol)                                   ← lo que genera 'cosmos generar'
 2. cuerpo(o) para cada océano o, ordenados por nombre
-3. catalogo(árbol)
+3. catalogo(árbol, nichos)
 ```
 
 unidas por un `\n` entre bloques. Y:
@@ -64,18 +64,32 @@ El frontmatter es metadata de COSMOS: `cosmos:`, `nombre:`, `padre:`. **Nunca ll
 modelo**, así que contarlo infla justo lo que se paga siempre. Esto resuelve además H3 de
 `reviews/claude-revisa-codigo-ronda1.md`.
 
-> **catalogo(árbol)** = una línea por nodo, en orden de rango y luego alfabético por ruta,
+> **catalogo(árbol, nichos)** = una línea por nodo, en orden de rango y luego alfabético por ruta,
 > **excluyendo todo lo que ya aparece en el índice** (la galaxia, los sistemas solares y los
 > océanos):
 >
 > | Nivel | Línea |
 > |---|---|
-> | planeta, continente, pais, provincia | `<ruta>` |
-> | ciudad, pueblo, rio | `<ruta>: <resumen>` |
+> | planeta, continente, pais, provincia | `<ruta>` (siempre: forman el mapa de descenso) |
+> | ciudad, pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
+> | rio | `<ruta>: <resumen>` |
 > | casa, mar, lago, lluvia, estrella, luna | *(no aparece)* |
 
 Ordenar por rango y no alfabéticamente por nivel es deliberado: el catálogo se inyecta en contexto y
 tiene que leerse como una jerarquía, no como una lista revuelta. Resuelve también H5.
+
+`nichos=None` significa **ningún nicho activo**: no aparece ninguna ciudad ni ningún pueblo. Una
+selección como `nichos=["web", "saas"]` incluye la unión de las ciudades y pueblos contenidos por
+esos dos sistemas, y ninguna skill invocable de los demás. El nicho de un sólido es el primer tramo
+de su ruta completa, que por definición es el `nombre` de su sistema solar.
+
+El índice sigue nombrando todos los sistemas solares con una línea, y los niveles intermedios siguen
+mostrando por dónde descender. Por eso una skill oculta no vuelve invisible la existencia de su
+nicho: se elimina la lista cara de herramientas, no el mapa para encontrarlas.
+
+Esta función es la única definición normativa. El medidor tokeniza exactamente la cadena que
+devuelve, y E17 obtiene de ella los cuerpos que coinciden en contexto; ninguno reconstruye por su
+cuenta otra noción de «entrada».
 
 ## 3. `universo(árbol)` y la descarga, que ya no puede ser negativa
 
@@ -86,7 +100,7 @@ nodos. Numerador y denominador eran universos distintos.
 **Resolución:**
 
 ```
-entrada  = tokens(contexto_inicial(árbol))
+entrada  = tokens(contexto_inicial(árbol, nichos))
 resto    = Σ tokens(cuerpo(n)) para todo nodo n cuyo cuerpo NO está en contexto_inicial
 universo = entrada + resto
 descarga = 1 − entrada / universo        si universo > 0
@@ -96,8 +110,13 @@ descarga = "no_definida"                 si universo == 0
 Por construcción `entrada ≤ universo`, así que `descarga ∈ [0, 1]` **siempre**. Los océanos entran
 en `entrada` y por tanto no vuelven a contarse en `resto`: lo que ya se paga, se paga una vez.
 
-Invariante verificable, y es la que fija el fallo para que no vuelva: **ningún árbol produce una
-descarga fuera de `[0, 1]`**.
+Invariante verificable, y es la que fija el fallo para que no vuelva: **ningún árbol ni selección de
+nichos produce una descarga fuera de `[0, 1]`**.
+
+E16 no usa el caso base. Mide por separado cada sistema solar, con un único nicho activo, y compara
+el presupuesto contra el de mayor `entrada`. Un rojo de E16 nombra ese nicho y el exceso exacto. Las
+combinaciones de varios nichos se miden de forma explícita; no redefinen cuál es el peor nicho
+individual que vigila E16.
 
 ## 4. El método de medición se fija en configuración, nunca se adivina
 
@@ -119,7 +138,7 @@ metodo = "aprox"      # "aprox" | "exacto"
 `--metodo` en línea de comandos existe para inspeccionar a mano, y **no** puede cambiar el veredicto
 de `cosmos validar`.
 
-## 5. Qué se aplana: `ciudad` y `pueblo`, nada más
+## 5. Qué se aplana: `ciudad` y `pueblo`, del nicho activo
 
 `COMPILACION.md` hablaba de skills y ponía pueblos de ejemplo, sin enumerar. Sin enumeración, E18 no
 tiene dominio.
@@ -128,8 +147,14 @@ tiene dominio.
 invocables. No se aplanan `casa` (vive dentro de su skill), ni `rio` (los comandos tienen su propio
 directorio plano), ni ningún otro nivel.
 
-Cada entrada aplanada exporta **el directorio completo de la skill**, con su `SKILL.md` y sus casas.
-En `--modo copia` se excluyen `.git`, `__pycache__` y los ficheros que empiezan por punto.
+`cosmos compilar --nicho web` aplana únicamente las ciudades y pueblos cuyo primer tramo de ruta es
+`web`. Cada entrada aplanada exporta **el directorio completo de la skill**, con su `SKILL.md` y sus
+casas. En `--modo copia` se excluyen `.git`, `__pycache__` y los ficheros que empiezan por punto.
+
+La API conserva `nichos=None` como compilación completa por compatibilidad. La CLI sin `--nicho`
+también conserva esa vista completa; el runtime acotado se materializa siempre con el flag explícito.
+Cambiar de nicho convierte las entradas registradas de los demás nichos en obsoletas y les aplica,
+sin excepción, la regla por hash de §7.
 
 E18 se comprueba sobre el conjunto `{nombre(n) : cosmos(n) ∈ {ciudad, pueblo}}`.
 
@@ -148,7 +173,7 @@ E15.
 | Comando | Exige antes de escribir | Comprueba después |
 |---|---|---|
 | `generar` | E00–E14, E16–E19 (todo menos **E15**) | E15 |
-| `compilar` | E00–E18 (todo menos **E19**) | E19 |
+| `compilar [--nicho n]` | E00–E18 (todo menos **E19**) | E19 para la misma selección |
 | `validar` | todas | — |
 
 Así `generar` y `compilar` reparan lo suyo sin poder colarse con un árbol roto por cualquier otro
@@ -171,6 +196,11 @@ compilaciones simultáneas se pisan el manifiesto y ninguna se entera.
    nadie la ha tocado.
 2. Si **no coincide**, alguien la modificó a mano: **no se borra**, se avisa y se saca del
    manifiesto.
+
+Seleccionar otro nicho equivale, para este algoritmo, a que las entradas registradas fuera de la
+nueva selección ya no existan: se vuelven obsoletas. El manifiesto guarda `nichos` (`null` para la
+vista completa o una lista para la vista acotada), de modo que E19 no puede validar una selección
+contra el artefacto de otra por accidente.
 
 Sin la regla 1, E19 se quedaría en rojo permanente tras eliminar cualquier skill. Sin la regla 2, el
 compilador borraría trabajo ajeno, que es exactamente lo que la regla «nunca borra lo que no ha

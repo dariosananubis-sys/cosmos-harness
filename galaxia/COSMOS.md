@@ -6,24 +6,25 @@ Veinte oficios completos y cinco aguas transversales; nada se carga hasta que se
 
 ## Sistemas solares
 
-- `agentes` — IA aplicada: orquestacion, herramientas, memoria, recuperacion y modelos locales.
+- `agentes-ia` — Agentes con herramientas, memoria y evaluacion.
+- `analitica` — Cuadros de mando y metricas de negocio fiables.
+- `audiovisual` — Video y voz a escala: cortar, subtitular, transcribir, doblar.
 - `automatizacion` — Que lo repetitivo se haga solo: flujos, integraciones y tareas programadas.
 - `blockchain` — Contratos inteligentes, su auditoria y la infraestructura de cadena.
 - `ciberseguridad` — Ofensiva autorizada, defensa, forense, malware, criptografia y el codigo de todo eso.
 - `cientifico` — Calculo numerico, simulacion, analisis cientifico y reproducibilidad.
-- `conocimiento` — Documentacion, formacion, investigacion y verificacion de fuentes.
-- `datos` — Ingenieria y analisis: transformacion, validacion, almacenes y cuadros de mando.
+- `cumplimiento` — RGPD, accesibilidad legal y licencias.
+- `documentos` — Informes, manuales y diagramas que se generan solos.
 - `embebidos` — Hardware, firmware, sensores y protocolos de dispositivo.
 - `extraccion` — Sacar datos del mundo: web, documentos, reconocimiento optico y normalizacion.
 - `infraestructura` — Que corra: contenedores, despliegue, nube, redes, copias y monitorizacion.
+- `ingenieria-datos` — Pipelines que validan antes de cargar y avisan al romperse.
 - `juegos` — Motores, bucle de juego, fisica, activos y publicacion.
-- `legal` — Cumplimiento, RGPD, licencias, propiedad intelectual y contratos tecnicos.
-- `medios` — Video, imagen, audio y documentos, a escala y por lotes.
-- `mercados` — Bots que operan: exchanges, ejecucion, backtest honesto, riesgo y operacion continua.
+- `modelos-locales` — IA en tu maquina: privada y sin coste por uso.
 - `moviles` — Aplicaciones para movil y escritorio, publicacion y tiendas de aplicaciones.
-- `negocio` — La administracion: presupuestos, facturas, contratos y seguimiento.
+- `rendimiento` — Que vaya rapido y se pueda depurar: perfilado y trazas.
 - `saas` — Producto vendible: identidad, pagos, suscripciones y multi-cliente.
-- `sistemas` — Bajo nivel: compiladores, tiempo de ejecucion, concurrencia y rendimiento extremo.
+- `trading` — Bots que operan: exchanges, ejecucion, backtest honesto, riesgo y operacion continua.
 - `visibilidad` — Que te encuentren: SEO tecnico, buscadores con IA y contenido.
 - `web` — Sitios y tiendas: gestor de contenidos, maquetacion, comercio electronico y conversion.
 

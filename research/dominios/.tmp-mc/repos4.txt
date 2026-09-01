@@ -1,0 +1,40 @@
+kythe/kythe | 2150★ | lic=Apache-2.0 | pushed=2026-07-16 | archived=False | fork=False
+desc: Kythe is a pluggable, (mostly) language-agnostic ecosystem for building tools that work with code.
+---
+facebookincubator/Glean | 1397★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: System for collecting, deriving and working with facts about source code.
+---
+rust-fuzz/cargo-fuzz | 1889★ | lic=Apache-2.0 | pushed=2026-07-20 | archived=False | fork=False
+desc: Command line helpers for fuzzing
+---
+AFLplusplus/AFLplusplus | 6741★ | lic=AGPL-3.0 | pushed=2026-08-31 | archived=False | fork=False
+desc: The fuzzer afl++ is afl with community patches, qemu 5.1 upgrade, collision-free coverage, enhanced laf-intel & redqueen, AFLfast++ power schedules, MOpt mutators, unicorn_mode, and a lot more!
+---
+google/honggfuzz | 3376★ | lic=Apache-2.0 | pushed=2026-06-19 | archived=False | fork=False
+desc: Security oriented software fuzzer. Supports evolutionary, feedback-driven fuzzing based on code coverage (SW and HW based)
+---
+llvm/llvm-project | 40037★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.
+---
+ERROR Moved Permanently
+---
+oxc-project/oxc | 22595★ | lic=MIT | pushed=2026-09-01 | archived=False | fork=False
+desc: ⚓ A collection of high-performance JavaScript tools.
+---
+rolldown/rolldown | 13926★ | lic=MIT | pushed=2026-09-01 | archived=False | fork=False
+desc: Fast Rust bundler for JavaScript/TypeScript with Rollup-compatible API.
+---
+zed-industries/zed | 89555★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: Code at the speed of thought – Zed is a high-performance, multiplayer code editor from the creators of Atom and Tree-sitter.
+---
+neovim/neovim | 102057★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: Vim-fork focused on extensibility and usability
+---
+helix-editor/helix | 46045★ | lic=MPL-2.0 | pushed=2026-08-25 | archived=False | fork=False
+desc: A post-modern modal text editor.
+---
+ERROR Not Found
+---
+opengrep/opengrep | 3017★ | lic=LGPL-2.1 | pushed=2026-08-31 | archived=False | fork=False
+desc: 🔎 Static code analysis engine to find security issues in code.
+---

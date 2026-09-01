@@ -1,0 +1,6 @@
+=== sourcegraph code search self-hosted ===
+ERROR API rate limit exceeded for user ID 307884513. If you reach out to GitHub Support for help, please include the request ID DE82:385112:76B6CD3:73D1460:6A9699F8 and timestamp 2026-09-01 09:25:12 UTC. For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)
+=== ebpf profiler continuous ===
+ERROR API rate limit exceeded for user ID 307884513. If you reach out to GitHub Support for help, please include the request ID DE86:3B47F9:6A2F211:674C155:6A9699FD and timestamp 2026-09-01 09:25:17 UTC. For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)
+=== undefined behavior sanitizer ===
+ERROR API rate limit exceeded for user ID 307884513. If you reach out to GitHub Support for help, please include the request ID 1F79:1CBA8F:684087C:6567DDB:6A969A01 and timestamp 2026-09-01 09:25:21 UTC. For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)

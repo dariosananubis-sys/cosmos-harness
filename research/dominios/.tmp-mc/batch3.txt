@@ -30,3 +30,5 @@
  35769★ anthropics/claude-plugins-official            lic=Apache-2.0 push=2026-09-01 | Official, Anthropic-managed directory of high quality Claude Code Plugins.
  33566★ zhaoxuya520/reverse-skill                     lic=MIT push=2026-08-31 | Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack
  33534★ JCodesMore/ai-website-cloner-template         lic=MIT push=2026-08-14 | Clone any website with one command using AI coding agents
+=== codemod tool ast ===
+ERROR API rate limit exceeded for user ID 307884513. If you reach out to GitHub Support for help, please include the request ID 1EB3:2BA42F:6C5B705:6967C55:6A9699E5 and timestamp 2026-09-01 09:24:53 UTC. For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)

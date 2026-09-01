@@ -31,8 +31,9 @@ el coste de entrada se queda quieto. Ese es el proyecto entero, en una frase.
 Dos exigencias que el encargo fija y que no son negociables:
 
 - **Capacidad y criterio van separados.** Un oficio que sabe programar mucho y no sabe qué no
-  escribir produce más código de más, no menos. Por eso `codigo` y `criterio` son dos sistemas
-  distintos que se cargan juntos.
+  escribir produce más código de más, no menos. Por eso **el código vive dentro de cada nicho** (el
+  de un exploit no se parece al de un tema de WordPress) y **`criterio` es un mar** que los moja a
+  todos: poda en los veinte sitios sin que nadie tenga que invocarlo.
 - **Los oficios se combinan.** La contención dice dónde vive algo y cuándo se carga, **nunca** con
   quién se junta. Detalle y mecanismo en `spec/COMPOSICION.md`.
 - **Cada nicho apunta a sus vecinos y no duplica nada.** Un trabajo real cruza varios; el nicho lo
@@ -75,12 +76,12 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 |---|---|---|
 | **Universo** | Todo. Hay uno. | Galaxias |
 | **Galaxia** | Una familia de oficios afines | Sistemas solares |
-| **Sistema solar** | Un dominio de trabajo (Web, Datos, Infra, Estudio) | Planetas |
+| **Sistema solar** | Un oficio por el que te contratan (los 20 de `spec/UNIVERSO.md`) | Planetas |
 | **Estrella** | El contexto que ilumina ese sistema: su `CLAUDE.md` | — (irradia) |
 | **Planeta** | Un proyecto concreto | Continentes |
 | **Luna** | Un subagente que orbita ese planeta | — (orbita) |
-| **Continente** | Una disciplina dentro del planeta (frontend, SEO, QA) | Países |
-| **País** | Una familia de capacidades (WordPress, Elementor) | Provincias |
+| **Continente** | Una disciplina dentro del oficio (ofensiva, defensiva, análisis) | Países |
+| **País** | Una familia de capacidades, incluido el **código propio del nicho** | Provincias |
 | **Provincia** | Un grupo de skills hermanas | Ciudades y pueblos |
 | **Ciudad** | Una skill grande, con sub-skills y referencias propias | Pueblos, casas |
 | **Pueblo** | Una skill atómica | Casas |
@@ -93,8 +94,8 @@ error del sistema, no un caso aceptable, y el validador lo trata como tal.
 
 | Nivel | Qué es | Alcance |
 |---|---|---|
-| **Océano** | Regla global, innegociable | Toda la galaxia |
-| **Mar** | Regla de un sistema solar o continente | Regional |
+| **Océano** | Regla global, innegociable | Todo el universo |
+| **Mar** | Regla transversal a varios oficios (`criterio`, `pruebas`…) | Regional |
 | **Lago** | Regla local, de un país o provincia | Acotado |
 | **Río** | Un comando / slash: camino de ejecución que conecta ciudades | Recorre |
 | **Lluvia** | Memoria: se evapora del contexto y precipita donde hace falta | Cae donde toca |
@@ -107,9 +108,9 @@ regla local en un párrafo global, y así es como un prólogo llega a 30k tokens
 
 | Nivel | Cuándo entra en contexto | Qué se ve de él antes de entrar |
 |---|---|---|
-| Galaxia | Siempre | Todo (es minúsculo por diseño) |
+| Universo / Galaxia | Siempre | Todo (es minúsculo por diseño) |
 | Océano | Siempre | Todo |
-| Sistema solar | Al declararse el dominio activo | Su nombre y una línea |
+| Sistema solar | Al entrar en ese oficio | Su nombre y una línea |
 | Estrella | Con su sistema | — |
 | Planeta | Al tocar un path suyo | Su nombre |
 | Continente / País / Provincia | Al descender | Su nombre |

@@ -11,8 +11,12 @@ from .generar import generar_indice
 from .modelo import NIVELES_AGUA, RANGOS, Arbol, Nodo, cuerpo, nicho_de_nodo, nombres_nichos, normalizar_nichos
 
 
-HEURISTICA = "heurística v1"
-MARGEN_ERROR: float | None = None
+HEURISTICA = "heurística v2"
+# Medido el 2026-09-01 contra tiktoken/cl100k_base sobre 78 ficheros de este repo
+# (prosa en castellano, fichas de herramienta, código y agua). Ver docs/CALIBRACION.md.
+# Sin el factor, contar palabras y signos subestimaba un 20,4 %.
+FACTOR_CALIBRACION = 1.204
+MARGEN_ERROR: float | None = 0.052
 PATRON_TOKEN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
 
 
@@ -89,9 +93,19 @@ class ResumenMedicion:
 
 
 def contar_aprox(texto: str) -> int:
-    """Cuenta palabras Unicode y signos; no usa la falsa regla bytes/4."""
+    """Cuenta palabras y signos, corregido por el factor medido contra un tokenizador real.
 
-    return len(PATRON_TOKEN.findall(texto))
+    Contar palabras es reproducible en cualquier máquina, pero **subestima**: un
+    tokenizador BPE parte las palabras largas y los acentos. Medido sobre 78 ficheros
+    de este repo, el sesgo era del 20,4 % y siempre en la misma dirección — es decir,
+    predecible, y por tanto corregible.
+
+    Con el factor, el error medio baja a 5,2 %. Ese número no es cosmético: sin él,
+    el presupuesto era un 20 % más laxo de lo que decía ser, y un presupuesto que
+    miente a su favor es peor que no tenerlo.
+    """
+
+    return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_CALIBRACION)
 
 
 def _contador_exacto() -> tuple[Callable[[str], int], str] | None:

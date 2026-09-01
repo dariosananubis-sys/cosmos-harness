@@ -22,7 +22,7 @@ Veinte oficios completos y cinco aguas transversales; nada se carga hasta que se
 - `juegos` — Motores, bucle de juego, fisica, activos y publicacion.
 - `modelos-locales` — IA en tu maquina: privada y sin coste por uso.
 - `moviles` — Aplicaciones para movil y escritorio, publicacion y tiendas de aplicaciones.
-- `rendimiento` — Que vaya rapido y se pueda depurar: perfilado y trazas.
+- `rendimiento` — Trabajar sobre codigo que ya existe: medir por que va lento, depurar lo raro y subir su calidad.
 - `saas` — Producto vendible: identidad, pagos, suscripciones y multi-cliente.
 - `trading` — Bots que operan: exchanges, ejecucion, backtest honesto, riesgo y operacion continua.
 - `visibilidad` — Que te encuentren: SEO tecnico, buscadores con IA y contenido.

@@ -2,5 +2,5 @@
 cosmos: sistema-solar
 nombre: medios
 padre: ""
-resumen: Producir a escala: video, imagen, audio y documentos, por lotes y sin tocarlos uno a uno.
+resumen: Video, imagen, audio y documentos, a escala y por lotes.
 ---

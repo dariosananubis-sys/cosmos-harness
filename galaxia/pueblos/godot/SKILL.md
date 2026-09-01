@@ -32,10 +32,16 @@ godot --path . --headless --quit                                     # importar 
 
 Es el motor por defecto salvo que el proyecto pida escribirlo todo en codigo (`bevy`) o correr en el
 navegador sin instalar nada (`phaser`). Gana a Unity y a Unreal —los dos motores comerciales del
-sector, que se nombran porque la decision se toma aqui— por dinero: Unity cobra por licencia segun
-ingresos y ha cambiado su modelo de cobro con efecto retroactivo, y Unreal cobra un 5 % de regalias
-por encima de un umbral de ingresos brutos. Godot es MIT: cero regalias, cero cuota, cero cuenta. Y
-eso no se decide al publicar, se decide al elegir motor, cuando cambiar cuesta el proyecto entero.
+sector, que se nombran porque la decision se toma aqui— por dinero, y con el numero delante: Unreal cobra
+**un 5 % de regalias sobre lo que el titulo ingrese por encima del primer millon de dolares**
+(texto del propio Epic, leido el 2026-09-01); Unity cobra por licencia segun ingresos y ya cambio su
+modelo de cobro con efecto retroactivo una vez. Godot es MIT: cero regalias, cero cuota, cero cuenta.
+
+Ese millon es el umbral que decide, y decide en los dos sentidos: **por debajo, Unreal tambien sale
+gratis**, asi que quien elija Godot por precio para un proyecto que no va a facturar un millon se
+esta contando un cuento — ahi la comparacion honesta es por herramientas, no por dinero. Por encima,
+cada 100.000 dolares de ingreso son 5.000 que no se pagan, y para entonces cambiar de motor cuesta
+el proyecto entero. Por eso la decision es al elegir, no al publicar.
 
 Y lo que no hace bien: el 3D pesado. Para un juego 3D con exigencias graficas altas, Unreal sigue
 estando por delante en herramientas y en iluminacion, y hay que decirlo. El 2D de Godot, en cambio,

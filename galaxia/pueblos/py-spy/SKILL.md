@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: py-spy
-padre: rendimiento/perfilado
+padre: rendimiento/velocidad/perfilado
 resumen: Se engancha a un proceso de Python ya en marcha y lo perfila sin reiniciarlo ni tocar su codigo.
 ---
 

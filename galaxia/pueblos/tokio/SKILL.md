@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tokio
-padre: rendimiento/concurrencia
+padre: rendimiento/velocidad/concurrencia
 resumen: Planificador multihilo, temporizadores y entrada y salida no bloqueante para concurrencia.
 ---
 

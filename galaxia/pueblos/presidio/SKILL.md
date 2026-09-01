@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: presidio
-padre: legal
+padre: cumplimiento/datos-personales
 resumen: Detecta y sustituye datos personales en textos e imagenes antes de que salgan de casa.
 ---
 

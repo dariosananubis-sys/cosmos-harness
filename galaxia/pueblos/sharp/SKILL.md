@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sharp
-padre: medios/imagen
+padre: web/imagenes
 resumen: Redimensiona y recomprime a formatos modernos en milisegundos por imagen.
 ---
 

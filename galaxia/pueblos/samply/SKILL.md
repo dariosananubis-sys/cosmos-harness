@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: samply
-padre: sistemas
+padre: rendimiento/perfilado
 resumen: Perfilador de muestreo nativo que no instrumenta nada y abre el resultado en el navegador.
 ---
 

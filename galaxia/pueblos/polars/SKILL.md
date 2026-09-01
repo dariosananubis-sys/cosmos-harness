@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: polars
-padre: datos/motor-analitico
+padre: ingenieria-datos/motor
 resumen: Marcos de datos en Rust con modo perezoso: planifica antes de leer y evita cargar de mas.
 ---
 

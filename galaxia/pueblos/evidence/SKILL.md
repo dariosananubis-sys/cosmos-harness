@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: evidence
-padre: datos/cuadros-de-mando
+padre: analitica/cuadros-de-mando
 resumen: Informes en Markdown con bloques SQL que se compilan a un sitio estatico publicable en cualquier sitio.
 ---
 

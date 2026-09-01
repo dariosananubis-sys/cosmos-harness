@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openclaw
-padre: agentes/runtime
+padre: agentes-ia/herramientas
 resumen: Demonio que atiende mensajes de consola, chat y trabajos programados y los ejecuta hasta el final.
 ---
 

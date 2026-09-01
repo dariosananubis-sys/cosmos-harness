@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hftbacktest
-padre: mercados
+padre: trading
 resumen: Simula posicion en cola y latencia sobre libro completo: el unico backtest que no se enganna solo.
 ---
 

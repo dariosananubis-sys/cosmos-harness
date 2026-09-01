@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ffmpeg
-padre: medios/audiovisual
+padre: audiovisual/video
 resumen: Convierte, corta, escala y mezcla cualquier formato desde un solo comando reproducible.
 ---
 

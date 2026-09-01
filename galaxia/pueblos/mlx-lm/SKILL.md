@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mlx-lm
-padre: agentes/modelos-locales
+padre: modelos-locales/servir
 resumen: Inferencia y adaptadores nativos de Apple Silicon, exprimiendo la memoria unificada del portatil.
 ---
 

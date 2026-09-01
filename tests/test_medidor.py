@@ -9,6 +9,29 @@ from cosmos.modelo import Arbol, Nodo, cargar_arbol, cuerpo
 
 
 class PruebasMedidor(unittest.TestCase):
+    @staticmethod
+    def arbol_dos_nichos() -> Arbol:
+        nodos = [
+            Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "Organiza dos nichos sintéticos."}, {}, ""),
+            Nodo(Path("web.md"), "web.md", {"cosmos": "sistema-solar", "nombre": "web", "resumen": "Construye sitios sintéticos.", "padre": ""}, {}, ""),
+            Nodo(Path("saas.md"), "saas.md", {"cosmos": "sistema-solar", "nombre": "saas", "resumen": "Construye servicios sintéticos.", "padre": ""}, {}, ""),
+            Nodo(Path("web-provincia.md"), "web-provincia.md", {"cosmos": "provincia", "nombre": "calidad-web", "resumen": "Agrupa controles web.", "padre": "web"}, {}, ""),
+            Nodo(Path("saas-provincia.md"), "saas-provincia.md", {"cosmos": "provincia", "nombre": "calidad-saas", "resumen": "Agrupa controles SaaS.", "padre": "saas"}, {}, ""),
+            Nodo(Path("web-tool.md"), "web-tool.md", {"cosmos": "pueblo", "nombre": "web-tool", "resumen": "Comprueba una interfaz web.", "padre": "web/calidad-web"}, {}, ""),
+            Nodo(Path("saas-tool.md"), "saas-tool.md", {"cosmos": "pueblo", "nombre": "saas-tool", "resumen": "Comprueba un servicio SaaS.", "padre": "saas/calidad-saas"}, {}, ""),
+        ]
+        return Arbol(Path("."), nodos)
+
+    def test_catalogo_base_no_contiene_ningun_pueblo(self) -> None:
+        contexto = medir.contexto_inicial(self.arbol_dos_nichos(), indice="")
+        self.assertNotIn("web-tool", contexto)
+        self.assertNotIn("saas-tool", contexto)
+
+    def test_catalogo_web_contiene_solo_pueblos_de_web(self) -> None:
+        contexto = medir.contexto_inicial(self.arbol_dos_nichos(), nichos=["web"], indice="")
+        self.assertIn("web/calidad-web/web-tool: Comprueba una interfaz web.", contexto)
+        self.assertNotIn("saas-tool", contexto)
+
     def test_arbol_de_tokens_conocidos_a_mano(self) -> None:
         nodo = Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "explica"}, {}, "alpha beta")
         resultado = medir.medir_arbol(Arbol(Path("."), [nodo]), metodo="aprox", indice="uno dos")

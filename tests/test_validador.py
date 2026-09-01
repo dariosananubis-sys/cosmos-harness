@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 import cosmos.validar as validador
+from cosmos import medir
 from cosmos.generar import generar_indice
 from cosmos.modelo import Configuracion, cargar_arbol
 
@@ -151,6 +152,27 @@ class PruebasInvariantes(unittest.TestCase):
     def test_e16_presupuesto_superado(self) -> None:
         config = Configuracion(**{**self.config.__dict__, "entrada": 1})
         self.exigir("E16", config=config)
+
+    def test_e16_usa_peor_nicho_aunque_el_caso_base_quepa(self) -> None:
+        self.escribir("provincia.md", documento("provincia", "calidad", "Agrupa una capacidad web sintética.", padre="trabajo"))
+        self.escribir(
+            "pueblos/revisar/SKILL.md",
+            documento(
+                "pueblo",
+                "revisar-web",
+                "Comprueba una interfaz con múltiples condiciones reproducibles.",
+                padre="trabajo/calidad",
+            ),
+        )
+        arbol = cargar_arbol(self.raiz, excluir=self.indice)
+        entrada_base = medir.medir_arbol(arbol, metodo="aprox", nichos=None).entrada
+        entrada_peor = medir.medir_arbol(arbol, metodo="aprox", nichos=["trabajo"]).entrada
+        self.assertLess(entrada_base, entrada_peor)
+        config = Configuracion(**{**self.config.__dict__, "entrada": entrada_base})
+        resultado = self.exigir("E16", config=config)
+        mensaje = next(error.mensaje for error in resultado.errores if error.codigo == "E16")
+        self.assertIn("trabajo", mensaje)
+        self.assertIn(str(entrada_peor - entrada_base), mensaje)
 
     def test_e17_parafrasis_en_contexto_permanente(self) -> None:
         primero = (

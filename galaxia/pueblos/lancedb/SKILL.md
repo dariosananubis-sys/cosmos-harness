@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: lancedb
-padre: agentes/recuperacion
+padre: modelos-locales/recuperacion
 resumen: Base vectorial embebida que lee de disco y no pelea por la RAM del proceso que la usa.
 ---
 

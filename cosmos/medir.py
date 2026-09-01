@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Callable
 
 from .generar import generar_indice
-from .modelo import Arbol, Nodo
+from .modelo import RANGOS, Arbol, Nodo, cuerpo
 
 
 HEURISTICA = "heurística v1"
@@ -26,12 +26,12 @@ class ParteMedida:
     tokens: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class ResultadoMedicion:
     entrada: int
-    arbol: int
+    universo: int
+    resto: int
     descarga: float | str
-    fuera_cosmos: str
     metodo: str
     tokenizador: str | None
     estimado: bool
@@ -39,12 +39,16 @@ class ResultadoMedicion:
     presupuesto: int
     detalle_entrada: list[ParteMedida]
     detalle_arbol: list[ParteMedida]
+    fuera_cosmos: str = field(init=False, default="no_medido")
+
+    @property
+    def arbol(self) -> int:
+        """Alias de compatibilidad; NUCLEO denomina universo al total."""
+
+        return self.universo
 
     def como_dict(self) -> dict[str, object]:
-        resultado = asdict(self)
-        # Se conserva como texto deliberadamente: jamás se representa como cero.
-        resultado["fuera_cosmos"] = "no_medido"
-        return resultado
+        return asdict(self)
 
 
 def contar_aprox(texto: str) -> int:
@@ -67,14 +71,12 @@ def tokenizador_exacto_disponible() -> bool:
 
 
 def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str | None, bool]:
-    if metodo not in {"auto", "aprox", "exacto"}:
-        raise ValueError("metodo debe ser auto, aprox o exacto")
-    exacto = _contador_exacto()
+    if metodo not in {"aprox", "exacto"}:
+        raise ValueError("metodo debe ser aprox o exacto")
     if metodo == "exacto":
+        exacto = _contador_exacto()
         if exacto is None:
             raise MetodoNoDisponible("se pidió método exacto, pero no hay tokenizador local")
-        return exacto[0], "exacto", exacto[1], False
-    if metodo == "auto" and exacto is not None:
         return exacto[0], "exacto", exacto[1], False
     return contar_aprox, "aprox", None, True
 
@@ -82,49 +84,67 @@ def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str |
 def catalogo_visible(arbol: Arbol) -> str:
     """Materializa exactamente los nombres/resúmenes visibles antes de bajar."""
 
-    con_resumen = {"sistema-solar", "ciudad", "pueblo", "rio"}
+    con_resumen = {"ciudad", "pueblo", "rio"}
     solo_nombre = {"planeta", "continente", "pais", "provincia"}
+    orden_agua = {"rio": len(RANGOS) + 1}
+
+    def clave(nodo: Nodo) -> tuple[int, str]:
+        return RANGOS.get(nodo.cosmos, orden_agua.get(nodo.cosmos, len(RANGOS) + 2)), nodo.referencia
+
     lineas: list[str] = []
-    for nodo in sorted(arbol.nodos, key=lambda n: (n.cosmos, n.nombre, n.ruta_relativa)):
+    for nodo in sorted(arbol.nodos, key=clave):
         if nodo.cosmos in con_resumen:
-            lineas.append(f"{nodo.cosmos}/{nodo.nombre}: {nodo.resumen}")
+            lineas.append(f"{nodo.referencia}: {nodo.resumen}")
         elif nodo.cosmos in solo_nombre:
-            lineas.append(f"{nodo.cosmos}/{nodo.nombre}")
-    return "\n".join(lineas) + ("\n" if lineas else "")
+            lineas.append(nodo.ruta_cosmos)
+    return "\n".join(lineas)
+
+
+def _bloques_contexto_inicial(arbol: Arbol, indice: str | None = None) -> list[tuple[str, str]]:
+    indice_real = generar_indice(arbol) if indice is None else indice
+    bloques: list[tuple[str, str]] = []
+    if indice_real:
+        bloques.append(("índice de galaxia", indice_real.rstrip("\n")))
+    for nodo in sorted((n for n in arbol.nodos if n.cosmos == "oceano"), key=lambda n: n.nombre):
+        contenido = cuerpo(nodo)
+        if contenido:
+            bloques.append((f"oceano/{nodo.nombre}", contenido))
+    catalogo = catalogo_visible(arbol)
+    if catalogo:
+        bloques.append(("catálogo visible", catalogo))
+    return bloques
+
+
+def contexto_inicial(arbol: Arbol, *, indice: str | None = None) -> str:
+    """Materializa la secuencia normativa única que se paga al entrar."""
+
+    return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice))
 
 
 def medir_arbol(
     arbol: Arbol,
     *,
-    metodo: str = "auto",
+    metodo: str = "aprox",
     presupuesto: int = 4000,
     indice: str | None = None,
 ) -> ResultadoMedicion:
     contador, metodo_real, tokenizador, estimado = _seleccionar_contador(metodo)
-    indice_real = generar_indice(arbol) if indice is None else indice
-
-    partes_entrada: list[tuple[str, str]] = []
-    if indice_real:
-        partes_entrada.append(("índice de galaxia", indice_real))
-    for nodo in sorted((n for n in arbol.nodos if n.cosmos == "oceano"), key=lambda n: n.nombre):
-        partes_entrada.append((f"oceano/{nodo.nombre}", nodo.contenido))
-    catalogo = catalogo_visible(arbol)
-    if catalogo:
-        partes_entrada.append(("catálogo visible", catalogo))
-
+    partes_entrada = _bloques_contexto_inicial(arbol, indice)
+    entrada = contador(contexto_inicial(arbol, indice=indice))
     detalle_entrada = [ParteMedida(nombre, contador(texto)) for nombre, texto in partes_entrada]
+    nodos_resto = [nodo for nodo in arbol.nodos if nodo.cosmos != "oceano"]
     detalle_arbol = [
-        ParteMedida(nodo.referencia, contador(nodo.contenido))
-        for nodo in sorted(arbol.nodos, key=lambda n: (n.cosmos, n.nombre, n.ruta_relativa))
+        ParteMedida(nodo.referencia, contador(cuerpo(nodo)))
+        for nodo in sorted(nodos_resto, key=lambda n: (RANGOS.get(n.cosmos, 99), n.referencia, n.ruta_relativa))
     ]
-    entrada = sum(parte.tokens for parte in detalle_entrada)
-    total_arbol = sum(parte.tokens for parte in detalle_arbol)
-    descarga: float | str = "no_definida" if total_arbol == 0 else 1 - entrada / total_arbol
+    resto = sum(parte.tokens for parte in detalle_arbol)
+    universo = entrada + resto
+    descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
     return ResultadoMedicion(
         entrada=entrada,
-        arbol=total_arbol,
+        universo=universo,
+        resto=resto,
         descarga=descarga,
-        fuera_cosmos="no_medido",
         metodo=metodo_real,
         tokenizador=tokenizador,
         estimado=estimado,
@@ -158,7 +178,7 @@ def formatear_medicion(resultado: ResultadoMedicion, *, detalle: bool = False) -
         "COSMOS  medir",
         "",
         f"  Entrada ......... {_numero(resultado.entrada)} tokens   ({metodo})",
-        f"  Árbol ........... {_numero(resultado.arbol)} tokens   ({metodo})",
+        f"  Universo ........ {_numero(resultado.universo)} tokens   ({metodo})",
         f"  Descarga ........ {descarga}",
         f"  Presupuesto ..... {_numero(resultado.presupuesto)}     {estado}",
         "",
@@ -172,7 +192,7 @@ def formatear_medicion(resultado: ResultadoMedicion, *, detalle: bool = False) -
     else:
         lineas.append("    (entrada vacía)")
     if detalle:
-        lineas.extend(["", "  Árbol, nodo a nodo:"])
+        lineas.extend(["", "  Resto, nodo a nodo:"])
         lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in resultado.detalle_arbol)
     return "\n".join(lineas) + "\n"
 

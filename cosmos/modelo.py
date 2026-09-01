@@ -64,6 +64,19 @@ class Nodo:
 
     @property
     def referencia(self) -> str:
+        if self.cosmos in NIVELES_SOLIDOS:
+            return self.ruta_cosmos
+        return f"{self.cosmos}/{self.nombre}"
+
+    @property
+    def ruta_cosmos(self) -> str:
+        """Ruta normativa del sólido; el agua conserva identidad nivel/nombre."""
+
+        if self.cosmos == "galaxia":
+            return ""
+        padre = self.datos.get("padre")
+        if self.cosmos in NIVELES_SOLIDOS and isinstance(padre, str):
+            return f"{padre}/{self.nombre}" if padre else self.nombre
         return f"{self.cosmos}/{self.nombre}"
 
     def linea(self, campo: str) -> int | None:
@@ -87,14 +100,30 @@ class Configuracion:
     oceanos: int = 7
     galaxia_lineas: int = 40
     umbral_solapamiento: float = 0.25
+    metodo: str = "aprox"
     arbol: Path = Path(".")
     indice: Path = Path("COSMOS.md")
+    destino_compilacion: Path = Path(".claude/skills")
+    modo_compilacion: str = "symlink"
+    manifiesto_compilacion: Path = Path(".cosmos/compilado.json")
     encontrada: bool = False
     ruta: Path | None = None
 
 
 class ErrorConfiguracion(ValueError):
     pass
+
+
+def cuerpo(nodo: Nodo) -> str:
+    """Contenido Markdown sin frontmatter ni su delimitador de cierre."""
+
+    lineas = nodo.contenido.splitlines(keepends=True)
+    if not lineas or lineas[0].strip() != "---":
+        return nodo.contenido.strip()
+    for indice, linea in enumerate(lineas[1:], start=1):
+        if linea.strip() == "---":
+            return "".join(lineas[indice + 1 :]).strip()
+    return nodo.contenido.strip()
 
 
 def _quitar_comentario(texto: str) -> str:
@@ -278,12 +307,17 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
             "oceanos": presupuesto["oceanos"],
             "galaxia_lineas": presupuesto["galaxia_lineas"],
         }
-        guardarrailes = datos.get("guardarrailes", {})
-        if not isinstance(guardarrailes, dict):
-            raise ErrorConfiguracion("guardarrailes debe ser una tabla TOML")
-        umbral_solapamiento = guardarrailes.get("umbral_solapamiento", 0.25)
+        umbral_solapamiento = presupuesto.get("solapamiento", 0.25)
         arbol_rel = raiz["arbol"]
         indice_rel = raiz["indice"]
+        medicion = datos.get("medicion", {})
+        compilacion = datos.get("compilacion", {})
+        if not isinstance(medicion, dict) or not isinstance(compilacion, dict):
+            raise ErrorConfiguracion("medicion y compilacion deben ser tablas TOML")
+        metodo = medicion.get("metodo", "aprox")
+        destino_rel = compilacion.get("destino", ".claude/skills")
+        modo_compilacion = compilacion.get("modo", "symlink")
+        manifiesto_rel = compilacion.get("manifiesto", ".cosmos/compilado.json")
     except (KeyError, TypeError) as exc:
         raise ErrorConfiguracion(f"falta un umbral o ruta obligatoria en {ruta_path}: {exc}") from exc
     if any(not isinstance(valor, int) or isinstance(valor, bool) or valor < 0 for valor in valores.values()):
@@ -293,15 +327,24 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         or isinstance(umbral_solapamiento, bool)
         or not 0 <= float(umbral_solapamiento) <= 1
     ):
-        raise ErrorConfiguracion("guardarrailes.umbral_solapamiento debe estar entre 0 y 1")
-    if not isinstance(arbol_rel, str) or not isinstance(indice_rel, str):
-        raise ErrorConfiguracion("raiz.arbol y raiz.indice deben ser texto")
+        raise ErrorConfiguracion("presupuesto.solapamiento debe estar entre 0 y 1")
+    if metodo not in {"aprox", "exacto"}:
+        raise ErrorConfiguracion("medicion.metodo debe ser 'aprox' o 'exacto'")
+    if modo_compilacion not in {"symlink", "copia"}:
+        raise ErrorConfiguracion("compilacion.modo debe ser 'symlink' o 'copia'")
+    rutas_texto = (arbol_rel, indice_rel, destino_rel, manifiesto_rel)
+    if any(not isinstance(valor, str) for valor in rutas_texto):
+        raise ErrorConfiguracion("las rutas de raiz y compilacion deben ser texto")
     base = ruta_path.parent
     return Configuracion(
         **valores,
         umbral_solapamiento=float(umbral_solapamiento),
+        metodo=metodo,
         arbol=(base / arbol_rel).resolve(),
         indice=(base / indice_rel).resolve(),
+        destino_compilacion=(base / destino_rel).resolve(),
+        modo_compilacion=modo_compilacion,
+        manifiesto_compilacion=(base / manifiesto_rel).resolve(),
         encontrada=True,
         ruta=ruta_path,
     )

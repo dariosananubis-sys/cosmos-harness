@@ -1,7 +1,7 @@
 // nif-cif-validator.js — normalización y resolución de NIF/CIF español → slug de negocio.
 // Sin dependencias externas (puro y testeable).
 
-// Normaliza un NIF/CIF: mayúsculas + solo alfanumérico. "b-039.72221 " → "B03972221".
+// Normaliza un NIF/CIF: mayúsculas + solo alfanumérico. "b-000.00000 " → "B00000000".
 export function normalizeNif(v) {
   return String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 }

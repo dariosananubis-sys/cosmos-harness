@@ -52,7 +52,7 @@ Tres piezas, y ninguna depende de que nadie se acuerde de nada:
 
 | Pieza | Qué hace |
 |---|---|
-| `cosmos validar` | 16 invariantes. Huérfanos, ciclos, contención invertida, océanos encubiertos, presupuesto pasado. Rojo, no aviso |
+| `cosmos validar` | E00–E18. Esquema, estructura, duplicación, colisiones y presupuesto. Rojo, no aviso |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
 

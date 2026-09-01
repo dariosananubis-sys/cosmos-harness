@@ -40,7 +40,13 @@ LIMITE_PREFIJO_TABLA = 64 * 1024
 
 # Dominios reservados por la RFC 2606 y .invalid: un repo público-limpio los usa
 # en su documentación y no son datos de nadie.
-DOMINIOS_DE_EJEMPLO = (b".invalid", b"example.com", b"example.org", b"example.net")
+# Reservados por la RFC 6761 (.test, .example, .invalid, .localhost) y la RFC 2606
+# (example.com/org/net) precisamente para documentación y pruebas: no son de nadie.
+DOMINIOS_DE_EJEMPLO = (
+    b".invalid", b".test", b".example", b".localhost",
+    b"example.com", b"example.org", b"example.net",
+    b"ejemplo.com", b"dominio.com",
+)
 
 PATRON_CORREO = re.compile(
     rb"(?i)(?<![A-Z0-9._%+-])[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]+\.[A-Z]{2,63}(?![A-Z0-9._%+-])"
@@ -244,6 +250,8 @@ def _permitida(etiqueta: str, coincidencia: re.Match[bytes]) -> bool:
         )
     if etiqueta == SECRETO_ASIGNADO:
         return _es_expresion(coincidencia.group("valor"))
+    if etiqueta == "teléfono" and _es_decimal(coincidencia.group(0)):
+        return True
     if etiqueta in ETIQUETAS_CON_VALOR_FICTICIO:
         return _es_valor_de_ejemplo(coincidencia.group(0))
     return False
@@ -267,7 +275,8 @@ def _es_valor_de_ejemplo(valor: bytes) -> bool:
     if _es_contador(valor):
         return True
     limpio = re.sub(rb"[^A-Za-z0-9]", b"", cola).upper()
-    if limpio in VALORES_DE_EJEMPLO:
+    entero = re.sub(rb"[^A-Za-z0-9]", b"", valor).upper()
+    if limpio in VALORES_DE_EJEMPLO or entero in VALORES_DE_EJEMPLO:
         return True
     digitos = re.sub(rb"[^0-9]", b"", limpio)
     if len(digitos) < 6:
@@ -277,6 +286,17 @@ def _es_valor_de_ejemplo(valor: bytes) -> bool:
     primero = digitos[0] - 48                        # byte ASCII -> dígito
     ascendente = bytes(48 + (primero + i) % 10 for i in range(len(digitos)))
     return digitos == ascendente                      # 12345678, 0123456789
+
+
+def _es_decimal(valor: bytes) -> bool:
+    """Un número con parte decimal es una cifra, no un teléfono.
+
+    Caso real: `price_to_precision("BTC/USDT", 63123.4567)` disparaba el patrón,
+    porque el punto decimal encaja como separador de grupos. Ningún teléfono lleva
+    un punto seguido de tres o más dígitos: eso es una fracción.
+    """
+
+    return re.fullmatch(rb"[0-9]{1,7}[.,][0-9]{3,}", valor) is not None
 
 
 def _es_contador(valor: bytes) -> bool:
@@ -298,6 +318,7 @@ def _es_contador(valor: bytes) -> bool:
 # Convenciones de relleno: lo que aparece en un `--help`, nunca en un dato real.
 VALORES_DE_EJEMPLO = frozenset({
     b"12345678Z", b"00000000T", b"11111111H", b"X1234567L",
+    b"B00000000", b"A00000000", b"B12345678",   # CIF: letra de forma juridica + 8
     b"600000000", b"666666666", b"900000000", b"555555555",
 })
 CORREOS_DE_EJEMPLO = frozenset({

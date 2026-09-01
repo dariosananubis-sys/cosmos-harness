@@ -16,6 +16,10 @@ solapamiento = 0.25
 [raiz]
 arbol = "galaxia"
 indice = "galaxia/COSMOS.md"
+# El registro es otra puerta, no un tramo de la galaxia (spec/REGISTRO.md), pero
+# sus entradas son nodos y la spec promete que el validador las comprueba. Sin
+# esta línea la promesa era falsa: `lluvia` estaba escrita y el árbol no la veía.
+registro = "registro"
 
 [medicion]
 metodo = "aprox"

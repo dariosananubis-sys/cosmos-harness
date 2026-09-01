@@ -28,8 +28,7 @@ forma. Y lo que es propiedad de la forma no se olvida en el turno 40.
 **Lo sólido contiene.** Todo está dentro de otra cosa, sin excepción:
 
 ```
-galaxia > sistema solar > planeta > continente > pais
-        > provincia > ciudad > pueblo > casa
+galaxia > sistema solar > planeta > continente > pais > provincia > pueblo
 ```
 
 Con dos adjuntos: la **estrella** que ilumina un sólido (su contexto permanente) y la **luna** que
@@ -73,7 +72,7 @@ Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se
 | `cosmos validar` | E00–E19. Esquema, estructura, duplicación, presupuesto y artefactos sincronizados |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
-| `cosmos compilar` | Aplana ciudades y pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
+| `cosmos compilar` | Aplana los pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
 
 | Enganche | Cuándo corre | Se instala con |
 |---|---|---|

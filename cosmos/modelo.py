@@ -14,6 +14,11 @@ from pathlib import Path
 from typing import Any
 
 
+# Siete sólidos. `ciudad` y `casa` se retiraron el 2026-09-01 (H20): ni un nodo en
+# la galaxia ni en el ejemplo, ni un test que los creara, y 209 skills atómicas de
+# un solo fichero. Un nivel que nunca ha agrupado nada no es una reserva, es spec
+# sin ejercitar. Si vuelve a hacer falta una skill con partes que se cargan por
+# separado, se reintroduce con el nodo que lo justifique delante, no antes.
 NIVELES_SOLIDOS = (
     "galaxia",
     "sistema-solar",
@@ -21,9 +26,7 @@ NIVELES_SOLIDOS = (
     "continente",
     "pais",
     "provincia",
-    "ciudad",
     "pueblo",
-    "casa",
 )
 NIVELES_ADJUNTOS = ("estrella", "luna")
 NIVELES_AGUA = ("oceano", "mar", "lago", "rio", "lluvia")
@@ -103,6 +106,9 @@ class Configuracion:
     metodo: str = "aprox"
     arbol: Path = Path(".")
     indice: Path = Path("COSMOS.md")
+    # Raíz hermana opcional. El registro no cuelga de la galaxia (es otra puerta),
+    # pero sus entradas son nodos y el validador tiene que verlas.
+    registro: Path | None = None
     destino_compilacion: Path = Path(".claude/skills")
     modo_compilacion: str = "symlink"
     manifiesto_compilacion: Path = Path(".cosmos/compilado.json")
@@ -296,7 +302,18 @@ def cargar_arbol(
     *,
     excluir: str | Path | None = None,
     excluir_directorios: tuple[str | Path, ...] = (),
+    tambien: tuple[str | Path, ...] = (),
 ) -> Arbol:
+    """Carga el árbol; `tambien` añade raíces hermanas, como el registro.
+
+    El registro vive fuera de la galaxia a propósito (`spec/REGISTRO.md`: una
+    puerta por fuera), pero sus entradas **son nodos** y la spec promete que el
+    validador las comprueba. Mientras el cargador miraba una sola raíz, esa
+    promesa era falsa: la memoria estaba escrita y el árbol no la veía (H20).
+    Las rutas de una raíz añadida se nombran desde su directorio padre, para que
+    `registro/lluvia/x.md` se lea igual en un error que en el disco.
+    """
+
     raiz_path = Path(raiz).resolve()
     arbol = Arbol(raiz=raiz_path)
     excluir_path = Path(excluir).resolve() if excluir is not None else None
@@ -305,6 +322,26 @@ def cargar_arbol(
         arbol.errores.append(ErrorCarga(str(raiz_path), None, "la raíz del árbol no existe"))
         return arbol
 
+    origenes = [(raiz_path, raiz_path)]
+    for extra in tambien:
+        extra_path = Path(extra).resolve()
+        if not extra_path.is_dir():
+            arbol.errores.append(ErrorCarga(str(extra_path), None, "la raíz añadida no existe"))
+            continue
+        origenes.append((extra_path, extra_path.parent))
+
+    for origen, base_relativa in origenes:
+        _cargar_desde(arbol, origen, base_relativa, excluir_path, directorios_excluidos)
+    return arbol
+
+
+def _cargar_desde(
+    arbol: Arbol,
+    raiz_path: Path,
+    base_relativa: Path,
+    excluir_path: Path | None,
+    directorios_excluidos: tuple[Path, ...],
+) -> None:
     for ruta in sorted(raiz_path.rglob("*.md")):
         if excluir_path is not None and ruta.resolve() == excluir_path:
             continue
@@ -318,7 +355,7 @@ def cargar_arbol(
             continue
         if not contenido.startswith("---"):
             continue
-        relativa = ruta.relative_to(raiz_path).as_posix()
+        relativa = ruta.relative_to(base_relativa).as_posix()
         try:
             datos, lineas = parsear_frontmatter(contenido, relativa)
         except ValueError as exc:
@@ -329,7 +366,6 @@ def cargar_arbol(
             arbol.errores.append(ErrorCarga(relativa, linea, detalle))
             continue
         arbol.nodos.append(Nodo(ruta, relativa, datos, lineas, contenido))
-    return arbol
 
 
 def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
@@ -360,6 +396,7 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         umbral_solapamiento = presupuesto.get("solapamiento", 0.25)
         arbol_rel = raiz["arbol"]
         indice_rel = raiz["indice"]
+        registro_rel = raiz.get("registro")
         medicion = datos.get("medicion", {})
         compilacion = datos.get("compilacion", {})
         if not isinstance(medicion, dict) or not isinstance(compilacion, dict):
@@ -385,6 +422,8 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
     rutas_texto = (arbol_rel, indice_rel, destino_rel, manifiesto_rel)
     if any(not isinstance(valor, str) for valor in rutas_texto):
         raise ErrorConfiguracion("las rutas de raiz y compilacion deben ser texto")
+    if registro_rel is not None and not isinstance(registro_rel, str):
+        raise ErrorConfiguracion("raiz.registro debe ser texto")
     base = ruta_path.parent
     return Configuracion(
         **valores,
@@ -392,6 +431,7 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         metodo=metodo,
         arbol=(base / arbol_rel).resolve(),
         indice=(base / indice_rel).resolve(),
+        registro=(base / registro_rel).resolve() if registro_rel else None,
         destino_compilacion=(base / destino_rel).resolve(),
         modo_compilacion=modo_compilacion,
         manifiesto_compilacion=(base / manifiesto_rel).resolve(),

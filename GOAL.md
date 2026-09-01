@@ -39,9 +39,11 @@ Dos exigencias que el encargo fija y que no son negociables:
 - **Cada nicho apunta a sus vecinos y no duplica nada.** Un trabajo real cruza varios; el nicho lo
   declara con `usa:`, que sugiere sin arrastrar carga. Una herramienta vive en **un solo sitio**:
   cero repetidos es regla dura.
-- **El catálogo es el coste real.** Con 66 herramientas montadas, el catálogo son 1.713 de los 2.572
-  tokens de entrada: el 67%. Hay sitio para unas 5 o 6 por nicho, no cincuenta. Eso convierte «lo
-  mejor del mundo» en una decisión y no en una acumulación.
+- **El catálogo es el coste real.** Lo que se paga por existir no se escribe aquí: se ejecuta
+  `cosmos medir`. Un número copiado a mano en una spec envejece en silencio y acaba mintiendo —
+  ya pasó una vez (hallazgo H11). Lo que sí es permanente: hay sitio para unas pocas herramientas
+  por oficio, no cincuenta, y eso convierte «lo mejor del mundo» en una decisión y no en una
+  acumulación.
 
 ## 2. El principio rector (lo que de verdad importa)
 
@@ -82,10 +84,8 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 | **Luna** | Un subagente que orbita ese planeta | — (orbita) |
 | **Continente** | Una disciplina dentro del oficio (ofensiva, defensiva, análisis) | Países |
 | **País** | Una familia de capacidades, incluido el **código propio del nicho** | Provincias |
-| **Provincia** | Un grupo de skills hermanas | Ciudades y pueblos |
-| **Ciudad** | Una skill grande, con sub-skills y referencias propias | Pueblos, casas |
-| **Pueblo** | Una skill atómica | Casas |
-| **Casa** | Un fichero de referencia dentro de la skill | — |
+| **Provincia** | Un grupo de skills hermanas | Pueblos |
+| **Pueblo** | Una skill atómica. Es el suelo del árbol | — |
 
 Regla dura de contención: **ningún elemento existe fuera de un padre.** Un pueblo huérfano es un
 error del sistema, no un caso aceptable, y el validador lo trata como tal.
@@ -97,7 +97,7 @@ error del sistema, no un caso aceptable, y el validador lo trata como tal.
 | **Océano** | Regla global, innegociable | Todo el universo |
 | **Mar** | Regla transversal a varios oficios (`criterio`, `pruebas`…) | Regional |
 | **Lago** | Regla local, de un país o provincia | Acotado |
-| **Río** | Un comando / slash: camino de ejecución que conecta ciudades | Recorre |
+| **Río** | Un comando: camino de ejecución que se invoca a propósito | Recorre |
 | **Lluvia** | Memoria: se evapora del contexto y precipita donde hace falta | Cae donde toca |
 
 El agua **nunca** define jerarquía. Un lago no es «menos importante» que un océano: es que **moja
@@ -114,14 +114,18 @@ regla local en un párrafo global, y así es como un prólogo llega a 30k tokens
 | Estrella | Con su sistema | — |
 | Planeta | Al tocar un path suyo | Su nombre |
 | Continente / País / Provincia | Al descender | Su nombre |
-| Ciudad / Pueblo | Al invocarse | Nombre + una línea |
-| Casa | Solo si la skill la abre | Nada |
+| Pueblo | Al invocarse | Nombre + una línea |
 | Mar / Lago | Por `paths:` que matchea | Nada |
 | Río | Por invocación explícita | Nombre + una línea |
 | Lluvia | Por consulta explícita | Nada |
 
-Lo que **nunca** ocurre: que el contexto inicial contenga la descripción de una casa, de un pueblo
-de otro sistema solar, o de un lago que no moja el path que se está tocando.
+Lo que **nunca** ocurre: que el contexto inicial contenga el cuerpo de un pueblo, la descripción de
+un pueblo de otro sistema solar, o un lago que no moja el path que se está tocando.
+
+`ciudad` y `casa` estaban en esta tabla y se retiraron el 2026-09-01: nunca tuvieron un nodo en
+ninguno de los dos árboles del repositorio. El motivo y el camino de vuelta, en
+`spec/TAXONOMIA.md`. Un nivel sin un solo nodo no es una reserva: es una promesa que el lector se
+cree.
 
 ## 5. Prohibiciones duras del repo
 

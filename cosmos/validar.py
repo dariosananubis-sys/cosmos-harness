@@ -38,7 +38,7 @@ PALABRAS_GRAMATICALES = {
 }
 # Nombrar el nivel al que el nodo ya pertenece no informa de nada.
 PALABRAS_TAXONOMIA = {
-    "casa", "casas", "ciudad", "ciudades", "continente", "continentes", "cosmos",
+    "continente", "continentes", "cosmos",
     "estrella", "estrellas", "galaxia", "lago", "lagos", "lluvia", "luna", "lunas",
     "mar", "mares", "nivel", "niveles", "nodo", "nodos", "oceano", "pais", "paises",
     "planeta", "planetas", "provincia", "provincias", "pueblo", "pueblos", "rio",
@@ -88,7 +88,7 @@ CAMPOS_POR_NIVEL = {
     **{nivel: {"moja"} for nivel in NIVELES_AGUA},
     "rio": {"moja", "invoca"},
 }
-NIVELES_APLANADOS = frozenset({"ciudad", "pueblo"})
+NIVELES_APLANADOS = frozenset({"pueblo"})
 # Campos permitidos pero nunca obligatorios. 'usa' declara con qué se trabaja junto
 # (spec/COMPOSICION.md): un nodo sin vecinos es perfectamente válido, y forzarlo
 # llenaría el árbol de relaciones inventadas para rellenar un campo.
@@ -289,7 +289,7 @@ def _comprobar_e08(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
 
 def _comprobar_e09(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
     return [
-        _error("E09", nodo, f"nivel desconocido: {nodo.datos.get('cosmos')!r}", "Usa uno de los 16 niveles definidos por COSMOS.", campo="cosmos")
+        _error("E09", nodo, f"nivel desconocido: {nodo.datos.get('cosmos')!r}", "Usa uno de los 14 niveles definidos por COSMOS.", campo="cosmos")
         for nodo in arbol.nodos
         if nodo.cosmos not in NIVELES_VALIDOS
     ]
@@ -308,6 +308,20 @@ def _comprobar_e10(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
             valido = False
         if not valido:
             errores.append(_error("E10", nodo, "agua sin alcance válido", "Declara 'moja' como lista no vacía; océano usa ['**'] y solo río/lluvia admiten [].", campo="moja"))
+        elif nodo.cosmos == "lluvia" and moja:
+            # La memoria se consulta, no se carga (GOAL §4). Un `moja` no vacío no
+            # la hace aparecer sola, pero sí la mete en `agua_condicional` y la cobra:
+            # dos entradas del registro sumaban 7.700 tokens al presupuesto de cada
+            # sesión que tocara su terreno, sin cargarse nunca (H20).
+            errores.append(
+                _error(
+                    "E10",
+                    nodo,
+                    "la memoria no se carga sola: 'moja' de una lluvia debe ser []",
+                    "Deja 'moja: []'. El registro se consulta con rio/memoria; con alcance se paga y no se lee.",
+                    campo="moja",
+                )
+            )
     return errores
 
 
@@ -457,7 +471,7 @@ def _co_cargables(arbol: Arbol) -> list[Nodo]:
     """Los nodos que se pagan a la vez sin que nadie los invoque (NUCLEO §10).
 
     Océanos siempre; mares y lagos en cuanto su `moja` casa con un fichero que se
-    toca; estrellas al descender a su sólido. Ciudades y pueblos se invocan y se
+    toca; estrellas al descender a su sólido. Los pueblos se invocan y se
     pagan una vez: su duplicación la vigila E18, no esta.
     """
 

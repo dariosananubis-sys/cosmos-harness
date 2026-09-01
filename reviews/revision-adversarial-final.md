@@ -6,7 +6,7 @@ está ahí después de haber intentado tumbarlo y no haber podido, y digo qué i
 **Estado auditado** (fijado en cabecera, porque el árbol muta):
 
 ```
-$ cd /Users/<usuario>/cosmos && git rev-parse HEAD && git status --porcelain | wc -l
+$ cd <repo> && git rev-parse HEAD && git status --porcelain | wc -l
 243ec876d5947cab5b1526f6cbc3cdb713c44174
        0
 $ python3 --version   # 3.14.3 ; tiktoken NO instalado
@@ -56,13 +56,13 @@ fichero.
 desincronizaciones antes de que nadie toque nada.
 
 ```
-$ cd /Users/<usuario>/cosmos && git ls-files | grep -E '^\.cosmos|^\.claude'
+$ cd <repo> && git ls-files | grep -E '^\.cosmos|^\.claude'
 .claude/skills/probar-salida
 .claude/skills/revisar-formato
 .cosmos/compilado-galaxia.json
 .cosmos/compilado.json
 
-$ git clone -q /Users/<usuario>/cosmos /tmp/clon && cd /tmp/clon
+$ git clone -q <repo> /tmp/clon && cd /tmp/clon
 $ python3 -m cosmos validar galaxia --config galaxia.toml | head -4
 COSMOS  rojo  189 errores
 
@@ -134,9 +134,9 @@ este agujero.
 ## H03 · CONFIRMADO · Nada ejecuta nada, y el gate que existe no puede instalarse
 
 ```
-$ ls /Users/<usuario>/cosmos/.git/hooks/pre-commit
+$ ls <repo>/.git/hooks/pre-commit
 ls: ...: No such file or directory
-$ ls /Users/<usuario>/cosmos/.github
+$ ls <repo>/.github
 ls: ...: No such file or directory
 ```
 
@@ -249,7 +249,7 @@ al repo destino, así que en un planeta proyectado esas referencias apuntan a la
 ## H06 · CONFIRMADO · El repo no pasa su propio escáner de secretos
 
 ```
-$ cd /Users/<usuario>/cosmos && python3 -m puente.secretos --todo >/dev/null; echo $?
+$ cd <repo> && python3 -m puente.secretos --todo >/dev/null; echo $?
 1
 ```
 
@@ -578,7 +578,7 @@ Lo que sí hay, sin transcribir nada:
 1. **Metadatos de commit**: los 19 commits llevan el nombre real y **el correo corporativo de la
    agencia** en una de las identidades, y el **nombre de la máquina** de Darío en la otra
    (`git log --all --format='%an <%ae>'`). Van en cada objeto, no se borran editando ficheros.
-2. **Rutas absolutas del usuario**: 12 apariciones de `/Users/<usuario>` en 6 ficheros
+2. **Rutas absolutas del usuario**: 12 apariciones de `<inicio>` en 6 ficheros
    versionados (`PROGRESS.md`, `QUEDA.md`, `registro/commits/universo/2026/09/montaje-tanda-1.md`,
    `registro/commits/universo/2026/09/trading-a-fondo.md`, `research/<agencia>-HARNESS.md`,
    `reviews/claude-revisa-codigo-ronda1.md`). `research/HERRAMIENTAS-PROPIAS.md` ya está redactado a
@@ -803,7 +803,7 @@ o devuelve `no_definida`; el nombre con acentos lo caza E00. La invariante de NU
 un sabotaje silencioso —`peor nicho = caso base`, que es la clase de cambio que un refactor mete sin
 querer— y también lo cazan: 4 tests.
 
-**El puente, migrado.** Comparé fichero a fichero contra `/Users/<usuario>/vh-ref/scripts/` (solo
+**El puente, migrado.** Comparé fichero a fichero contra `<harness-de-referencia>/scripts/` (solo
 lectura). Ratios de 0,24 a 0,47: está reescrito. Busqué lógica muerta y vocabulario ajeno con grep
 de `<agencia>|harness|pack|AGENTS.md|memory/|\.agents` y solo salieron los dos casos de H19.
 **Aguanta.**

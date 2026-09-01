@@ -178,7 +178,7 @@ Detalles de diseño que no son obvios:
 
 ## 5. Verificación
 
-Todo lo de abajo se ejecuta desde `/Users/<usuario>/cosmos` con `python3` (3.11+, solo biblioteca
+Todo lo de abajo se ejecuta desde `<repo>` con `python3` (3.11+, solo biblioteca
 estándar, cero red).
 
 ### El gate completo sobre el índice — verde
@@ -194,7 +194,7 @@ EXIT=0
 ### Un clon limpio arranca y valida en verde
 
 ```
-$ git clone -q /Users/<usuario>/cosmos /tmp/clon-verificacion && cd /tmp/clon-verificacion
+$ git clone -q <repo> /tmp/clon-verificacion && cd /tmp/clon-verificacion
 $ python3 -m cosmos validar | head -2      # antes de arrancar: rojo, y dice qué falta
 COSMOS  rojo  1 errores
 E19  ... vista plana desincronizada: falta el manifiesto ...

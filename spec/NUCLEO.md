@@ -88,17 +88,21 @@ modelo**, así que contarlo infla justo lo que se paga siempre. Esto resuelve ad
 > | Nivel | Línea |
 > |---|---|
 > | planeta, continente, pais, provincia | `<ruta>` (siempre: forman el mapa de descenso) |
-> | ciudad, pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
+> | pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
 > | rio | `<ruta>: <resumen>` |
-> | casa, mar, lago, lluvia, estrella, luna | *(no aparece)* |
+> | mar, lago, lluvia, estrella, luna | *(no aparece)* |
 
 Ordenar por rango y no alfabéticamente por nivel es deliberado: el catálogo se inyecta en contexto y
 tiene que leerse como una jerarquía, no como una lista revuelta. Resuelve también H5.
 
-`nichos=None` significa **ningún nicho activo**: no aparece ninguna ciudad ni ningún pueblo. Una
-selección como `nichos=["web", "saas"]` incluye la unión de las ciudades y pueblos contenidos por
-esos dos sistemas, y ninguna skill invocable de los demás. El nicho de un sólido es el primer tramo
+`nichos=None` significa **ningún nicho activo**: no aparece ningún pueblo. Una selección como
+`nichos=["web", "saas"]` incluye la unión de los pueblos contenidos por esos dos sistemas, y
+ninguna skill invocable de los demás. El nicho de un sólido es el primer tramo
 de su ruta completa, que por definición es el `nombre` de su sistema solar.
+
+Los ríos aparecen siempre y sin depender del nicho: son los comandos, y un comando que no se sabe
+que existe no se invoca. Es el único bloque del catálogo que no se acota, y por eso su resumen se
+escribe corto — se paga en cada sesión, como el índice.
 
 El índice sigue nombrando todos los sistemas solares con una línea, y los niveles intermedios siguen
 mostrando por dónde descender. Por eso una skill oculta no vuelve invisible la existencia de su
@@ -144,7 +148,8 @@ entrada_con_agua  = entrada + agua
 ```
 
 Se excluye el agua con `moja: []` (río y lluvia): no se carga sola, se invoca, y su resumen ya se
-paga en el catálogo. Se excluyen los océanos porque ya están dentro de `entrada`.
+paga en el catálogo. En `lluvia` el `moja` vacío es obligatorio (E10) justo por esto: con alcance
+entraría en `agua_condicional` y se pagaría sin llegar a cargarse nunca. Se excluyen los océanos porque ya están dentro de `entrada`.
 
 `agua` **no** entra en `universo` ni en `descarga`: los cuerpos del agua no-océano ya están dentro
 de `resto`, y sumarlos otra vez sería el doble conteo de §2 por la otra puerta. Como
@@ -180,25 +185,27 @@ metodo = "aprox"      # "aprox" | "exacto"
 `--metodo` en línea de comandos existe para inspeccionar a mano, y **no** puede cambiar el veredicto
 de `cosmos validar`.
 
-## 5. Qué se aplana: `ciudad` y `pueblo`, del nicho activo
+## 5. Qué se aplana: `pueblo`, del nicho activo
 
 `COMPILACION.md` hablaba de skills y ponía pueblos de ejemplo, sin enumerar. Sin enumeración, E18 no
 tiene dominio.
 
-**Resolución:** se aplanan exactamente los niveles **`ciudad`** y **`pueblo`** — las skills
-invocables. No se aplanan `casa` (vive dentro de su skill), ni `rio` (los comandos tienen su propio
-directorio plano), ni ningún otro nivel.
+**Resolución:** se aplana exactamente el nivel **`pueblo`** — la skill invocable. No se aplana `rio`
+(los comandos tienen su propio directorio plano) ni ningún otro nivel. Hasta el 2026-09-01 el
+conjunto era `{ciudad, pueblo}`; `ciudad` se retiró de la taxonomía sin haber tenido nunca un nodo
+(`spec/TAXONOMIA.md`), así que el conjunto se quedó en uno.
 
-`cosmos compilar --nicho web` aplana únicamente las ciudades y pueblos cuyo primer tramo de ruta es
-`web`. Cada entrada aplanada exporta **el directorio completo de la skill**, con su `SKILL.md` y sus
-casas. En `--modo copia` se excluyen `.git`, `__pycache__` y los ficheros que empiezan por punto.
+`cosmos compilar --nicho web` aplana únicamente los pueblos cuyo primer tramo de ruta es `web`. Cada
+entrada aplanada exporta **el directorio completo de la skill**, con su `SKILL.md` y los ficheros de
+referencia que tenga al lado. En `--modo copia` se excluyen `.git`, `__pycache__` y los ficheros que
+empiezan por punto.
 
 La API conserva `nichos=None` como compilación completa por compatibilidad. La CLI sin `--nicho`
 también conserva esa vista completa; el runtime acotado se materializa siempre con el flag explícito.
 Cambiar de nicho convierte las entradas registradas de los demás nichos en obsoletas y les aplica,
 sin excepción, la regla por hash de §7.
 
-E18 se comprueba sobre el conjunto `{nombre(n) : cosmos(n) ∈ {ciudad, pueblo}}`.
+E18 se comprueba sobre el conjunto `{nombre(n) : cosmos(n) = pueblo}`.
 
 ## 6. Orden de validación: lo generado no bloquea al que lo genera
 
@@ -323,7 +330,7 @@ nada.
 
 **Alcance.** E17 compara los nodos que pueden estar en contexto **al mismo tiempo sin que nadie los
 invoque**: los océanos (siempre), el agua no-océano con `moja` (por `paths:`) y las estrellas (al
-descender a su sólido). No compara ciudades ni pueblos: esos se invocan, se pagan una vez y su
+descender a su sólido). No compara pueblos ni ríos: esos se invocan, se pagan una vez y su
 duplicación la vigila E18.
 
 **Medida.** La duplicación que importa es **una afirmación repetida con otras palabras**, no un

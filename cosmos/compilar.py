@@ -14,7 +14,7 @@ from typing import Any
 from .modelo import Arbol, Nodo, nicho_de_nodo, normalizar_nichos
 
 
-NIVELES_APLANADOS = frozenset({"ciudad", "pueblo"})
+NIVELES_APLANADOS = frozenset({"pueblo"})
 VERSION_MANIFIESTO = 1
 
 

@@ -15,9 +15,14 @@ qué cargar y, sobre todo, **qué no existe todavía**.
 Producto final: un repo que se puede clonar sobre cualquier proyecto y que deja el harness
 organizado por niveles, con carga perezosa real y verificable.
 
-Y encima de ese esqueleto, **un universo de oficios**: mínimo veinte ámbitos especializados, cada
-uno lleno de las mejores herramientas que existan hoy para ese trabajo — no listas de consejos,
-herramientas que se ejecutan. El mapa está en `spec/UNIVERSO.md`.
+Y encima de ese esqueleto, **un universo de 20 oficios**, cada uno lleno de lo mejor que exista hoy
+en GitHub para ese trabajo — herramientas que se ejecutan, no listas de consejos. El mapa está en
+`spec/UNIVERSO.md`.
+
+La prueba que decide si algo es un nicho: **¿alguien contrataría esto?** «Bots de trading» sí.
+«Ciberseguridad» sí. «Datos» no — nadie contrata «datos»: contrata un pipeline que no se rompa, o un
+cuadro de mando que no mienta. Lo que no pasa esa prueba es una categoría temática, y una categoría
+no acota nada al entrar en ella.
 
 Las dos mitades parecen tirar en contra: cuantos más oficios, más contexto. **Solo lo hacen si todo
 lo que existe está cargado.** Con contención estricta, el universo puede crecer sin límite mientras
@@ -30,6 +35,12 @@ Dos exigencias que el encargo fija y que no son negociables:
   distintos que se cargan juntos.
 - **Los oficios se combinan.** La contención dice dónde vive algo y cuándo se carga, **nunca** con
   quién se junta. Detalle y mecanismo en `spec/COMPOSICION.md`.
+- **Cada nicho apunta a sus vecinos y no duplica nada.** Un trabajo real cruza varios; el nicho lo
+  declara con `usa:`, que sugiere sin arrastrar carga. Una herramienta vive en **un solo sitio**:
+  cero repetidos es regla dura.
+- **El catálogo es el coste real.** Con 66 herramientas montadas, el catálogo son 1.713 de los 2.572
+  tokens de entrada: el 67%. Hay sitio para unas 5 o 6 por nicho, no cincuenta. Eso convierte «lo
+  mejor del mundo» en una decisión y no en una acumulación.
 
 ## 2. El principio rector (lo que de verdad importa)
 

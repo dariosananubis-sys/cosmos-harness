@@ -26,14 +26,14 @@ existe para quitar.
 | `E01` | Todo nodo sólido salvo la galaxia declara `padre` | nodo huérfano |
 | `E02` | El `padre` declarado existe | padre inexistente |
 | `E03` | `rango(padre) < rango(hijo)`, estrictamente | contención invertida o plana |
-| `E04` | No hay ciclos en la relación de padres | ciclo |
+| ~~`E04`~~ | **Retirada.** La identidad por ruta completa hace los ciclos imposibles (`NUCLEO.md` §1). El hueco no se reutiliza | — |
 | `E05` | Existe exactamente una galaxia | cero o varias galaxias |
 | `E06` | `nombre` es único dentro de su padre | nombre duplicado entre hermanos |
 | `E07` | `resumen` presente y ≤ 120 caracteres | resumen ausente o pasado de largo |
-| `E08` | `resumen` no repite el `nombre` ni es vacío de contenido | resumen que no informa |
+| `E08` | El `resumen` aporta al menos una palabra con contenido que no está en el `nombre` | resumen que no informa |
 | `E09` | `cosmos` es uno de los 16 niveles válidos | nivel desconocido |
 | `E10` | Todo nodo de agua declara `moja` (lista, vacía solo en `rio` y `lluvia`) | agua sin alcance |
-| `E11` | Solo `oceano` puede tener `moja: ["**"]` | océano encubierto |
+| `E11` | Solo `oceano` puede cubrirlo todo: ningún otro agua tiene cobertura total ni patrones que no nombren nada (`NUCLEO.md` §9) | océano encubierto |
 | `E12` | El número de océanos no supera el umbral configurado | exceso de contexto global |
 | `E13` | `ilumina` / `orbita` apuntan a un nodo existente y del tipo correcto | adjunto colgado del aire |
 | `E14` | Como mucho una estrella por sólido | contexto duplicado |
@@ -42,11 +42,30 @@ existe para quitar.
 
 ### Sobre `E08`, que es el que se va a discutir
 
-Un resumen «no informa» si, tras quitar guiones y minúsculas, es igual al nombre, o si sus palabras
-son un subconjunto de las del nombre más palabras vacías (`la`, `de`, `skill`, `para`, `sistema`).
-Es una heurística y va a fallar en algún caso raro. La respuesta correcta a un falso positivo es
-escribir un resumen mejor, no relajar la comprobación: el coste de un resumen inútil es permanente
-y el de reescribirlo, de un minuto.
+Un resumen «no informa» si, tras normalizar, **no queda ni una sola palabra con contenido**: se le
+quitan las palabras del propio nombre y las palabras vacías, y si el resto es el conjunto vacío, el
+resumen no dice nada que el nombre no dijera ya.
+
+«Palabra vacía» aquí son tres familias, y las tres están en el código como una sola lista:
+
+1. **Gramaticales** — artículos, preposiciones, conjunciones, auxiliares (`el`, `de`, `que`, `es`…).
+2. **Del propio vocabulario de COSMOS** — `skill`, `sistema`, `pais`, `pueblo`, `oceano`, `mar`,
+   `estrella`… Nombrar el nivel al que ya pertenece el nodo no informa de nada.
+3. **Comodines de relleno** — `cosa`, `cosas`, `varios`, `varias`, `otro`, `general`, `generico`,
+   `todo`, `mismo`… Las palabras que caben en cualquier ficha porque no distinguen ninguna.
+
+La lista corta anterior (`la`, `de`, `skill`, `para`, `sistema`) se saltaba con dos palabras. Medido
+en `reviews/revision-adversarial-final.md` (H16): con el nombre `calidad`, tanto
+`«El pais de calidad»` como `«Cosas y mas cosas varias.»` pasaban en verde. Con la lista completa
+los dos dan cero palabras con contenido y saltan.
+
+El umbral es **una** palabra, no dos. Medido sobre los 312 nodos de la galaxia real: el resumen más
+flojo que hay hoy aporta dos palabras con contenido, así que exigir una endurece sin generar un
+solo falso positivo, y exigir dos dejaría el margen a cero. Sigue siendo una heurística y va a
+fallar en algún caso raro. La respuesta correcta a un falso positivo es escribir un resumen mejor,
+no relajar la comprobación: el coste de un resumen inútil es permanente y el de reescribirlo, de un
+minuto. Lo que no vale es una comprobación tan floja que nadie la note, porque el resumen es
+exactamente lo que se paga en el catálogo, en cada sesión.
 
 ### Sobre `E15`, que es el que sostiene todo lo demás
 
@@ -100,7 +119,7 @@ E03  spec/../arbol/pueblo/foo.md:4
      Cuelga foo de una provincia o de una ciudad.
 
 E11  arbol/mar/estilo.md:6
-     'moja: ["**"]' — solo un océano puede mojarlo todo.
+     'moja: ["**/*"]' — cubre las 12 sondas del corpus: solo un océano puede mojarlo todo.
      Acota el glob, o cambia 'cosmos: mar' por 'cosmos: oceano' y asume el coste.
 
 E16  presupuesto
@@ -117,9 +136,21 @@ El `GOAL.md` §7 pide que el validador **se haya visto fallar**. No basta con qu
 sobre un árbol bueno: un validador que nunca ha dicho rojo no se distingue de uno que siempre dice
 verde, y ese es un fallo real y frecuente.
 
-Por tanto, para **cada una de las 16 invariantes** hay un test que construye un árbol que la viola
-y exige el rojo con ese código exacto. Dieciséis rojos comprobados, más un verde sobre el árbol de
-ejemplo. Sin eso, la pieza no está terminada.
+Por tanto, para **cada invariante viva** hay un test que construye un árbol que la viola y exige el
+rojo con ese código exacto, más un verde sobre el árbol de ejemplo. Sin eso, la pieza no está
+terminada.
+
+«Viva» es la palabra importante. Una invariante que **ningún árbol legal puede disparar** no se
+tapa con un test que fabrica el caso saltándose el parser o subclasando el modelo: eso es un verde
+que no distingue una comprobación que funciona de una rota, que es justo lo que `GOAL.md` §7
+prohíbe. Se retira la invariante, se documenta por qué el diseño la hace innecesaria, y se deja en
+su lugar **un canario sobre la propiedad que la hacía innecesaria** más una meta-prueba que
+sustituye esa propiedad y exige que el canario se ponga rojo. Es lo que se hizo con E04
+(`NUCLEO.md` §1).
+
+Los códigos **no se renumeran** al retirar uno: E04 queda como hueco documentado. Renumerar
+invalidaría todos los partes, informes y mensajes de error escritos hasta hoy para ahorrar un
+número.
 
 Además, un test de la meta-invariante: si se rompe el propio validador (por ejemplo, haciendo que
 todas las comprobaciones devuelvan «bien»), la batería tiene que ponerse roja. Un validador que

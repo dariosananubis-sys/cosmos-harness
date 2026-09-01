@@ -5,13 +5,29 @@ padre: agentes-ia/coste
 resumen: Pregunta la cuota que queda al servicio en vez de adivinarla, y senala el pico dentro de la ventana.
 ---
 
-`cosecha/quota-oficial.py` — consulta el consumo real de la suscripcion contra su propio recurso de
-uso, resolviendo cual es la configuracion activa a partir del proceso vivo y leyendo la credencial
-del llavero del sistema, con reintento creciente.
+`cosecha/quota-oficial.py` y `cosecha/quota-peak.py` — herramientas propias, no de GitHub.
 
-`cosecha/quota-peak.py` — sobre los registros locales, dice en que momento de la ventana se gasto el
-pico. Sirve para atribuir el gasto a una tarea concreta, que es lo que el numero total no dice.
+```bash
+python3 cosecha/quota-oficial.py            # % real de la ventana de 5 h y de la semanal
+python3 cosecha/quota-peak.py               # pico en ventana rodante de 5 h
+python3 cosecha/quota-peak.py --horas 168   # pico semanal
+```
 
-Sin esto, cualquier herramienta de control de cuota tiene dos opciones: estimar, o leer la interfaz
-por raspado. La primera se equivoca justo cuando importa y la segunda se rompe al primer cambio de
-diseno.
+`quota-oficial.py` pregunta a la fuente autoritativa (`GET
+https://api.anthropic.com/api/oauth/usage`, el mismo recurso que alimenta el `/usage` del CLI):
+devuelve `five_hour.utilization` y `seven_day.utilization` **sin consumir un solo token**, resolviendo
+el `CLAUDE_CONFIG_DIR` activo a partir del proceso vivo y leyendo la credencial del llavero, con
+reintento creciente. `quota-peak.py` dice en qué momento de la ventana se gastó el pico, que es lo que
+el total no cuenta: sirve para atribuir el gasto a una tarea concreta.
+
+Gana a estimar por transcripts, que es lo que hacía la consola antes: los `.jsonl` no dicen de qué
+cuenta salió cada mensaje y el techo era un suelo observado, no el límite. Medido el 2026-08-13, la
+barra estimada marcaba **100 %** cuando la real era **13 %**. Y gana a raspar la interfaz, que se
+rompe al primer cambio de diseño.
+
+Descartado a propósito: sondear con un `POST /v1/messages` de `max_tokens: 1` y leer las cabeceras
+`anthropic-ratelimit-unified-*`. Funciona, pero cuesta tokens facturables por sondeo.
+
+Ojo: el recurso de uso **no está documentado** — puede cambiar sin aviso, así que un fallo de este
+guion no es motivo para dudar de la cuota. Y `quota-peak.py` mide un **suelo observado**, no el límite
+oficial: si se llegó ahí sin corte, el techo real es mayor.

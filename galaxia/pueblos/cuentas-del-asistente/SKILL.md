@@ -5,22 +5,32 @@ padre: agentes-ia/coste
 resumen: Varias cuentas del mismo asistente vivas a la vez: cual gasta la cuota, que ninguna caduque, y matar las zombis.
 ---
 
-`cosecha/claude-cuenta.sh` — arranca el asistente con un directorio de configuracion aislado por
-cuenta, asi que todas las ventanas gastan la cuota de la elegida y las demas se quedan iniciadas en
-reposo, a coste cero. No toca el llavero compartido, que es por donde dos ventanas rotando el mismo
-token acaban revocando la sesion. Un alias mal escrito corta con error en vez de abrir en silencio
-otra cuenta, que es justo lo que existe para evitar.
+`cosecha/claude-cuenta.sh`, `cosecha/mantener-sesiones-claude.sh` y `cosecha/reap-claude-orphans.sh`
+— herramientas propias, no de GitHub.
 
-`cosecha/mantener-sesiones-claude.sh` — una cuenta que nadie usa pierde la sesion en unos dias
-porque su credencial de refresco caduca. La renueva con la inferencia mas barata que existe (modelo
-pequeno, sin herramientas, sin proyecto, sin persistencia) y solo cada varios dias. Se niega a tocar
-dos alias que resulten ser la misma cuenta: dos sitios rotando la misma credencial es exactamente el
-incidente que este guion intenta evitar.
+```bash
+chmod +x cosecha/claude-cuenta.sh cosecha/mantener-sesiones-claude.sh cosecha/reap-claude-orphans.sh
+export CLAUDE_ACCOUNTS_DIR="$HOME/.claude-accounts"     # una subcarpeta por cuenta
+cosecha/claude-cuenta.sh trabajo --model opus           # abre esa cuenta; el resto de flags pasan a claude
+cosecha/mantener-sesiones-claude.sh --dry-run           # a cuáles tocaría para que no caduquen
+cosecha/reap-claude-orphans.sh --dry                    # qué zombis mataría
+```
 
-`cosecha/reap-claude-orphans.sh` — mata las sesiones cuyo proceso padre ya murio y los servidores de
-herramientas que dejaron colgando. Solo toca lo que quedo colgando del proceso inicial, asi que la
-sesion viva nunca entra en el barrido. En una maquina con poca memoria esos restos llenan el
-intercambio y provocan mas caidas, que dejan mas restos.
+Cada proceso gasta la cuota de la credencial que tenga cargada, así que arrancar siempre por
+`claude-cuenta.sh` deja todas las ventanas gastando **la cuenta elegida** y las demás iniciadas en
+reposo, a coste cero. Aísla por `CLAUDE_CONFIG_DIR` y no toca el llavero compartido, que es por donde
+dos ventanas rotando el mismo token acaban revocando la sesión. Un alias mal escrito corta con error
+en vez de abrir otra cuenta en silencio.
 
-Distinto de preguntar por la cuota: aquello dice cuanta queda, esto decide de quien sale y evita que
-la cuenta parada haya que reactivarla a mano el dia que hace falta.
+`mantener-sesiones-claude.sh` existe porque el refresh token dura ~9 días: una cuenta que nadie usa
+pierde la sesión y pide `/login` a mano el día que hace falta. La renueva con la inferencia más barata
+que existe (modelo pequeño, esfuerzo bajo, cero herramientas, cero persistencia) y solo cada varios
+días. `reap-claude-orphans.sh` mata lo que quedó colgando de un proceso muerto (`PPID=1`) y sus
+servidores MCP; en una máquina de 8 GB esos restos llenan el intercambio y provocan más caídas.
+
+Distinto de preguntar por la cuota (`quota-oficial`): aquello dice cuánta queda, esto decide de quién
+sale. Gana a `claude /login` a mano en que el cambio de cuenta no arriesga la sesión de la otra.
+
+Ojo: `auth status` **no renueva** el OAuth, solo inspecciona — por eso mantener viva una cuenta parada
+exige gastar una inferencia mínima, no basta con consultarla. Y el refresh token **rota**: escribirlo
+a mano desde fuera deja la cuenta sin sesión.

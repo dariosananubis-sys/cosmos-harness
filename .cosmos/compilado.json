@@ -1,0 +1,16 @@
+{
+  "destino": "../.claude/skills",
+  "entradas": {
+    "probar-salida": {
+      "hash": "04ead3cdaf1a3a47397ac0be562e4885f0bbb4d1cdae120bb987c84dcdabf253",
+      "modo": "symlink",
+      "origen": "../ejemplo/pueblos/probar-salida"
+    },
+    "revisar-formato": {
+      "hash": "0ede431f842eee757bae5c925194abc5dc91fd04aa9c48eb1494fc65ae141811",
+      "modo": "symlink",
+      "origen": "../ejemplo/pueblos/revisar-formato"
+    }
+  },
+  "version": 1
+}

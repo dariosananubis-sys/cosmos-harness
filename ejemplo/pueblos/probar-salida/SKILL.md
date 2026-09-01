@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: probar-salida
-padre: provincia/calidad
+padre: construccion/taller-herramientas/calidad
 resumen: Contrasta una salida calculada con un resultado esperado.
 ---
 

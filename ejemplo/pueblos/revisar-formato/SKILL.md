@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: revisar-formato
-padre: provincia/calidad
+padre: construccion/taller-herramientas/calidad
 resumen: Comprueba que un artefacto respeta un formato declarado.
 ---
 

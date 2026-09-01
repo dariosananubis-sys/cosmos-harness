@@ -1,0 +1,61 @@
+Instagram/LibCST | 1939★ | lic=NOASSERTION | pushed=2026-08-11 | archived=False | fork=False
+desc: A concrete syntax tree parser and serializer library for Python that preserves many aspects of Python's abstract syntax tree
+---
+dosisod/refurb | 2532★ | lic=GPL-3.0 | pushed=2026-04-03 | archived=False | fork=False
+desc: A tool for refurbishing and modernizing Python codebases
+---
+asottile/pyupgrade | 4113★ | lic=MIT | pushed=2026-08-25 | archived=False | fork=False
+desc: A tool (and pre-commit hook) to automatically upgrade syntax for newer versions of the language.
+---
+facebookarchive/codemod | 4133★ | lic=Apache-2.0 | pushed=2020-11-28 | archived=True | fork=False
+desc: Codemod is a tool/library to assist you with large-scale codebase refactors that can be partially automated but still require human oversight and occasional intervention. Codemod was developed at Facebook and released as open source.
+---
+golang/example | 2972★ | lic=BSD-3-Clause | pushed=2026-07-31 | archived=False | fork=False
+desc: Go example projects
+---
+dominikh/go-tools | 6878★ | lic=MIT | pushed=2026-08-24 | archived=False | fork=False
+desc: Staticcheck - The advanced Go linter
+---
+golangci/golangci-lint | 19342★ | lic=GPL-3.0 | pushed=2026-08-30 | archived=False | fork=False
+desc: Fast linters runner for Go
+---
+ERROR Moved Permanently
+---
+llvm/llvm-project | 40037★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.
+---
+KDAB/hotspot | 5143★ | lic=None | pushed=2026-05-12 | archived=False | fork=False
+desc: The Linux perf GUI for performance analysis.
+---
+mstange/samply | 4401★ | lic=Apache-2.0 | pushed=2026-08-31 | archived=False | fork=False
+desc: Command-line sampling profiler for macOS, Linux, and Windows
+---
+flamegraph-rs/flamegraph | 6018★ | lic=Apache-2.0 | pushed=2026-09-01 | archived=False | fork=False
+desc: Easy flamegraphs for Rust projects and everything else, without Perl or pipes <3
+---
+tikv/pprof-rs | 1649★ | lic=Apache-2.0 | pushed=2026-08-30 | archived=False | fork=False
+desc: A Rust CPU profiler implemented with the help of backtrace-rs
+---
+ERROR Not Found
+---
+ERROR Moved Permanently
+---
+protocolbuffers/protobuf | 71867★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: Protocol Buffers - Google's data interchange format
+---
+gruntwork-io/terragrunt | 9815★ | lic=MIT | pushed=2026-09-01 | archived=False | fork=False
+desc: Terragrunt is a flexible orchestration tool that allows Infrastructure as Code written in OpenTofu/Terraform to scale.
+---
+ERROR Not Found
+---
+ERROR Moved Permanently
+---
+mufeedvh/code2prompt | 7621★ | lic=MIT | pushed=2026-06-29 | archived=False | fork=False
+desc: A CLI tool to convert your codebase into a single LLM prompt with source tree, prompt templating, and token counting.
+---
+antfu/eslint-config | 6254★ | lic=MIT | pushed=2026-09-01 | archived=False | fork=False
+desc: Anthony's ESLint config preset
+---
+oven-sh/bun | 95830★ | lic=NOASSERTION | pushed=2026-09-01 | archived=False | fork=False
+desc: Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one
+---

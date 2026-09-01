@@ -1,131 +1,127 @@
-# El universo — 26 oficios en 7 galaxias
+# El universo — 20 nichos completos
 
-Encargo: *«mínimo 20 ámbitos nicho que me hagan el mejor harness y que no sean basura… serían 20
-sistemas solares y el general es el universo, y cada uno dentro tiene que estar repletísimo, sin
-errores, de herramientas que sean perfectas»*.
+Encargo de Darío (2026-09-01), literal: *«también en ciberseguridad, y dentro de ciberseguridad pues
+código… TODO ABSOLUTAMENTE LO QUE TENGA QUE VER con eso dentro de ese; eso es un ejemplo, igual que
+el de trading y el de webs. Tienes que encontrar 20 nichos en total como esos para dejarlo perfecto,
+y dentro de eso hacerlo perfecto. No me valen tonterías»*.
 
-Son **26**, porque salieron 26 oficios que de verdad se distinguen entre sí. No se rellena hasta un
-número redondo: un sistema solar que no es un oficio propio es un nivel de relleno, y un nivel de
-relleno cuesta y no informa.
+## El modelo: verticales, no capas
 
-**Un sistema solar es un modo de trabajo**, no un tema: cambia el vocabulario, cambian las
-herramientas y cambia lo que cuenta como terminado. Si dos candidatos comparten las tres cosas, son
-uno solo.
+Un sistema solar es un **nicho completo**. Se lleva dentro **todo** lo suyo: sus herramientas, sus
+técnicas, su vocabulario **y su código**. El que trabaja en ciberseguridad encuentra ahí dentro
+también cómo se escribe código de seguridad; no tiene que ir a buscarlo a otro sitio.
+
+Esto corrige el diseño anterior, que partía por capas horizontales (`codigo` por un lado, los temas
+por otro). Estaba mal, y el motivo es concreto: **el código de un nicho no se parece al de otro**.
+Un exploit, un bot que opera en un mercado y un tema de WordPress comparten la sintaxis y poco más —
+cambian los fallos típicos, lo que se considera correcto, las bibliotecas y lo que significa
+«terminado». Una capa `codigo` genérica no le sirve bien a ninguno de los tres.
+
+## Y entonces, ¿qué pasa con lo que sí es transversal?
+
+Que **es agua, no sólido**.
+
+Que el código no salga malo, que haya pruebas de verdad, que sea accesible, que no filtre secretos:
+eso atraviesa los 20 nichos sin pertenecer a ninguno. Ponerlo como sistema propio obligaría a
+elegir; ponerlo como agua hace que **moje los 20 a la vez**, que es justo lo que se pidió al exigir
+que dos capacidades se usen juntas.
+
+| Mar | Qué impone, en todos los nichos |
+|---|---|
+| `criterio` | Qué **no** escribir: simplicidad, reutilización, límites del cambio, deuda |
+| `pruebas` | Que un test afirme algo de verdad. Mutación, no cobertura decorativa |
+| `resistencia` | Que falle de forma ruidosa: nunca cero donde toca «no lo sé» |
+| `accesibilidad` | Que se pueda usar. Legal en Europa, además de correcto |
+| `custodia` | Secretos, datos personales, RGPD. Nunca en claro, nunca de más |
+
+`criterio` era un sistema solar en la versión anterior de este documento. Como mar es más fuerte:
+poda igual en los veinte sitios sin que nadie tenga que acordarse de invocarlo.
 
 ---
 
-## artesanía — construir software bien
+## Los 20 nichos
 
-| Sistema | Resumen (su frontmatter) |
-|---|---|
-| `codigo` | Lenguajes, algoritmos, refactorización a escala, perfilado y depuración difícil. |
-| `criterio` | Qué NO escribir: simplicidad, reutilización, límites del cambio y deuda. |
-| `arquitectura` | Límites entre partes, contratos, acoplamiento y decisiones que cuesta deshacer. |
-| `sistemas` | Bajo nivel: concurrencia, memoria, rendimiento extremo y comportamiento del runtime. |
-
-`codigo` y `criterio` van **separados a propósito** y se cargan juntos. Es la petición explícita del
-encargo, y el motivo está en `spec/COMPOSICION.md`: más capacidad sin más criterio produce más
-código de más. Uno propone y el otro poda; fundirlos deja que el que propone se autoevalúe.
-
-## producto — lo que se entrega
-
-| Sistema | Resumen |
-|---|---|
-| `web` | Sitios y tiendas: maquetación, comercio electrónico, rendimiento y conversión. |
-| `moviles` | Aplicaciones para móvil y escritorio: ciclo de vida, publicación y tiendas. |
-| `interfaz` | Diseño de interacción, sistemas de diseño y accesibilidad de verdad. |
-| `juegos` | Motores, bucle de juego, física, activos y publicación. |
-
-## máquina — dónde corre
-
-| Sistema | Resumen |
-|---|---|
-| `infraestructura` | Contenedores, despliegue, servidores, copias verificadas y monitorización. |
-| `nube` | Servicios gestionados, coste por uso, permisos y límites de cada proveedor. |
-| `redes` | Protocolos, DNS, certificados, proxies y diagnóstico de lo que no conecta. |
-| `embebidos` | Hardware, microcontroladores, sensores y comunicación con dispositivos. |
-
-## mente — construir con modelos
-
-| Sistema | Resumen |
-|---|---|
-| `modelos` | Recuperación, ajuste fino, modelos locales, visión y voz. |
-| `agentes` | Orquestación, herramientas, memoria, evaluación y agentes que corren solos. |
-| `investigacion` | Buscar, contrastar y sintetizar información, distinguiendo fuente de rumor. |
-| `lenguaje` | Traducción, internacionalización, corrección y análisis de texto. |
-
-## materia — datos y dinero
-
-| Sistema | Resumen |
-|---|---|
-| `datos` | Transformación, validación, análisis y cuadros de mando que no engañan. |
-| `almacenes` | Modelado, consultas, índices, migraciones y bases de datos en producción. |
-| `extraccion` | Sacar datos de webs y documentos, de forma legal y que falle de forma ruidosa. |
-| `mercados` | Bots que operan: conexión, ejecución, backtesting honesto y riesgo. |
-
-## mundo — el negocio y su entorno
-
-| Sistema | Resumen |
-|---|---|
-| `negocio` | Presupuestos, facturas, contratos, seguimiento y automatización administrativa. |
-| `visibilidad` | Que te encuentren: SEO técnico, buscadores con IA, contenido y marca. |
-| `medios` | Producir a escala: vídeo, imagen, audio y documentos, por lotes. |
-| `conocimiento` | Documentación, formación y material que otro pueda seguir sin ti. |
-
-## guardia — que no se rompa y no te demanden
-
-| Sistema | Resumen |
-|---|---|
-| `seguridad` | Auditoría defensiva, análisis estático, dependencias y secretos. |
-| `pruebas` | Tests que afirman algo: unidad, integración, extremo a extremo y mutación. |
-| `cumplimiento` | RGPD, accesibilidad legal, licencias y lo que exige la norma europea. |
+| # | Nicho | Qué se lleva dentro, incluido su código |
+|---|---|---|
+| 1 | `ciberseguridad` | Ofensiva autorizada, defensa, forense, malware, criptografía, y el código de todo eso |
+| 2 | `mercados` | Bots que operan: exchanges, ejecución, backtest honesto, riesgo, operación continua |
+| 3 | `web` | Sitios y tiendas: CMS, maquetación, comercio electrónico, frontend, conversión |
+| 4 | `agentes` | IA aplicada: orquestación, herramientas, memoria, recuperación, modelos locales |
+| 5 | `datos` | Ingeniería y análisis: transformación, validación, almacenes, cuadros de mando |
+| 6 | `extraccion` | Sacar datos del mundo: web, documentos, OCR, normalización |
+| 7 | `infraestructura` | Que corra: contenedores, despliegue, nube, redes, copias, monitorización |
+| 8 | `moviles` | Aplicaciones para móvil y escritorio, publicación y tiendas |
+| 9 | `juegos` | Motores, bucle, física, activos, publicación |
+| 10 | `medios` | Vídeo, imagen, audio y documentos, a escala y por lotes |
+| 11 | `visibilidad` | Que te encuentren: SEO técnico, buscadores con IA, contenido |
+| 12 | `saas` | Producto vendible: identidad, pagos, suscripciones, multi-cliente |
+| 13 | `embebidos` | Hardware, firmware, sensores, protocolos de dispositivo |
+| 14 | `blockchain` | Contratos inteligentes, su auditoría, y la infraestructura de cadena |
+| 15 | `cientifico` | Cálculo numérico, simulación, análisis científico y reproducibilidad |
+| 16 | `sistemas` | Bajo nivel: compiladores, runtime, concurrencia, rendimiento extremo |
+| 17 | `automatizacion` | Que lo repetitivo se haga solo: flujos, integraciones, tareas programadas |
+| 18 | `negocio` | La administración: presupuestos, facturas, contratos, seguimiento |
+| 19 | `legal` | Cumplimiento, RGPD, licencias, propiedad intelectual, contratos técnicos |
+| 20 | `conocimiento` | Documentación, formación, investigación y verificación de fuentes |
 
 ---
 
-## Las siete galaxias, y por qué siete
+## Cómo se estructura un nicho por dentro
 
-Una galaxia agrupa oficios que **se cargan juntos a menudo**. No es una estantería temática: es una
-apuesta sobre qué se usa con qué.
+Ejemplo desarrollado con `ciberseguridad`, que es el que se puso de referencia. Los demás siguen la
+misma forma: **continentes** (grandes disciplinas), **países** (familias de capacidades),
+**provincias** (grupos de skills hermanas), **pueblos** (skills atómicas).
 
-| Galaxia | Une |
-|---|---|
-| `artesania` | Todo lo que toca el código fuente |
-| `producto` | Todo lo que ve el cliente final |
-| `maquina` | Todo lo que hace que siga en pie |
-| `mente` | Todo lo que se construye con modelos |
-| `materia` | Todo lo que trata datos como materia prima |
-| `mundo` | Todo lo que convierte el trabajo en dinero |
-| `guardia` | Todo lo que audita a los demás |
+```
+sistema-solar  ciberseguridad
+├── continente  ofensiva            (autorizada: pentest, CTF, red team)
+│   ├── pais  reconocimiento        provincias: descubrimiento · huella · OSINT
+│   ├── pais  explotacion           provincias: web · binaria · escalada
+│   └── pais  codigo-ofensivo       ← su propio código vive aquí
+│              provincias: exploits · fuzzing · desarrollo de herramientas
+├── continente  defensiva
+│   ├── pais  deteccion             provincias: reglas · registro · caza
+│   ├── pais  endurecimiento        provincias: sistema · red · contenedor
+│   └── pais  codigo-defensivo      ← y aquí
+│              provincias: validación en frontera · criptografía aplicada
+├── continente  analisis
+│   ├── pais  forense               provincias: memoria · disco · red
+│   ├── pais  malware               provincias: estático · dinámico · desempaquetado
+│   └── pais  vulnerabilidades      provincias: SAST · dependencias · secretos
+└── continente  gobierno
+    └── pais  cumplimiento          provincias: marcos · auditoría · informes
+```
 
-`guardia` es la única que se define por su **relación** con las otras en vez de por su materia, y
-está bien así: audita, y por eso se carga junto a lo que audita, nunca sola.
+Fíjate en `codigo-ofensivo` y `codigo-defensivo`: **el código vive dentro del nicho**, y son dos
+países distintos porque escribir un exploit y escribir una validación en frontera son dos oficios
+que no comparten ni los fallos típicos ni lo que cuenta como correcto.
 
-## Qué se quedó fuera, y por qué
+Y sobre los tres continentes: los mares `criterio`, `pruebas` y `custodia` los mojan igual que a
+todos los demás. Nadie los invoca a mano.
 
-Decir qué no entra vale tanto como la lista, porque explica el criterio:
+## Lo que «perfecto» significa aquí
 
-- **`rendimiento`** — se reparte entre `sistemas` (bajo nivel) y `web` (carga de página). Como
-  sistema propio se solaparía con los dos y no tendría herramientas exclusivas.
-- **`devops`** — no es un oficio, es una forma de organizarse. Sus herramientas ya están en
-  `infraestructura` y `pruebas`.
-- **`blockchain`** — oficio real, pero hoy sin encaje en el trabajo. Candidato si aparece.
-- **`ciencia`** (computación científica, simulación) — mismo caso.
-- **`soporte`** (atención a cliente, incidencias) — candidato en cuanto haya volumen que lo pida.
-- **`marketing`** como sistema propio — lo que un modelo hace ya sin ayuda no necesita oficio. Lo
-  que sí es infraestructura ejecutable está en `negocio` y `visibilidad`.
+*«No me valen tonterías»* se traduce en un filtro, no en un adjetivo. Para que algo entre en un
+nicho:
 
-Un candidato entra cuando tiene **herramientas propias que no son de nadie más**. Mientras sus
-herramientas vivan en otro sistema, es una provincia de ese sistema, no un sistema.
+1. **Se ejecuta.** Herramienta, script o validador. Un documento con consejos que un modelo bueno ya
+   sabe **no entra**, por muchas estrellas que tenga.
+2. **Es el mejor de su hueco.** Uno por trabajo, no cinco parecidos. Si hay dos candidatos, se dice
+   por qué gana el que gana; si empatan de verdad, entran los dos y se dice cuándo usar cada uno.
+3. **Cuesta cero.** Nada que pida tarjeta, API de pago ni suscripción nueva.
+4. **Está vivo.** Mantenido, y su ecosistema no lo ha dejado atrás.
+5. **Se ha usado una vez.** Antes de quedarse, se prueba en un caso real.
 
-## Qué significa «repletísimo»
+Y la regla que sostiene todas las demás: **lo que no se invoca en tres meses se archiva.** No se
+borra, sale del catálogo — porque el catálogo se paga en todas las sesiones, y un nicho lleno de
+cosas que nadie usa es exactamente la tontería que no vale.
 
-Cada sistema se llena con lo que pasa la **regla de admisión** de `PLAN-MAESTRO.md` §3: mecanismo
-en vez de prosa, coste cero, un dueño claro, un resumen que informe, y haberse usado una vez.
+## Ciberseguridad: el límite que no se cruza
 
-«Repletísimo» **no** es «con todo lo que había». Un sistema con 40 herramientas mediocres es peor
-que uno con 8 buenas: cuesta más y esconde la que sirve. Lleno significa **que no falte nada de lo
-que hace falta**, no que no quepa nada más.
+Trabajo defensivo, auditoría autorizada, CTF, formación e investigación. Nada de técnicas
+destructivas, ataques de denegación, objetivos masivos, compromiso de cadena de suministro ni
+evasión de detección con fines maliciosos. Las herramientas de doble uso entran con su contexto de
+uso legítimo declarado.
 
-Y hay un aviso que conviene tener delante desde el principio: **el catálogo de nombres se paga
-siempre**. Cada pueblo añade su línea al contexto de entrada. Por eso hay presupuesto, por eso
-pasarse es rojo, y por eso lo que no se invoca en tres meses se archiva.
+No es una nota al pie: es parte de la definición del nicho, y va en su estrella para que se cargue
+siempre que alguien entre a trabajar ahí.

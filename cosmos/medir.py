@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Callable
 
 from .generar import generar_indice
-from .modelo import RANGOS, Arbol, Nodo, cuerpo
+from .modelo import RANGOS, Arbol, Nodo, cuerpo, nicho_de_nodo, nombres_nichos, normalizar_nichos
 
 
 HEURISTICA = "heurística v1"
@@ -39,6 +39,8 @@ class ResultadoMedicion:
     presupuesto: int
     detalle_entrada: list[ParteMedida]
     detalle_arbol: list[ParteMedida]
+    nichos: tuple[str, ...] = field(default_factory=tuple)
+    pueblos_visibles: int = 0
     fuera_cosmos: str = field(init=False, default="no_medido")
 
     @property
@@ -49,6 +51,29 @@ class ResultadoMedicion:
 
     def como_dict(self) -> dict[str, object]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class ResumenMedicion:
+    base: ResultadoMedicion
+    peor_nicho: str | None
+    peor: ResultadoMedicion
+    seleccion_nichos: tuple[str, ...] = field(default_factory=tuple)
+    seleccion: ResultadoMedicion | None = None
+
+    @property
+    def evaluada(self) -> ResultadoMedicion:
+        return self.seleccion or self.peor
+
+    def como_dict(self) -> dict[str, object]:
+        return {
+            "base": self.base.como_dict(),
+            "peor_nicho": self.peor_nicho,
+            "peor": self.peor.como_dict(),
+            "seleccion_nichos": list(self.seleccion_nichos),
+            "seleccion": self.seleccion.como_dict() if self.seleccion is not None else None,
+            "evaluada": "seleccion" if self.seleccion is not None else "peor_nicho",
+        }
 
 
 def contar_aprox(texto: str) -> int:
@@ -81,11 +106,13 @@ def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str |
     return contar_aprox, "aprox", None, True
 
 
-def catalogo_visible(arbol: Arbol) -> str:
+def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
     """Materializa exactamente los nombres/resúmenes visibles antes de bajar."""
 
+    seleccion = normalizar_nichos(arbol, nichos)
     con_resumen = {"ciudad", "pueblo", "rio"}
     solo_nombre = {"planeta", "continente", "pais", "provincia"}
+    invocables = {"ciudad", "pueblo"}
     orden_agua = {"rio": len(RANGOS) + 1}
 
     def clave(nodo: Nodo) -> tuple[int, str]:
@@ -93,6 +120,8 @@ def catalogo_visible(arbol: Arbol) -> str:
 
     lineas: list[str] = []
     for nodo in sorted(arbol.nodos, key=clave):
+        if nodo.cosmos in invocables and (seleccion is None or nicho_de_nodo(arbol, nodo) not in seleccion):
+            continue
         if nodo.cosmos in con_resumen:
             lineas.append(f"{nodo.referencia}: {nodo.resumen}")
         elif nodo.cosmos in solo_nombre:
@@ -100,7 +129,11 @@ def catalogo_visible(arbol: Arbol) -> str:
     return "\n".join(lineas)
 
 
-def _bloques_contexto_inicial(arbol: Arbol, indice: str | None = None) -> list[tuple[str, str]]:
+def _bloques_contexto_inicial(
+    arbol: Arbol,
+    indice: str | None = None,
+    nichos: list[str] | tuple[str, ...] | None = None,
+) -> list[tuple[str, str]]:
     indice_real = generar_indice(arbol) if indice is None else indice
     bloques: list[tuple[str, str]] = []
     if indice_real:
@@ -109,16 +142,21 @@ def _bloques_contexto_inicial(arbol: Arbol, indice: str | None = None) -> list[t
         contenido = cuerpo(nodo)
         if contenido:
             bloques.append((f"oceano/{nodo.nombre}", contenido))
-    catalogo = catalogo_visible(arbol)
+    catalogo = catalogo_visible(arbol, nichos)
     if catalogo:
         bloques.append(("catálogo visible", catalogo))
     return bloques
 
 
-def contexto_inicial(arbol: Arbol, *, indice: str | None = None) -> str:
+def contexto_inicial(
+    arbol: Arbol,
+    nichos: list[str] | tuple[str, ...] | None = None,
+    *,
+    indice: str | None = None,
+) -> str:
     """Materializa la secuencia normativa única que se paga al entrar."""
 
-    return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice))
+    return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos))
 
 
 def medir_arbol(
@@ -127,10 +165,12 @@ def medir_arbol(
     metodo: str = "aprox",
     presupuesto: int = 4000,
     indice: str | None = None,
+    nichos: list[str] | tuple[str, ...] | None = None,
 ) -> ResultadoMedicion:
     contador, metodo_real, tokenizador, estimado = _seleccionar_contador(metodo)
-    partes_entrada = _bloques_contexto_inicial(arbol, indice)
-    entrada = contador(contexto_inicial(arbol, indice=indice))
+    seleccion = normalizar_nichos(arbol, nichos)
+    partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion)
+    entrada = contador(contexto_inicial(arbol, seleccion, indice=indice))
     detalle_entrada = [ParteMedida(nombre, contador(texto)) for nombre, texto in partes_entrada]
     nodos_resto = [nodo for nodo in arbol.nodos if nodo.cosmos != "oceano"]
     detalle_arbol = [
@@ -152,7 +192,50 @@ def medir_arbol(
         presupuesto=presupuesto,
         detalle_entrada=sorted(detalle_entrada, key=lambda p: p.tokens, reverse=True),
         detalle_arbol=detalle_arbol,
+        nichos=seleccion or (),
+        pueblos_visibles=sum(
+            1
+            for nodo in arbol.nodos
+            if nodo.cosmos == "pueblo" and seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
+        ),
     )
+
+
+def medir_casos(
+    arbol: Arbol,
+    *,
+    metodo: str = "aprox",
+    presupuesto: int = 4000,
+    indice: str | None = None,
+    nichos: list[str] | tuple[str, ...] | None = None,
+) -> ResumenMedicion:
+    """Mide el caso base, cada nicho y, si se pidió, una selección concreta."""
+
+    base = medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=None)
+    por_nicho = [
+        (
+            nombre,
+            medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=[nombre]),
+        )
+        for nombre in nombres_nichos(arbol)
+    ]
+    if por_nicho:
+        peor_nicho, peor = max(por_nicho, key=lambda caso: caso[1].entrada)
+    else:
+        peor_nicho, peor = None, base
+    seleccion_nichos = normalizar_nichos(arbol, nichos)
+    seleccion = (
+        medir_arbol(
+            arbol,
+            metodo=metodo,
+            presupuesto=presupuesto,
+            indice=indice,
+            nichos=seleccion_nichos,
+        )
+        if seleccion_nichos is not None
+        else None
+    )
+    return ResumenMedicion(base, peor_nicho, peor, seleccion_nichos or (), seleccion)
 
 
 def _numero(numero: int) -> str:
@@ -197,5 +280,66 @@ def formatear_medicion(resultado: ResultadoMedicion, *, detalle: bool = False) -
     return "\n".join(lineas) + "\n"
 
 
+def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str:
+    evaluada = resultado.evaluada
+    if evaluada.metodo == "exacto":
+        metodo = f"exacto, {evaluada.tokenizador}"
+    else:
+        margen = "±desconocido" if evaluada.margen_error is None else f"±{evaluada.margen_error:.0%}"
+        metodo = f"estimado, {margen}, {HEURISTICA}"
+    descarga = (
+        "no_definida"
+        if evaluada.descarga == "no_definida"
+        else f"{float(evaluada.descarga) * 100:.1f} %".replace(".", ",")
+    )
+    if evaluada.entrada <= evaluada.presupuesto:
+        estado = f"OK, quedan {_numero(evaluada.presupuesto - evaluada.entrada)} tokens"
+    else:
+        estado = f"ROJO, excede en {_numero(evaluada.entrada - evaluada.presupuesto)} tokens"
+    peor_nombre = resultado.peor_nicho or "sin nichos"
+    lineas = [
+        "COSMOS  medir",
+        "",
+        f"  Entrada base .... {_numero(resultado.base.entrada)} tokens   (índice + océanos + estructura, sin pueblos; {metodo})",
+        f"  Peor nicho ...... {_numero(resultado.peor.entrada)} tokens   ({peor_nombre}, {resultado.peor.pueblos_visibles} pueblos)",
+    ]
+    if resultado.seleccion is not None:
+        nombres = ", ".join(resultado.seleccion_nichos)
+        etiqueta = "Nicho activo ...." if len(resultado.seleccion_nichos) == 1 else "Combinación ....."
+        lineas.append(
+            f"  {etiqueta} {_numero(resultado.seleccion.entrada)} tokens   ({nombres}; {resultado.seleccion.pueblos_visibles} pueblos)"
+        )
+    if resultado.seleccion is None:
+        ambito = "el peor caso"
+    elif len(resultado.seleccion_nichos) == 1:
+        ambito = "el nicho activo"
+    else:
+        ambito = "la combinación"
+    lineas.extend(
+        [
+            f"  Universo ........ {_numero(evaluada.universo)} tokens   ({metodo})",
+            f"  Descarga ........ {descarga}",
+            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado} en {ambito}",
+            "",
+            "  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)",
+            "",
+            "  Lo más caro de la entrada evaluada:",
+        ]
+    )
+    if evaluada.detalle_entrada:
+        for numero, parte in enumerate(evaluada.detalle_entrada if detalle else evaluada.detalle_entrada[:3], start=1):
+            lineas.append(f"    {numero}.  {_numero(parte.tokens)} tok  {parte.nombre}")
+    else:
+        lineas.append("    (entrada vacía)")
+    if detalle:
+        lineas.extend(["", "  Resto, nodo a nodo:"])
+        lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in evaluada.detalle_arbol)
+    return "\n".join(lineas) + "\n"
+
+
 def medicion_json(resultado: ResultadoMedicion) -> str:
+    return json.dumps(resultado.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+def casos_json(resultado: ResumenMedicion) -> str:
     return json.dumps(resultado.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"

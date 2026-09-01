@@ -279,8 +279,8 @@ class PruebasValidadorComplementarias(unittest.TestCase):
         suite = unittest.TestSuite(PruebasInvariantes(nombre) for nombre in nombres)
         with mock.patch.object(validador, "COMPROBACIONES", ()), mock.patch.object(validador, "formatear_validacion", return_value="COSMOS verde\n"):
             resultado = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
-        self.assertEqual(20, resultado.testsRun)
-        self.assertEqual(20, len(resultado.failures), "el mutante siempre-verde no puso roja toda la batería")
+        self.assertEqual(len(nombres), resultado.testsRun)
+        self.assertEqual(len(nombres), len(resultado.failures), "el mutante siempre-verde no puso roja toda la batería")
         self.assertEqual([], resultado.errors)
 
 

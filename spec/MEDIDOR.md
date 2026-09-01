@@ -10,11 +10,12 @@ antes de que el agente haga nada?**
 Es la pieza que convierte «no hay fugas» de opinión en hecho. Sin ella, COSMOS sería otro documento
 de buenas intenciones, y ya hay muchos.
 
-## Las tres magnitudes
+## Las magnitudes
 
 | Magnitud | Qué es | Por qué importa |
 |---|---|---|
-| **Entrada** | Lo que está en contexto antes del primer turno: índice de galaxia + océanos + catálogo de nombres visibles | Se paga en **cada** sesión y en **cada** subagente, para siempre |
+| **Entrada base** | Índice de galaxia + océanos + mapa de descenso, sin ciudades ni pueblos | Se paga en **cada** sesión y en **cada** subagente, para siempre |
+| **Entrada de nicho** | La base + el catálogo de ciudades y pueblos del nicho activo | Es el coste real al entrar en un oficio |
 | **Árbol** | La suma de todo el contenido del árbol, si se cargara entero | El contrafactual: lo que costaría no tener COSMOS |
 | **Descarga** | `1 − entrada / árbol` | Qué fracción del sistema está disponible sin estar cargada |
 
@@ -23,8 +24,20 @@ está cargado. Un COSMOS sano vive por encima de 0,95.
 
 Ojo con leerla al revés: una descarga alta **no** significa que el sistema sea bueno, significa que
 lo que existe no se paga hasta usarse. Un árbol enorme de basura tendría descarga excelente. Por
-eso la descarga se publica siempre junto a la entrada en tokens absolutos, y es la **entrada** la
-que tiene presupuesto y la que pone rojo el validador.
+eso la descarga se publica siempre junto a la entrada en tokens absolutos, y es la **entrada del
+peor nicho individual** la que tiene presupuesto y la que pone rojo el validador.
+
+## Casos que se miden
+
+- Sin flags, `cosmos medir` publica el caso base y calcula los nichos uno a uno para identificar el
+  peor.
+- `--nicho web` activa ese catálogo. El flag se puede repetir para medir una selección concreta.
+- `--combinacion web,saas,cumplimiento` es la escritura compacta de la misma unión y materializa el
+  coste de un trabajo transversal.
+
+E16 siempre se evalúa contra el peor nicho individual, aunque el caso base quepa. Una combinación
+explícita puede ser más cara que ese peor nicho; el comando la compara con el presupuesto y lo dice,
+pero no convierte esa combinación elegida a mano en una propiedad global del árbol.
 
 ## Honestidad del método: no se dice «medido» si es estimado
 
@@ -72,14 +85,15 @@ tomará una decisión.
 ```
 COSMOS  medir
 
-  Entrada ......... 2.145 tokens   (estimado, ±8%, heurística v1)
-  Árbol ........... 61.400 tokens  (estimado, ±8%)
-  Descarga ........ 96,5 %
-  Presupuesto ..... 4.000          OK, queda 46 %
+  Entrada base .... 1.012 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±8%, heurística v1)
+  Peor nicho ...... 1.655 tokens   (ciberseguridad, 26 pueblos)
+  Universo ........ 61.400 tokens  (estimado, ±8%)
+  Descarga ........ 97,3 %
+  Presupuesto ..... 4.000          OK, quedan 2.345 tokens en el peor caso
 
   Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
 
-  Lo más caro de la entrada:
+  Lo más caro de la entrada evaluada:
     1.  310 tok  índice de galaxia
     2.  280 tok  oceano/seguridad
     3.  190 tok  oceano/git

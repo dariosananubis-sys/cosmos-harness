@@ -106,12 +106,47 @@ class Configuracion:
     destino_compilacion: Path = Path(".claude/skills")
     modo_compilacion: str = "symlink"
     manifiesto_compilacion: Path = Path(".cosmos/compilado.json")
+    nichos: tuple[str, ...] | None = None
     encontrada: bool = False
     ruta: Path | None = None
 
 
 class ErrorConfiguracion(ValueError):
     pass
+
+
+class ErrorNicho(ValueError):
+    pass
+
+
+def nombres_nichos(arbol: Arbol) -> tuple[str, ...]:
+    """Nombres canónicos de los sistemas solares disponibles."""
+
+    return tuple(sorted({nodo.nombre for nodo in arbol.nodos if nodo.cosmos == "sistema-solar" and nodo.nombre}))
+
+
+def normalizar_nichos(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None) -> tuple[str, ...] | None:
+    """Valida una selección explícita y elimina duplicados conservando el orden."""
+
+    if nichos is None:
+        return None
+    seleccion = tuple(dict.fromkeys(nichos))
+    disponibles = set(nombres_nichos(arbol))
+    desconocidos = [nicho for nicho in seleccion if nicho not in disponibles]
+    if desconocidos:
+        lista = ", ".join(desconocidos)
+        opciones = ", ".join(sorted(disponibles)) or "ninguno"
+        raise ErrorNicho(f"nicho desconocido: {lista}; disponibles: {opciones}")
+    return seleccion
+
+
+def nicho_de_nodo(arbol: Arbol, nodo: Nodo) -> str | None:
+    """Devuelve el sistema solar que contiene al nodo sólido."""
+
+    if nodo.cosmos not in NIVELES_SOLIDOS or nodo.cosmos == "galaxia":
+        return None
+    candidato = nodo.ruta_cosmos.split("/", 1)[0]
+    return candidato if candidato in set(nombres_nichos(arbol)) else None
 
 
 def cuerpo(nodo: Nodo) -> str:

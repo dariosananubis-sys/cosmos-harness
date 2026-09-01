@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: gobl
-padre: saas/facturacion
+padre: saas
 resumen: Modela la factura una vez en formato neutral y la emite a cada normativa con un complemento.
 ---
 

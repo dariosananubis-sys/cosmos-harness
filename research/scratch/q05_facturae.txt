@@ -1,0 +1,15 @@
+josemmo/Facturae-PHP | ★285 | upd:2026-08-06 | lic:MIT | 📝 Genera, firma, envía y recibe facturas electrónicas sin necesidad de ninguna librería adicional
+royrojas/FacturaElectronicaCR | ★49 | upd:2022-12-07 | lic:none | Ejemplo desarrollado en VB.NET y C# para la Factura Electrónica de Costa Rica
+phax/phive-rules | ★47 | upd:2026-09-01 | lic:NOASSERTION | eInvoice Validation rules for the phive engine - for many different countries and jurisdictions
+pabloveintimilla/facturaec | ★20 | upd:2020-04-18 | lic:NOASSERTION | PHP library to handle electronic invoices of Ecuador (SRI)
+carlosga/FacturaE | ★17 | upd:2025-12-07 | lic:MIT | FacturaE electronic invoice signing using pure C#
+causa-prima-ai/scribo | ★17 | upd:2026-06-03 | lic:NOASSERTION | Scribo — free, AI-native EN 16931-compliant e-invoicing. ZUGFeRD/XRechnung (Germany) and US plain PDF live; Factur-X, Facturae, Peppol BIS UBL coming soon. Available as MCP server, Claude/Codex skill, CLI, HTTP API, and web app.
+mdiago/FACe | ★14 | upd:2026-08-26 | lic:AGPL-3.0 | Creación y firma de facturas electrónicas y envío a FACe
+xocapik/FaceWebServiceClient | ★11 | upd:2026-04-10 | lic:none | Face web service client .NET
+Frihet-io/frihet-mcp | ★9 | upd:2026-08-31 | lic:MIT | Official MCP server for Frihet ERP — 157 tools for AI-powered invoicing, tax & e-invoicing compliance (VeriFactu, TicketBAI, Facturae), banking, CRM, HR/payroll & POS. Works with Claude, ChatGPT, Cursor, Windsurf, Cline, Antigravity, Codex, Copilot, Gemini CLI — and any MCP-compatible client.
+rctorr/FacturaElectronica | ★8 | upd:2017-09-19 | lic:GPL-2.0 | Pequeños código que hacen algo del trabajo sucio para obtener información del archivo xml de un CFDi v3.2
+elaleprieto/facturaElectronicaArgentina | ★7 | upd:2014-03-20 | lic:none | Repositorio basado en las liberías compartidas por Xava en la lista php-arg
+invopop/gobl.facturae | ★7 | upd:2026-08-17 | lic:Apache-2.0 | Convert GOBL documents into the Spanish FacturaE format
+causa-prima-ai/scribo-skill | ★7 | upd:2026-06-26 | lic:NOASSERTION | Scribo Claude/Codex skill — generate EN 16931-compliant e-invoices (ZUGFeRD, XRechnung, US plain PDF; Factur-X, Facturae, Peppol BIS UBL coming soon) via the public Scribo HTTP API
+causa-prima-ai/scribo-mcp | ★7 | upd:2026-06-12 | lic:NOASSERTION | Scribo MCP server — generate EN 16931-compliant e-invoices (ZUGFeRD, XRechnung, US plain PDF; Factur-X, Facturae, Peppol coming soon) from Claude, Cursor, Cline, ChatGPT & any MCP client. Free, hosted, no signup. Registry metadata, schemas & examples.
+miamon/Face-Web-Service | ★6 | upd:2017-04-18 | lic:none | VB.Net para conectar con Servicio Web de Face para FacturaE

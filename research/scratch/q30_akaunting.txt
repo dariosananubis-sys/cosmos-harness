@@ -1,0 +1,15 @@
+akaunting/akaunting | ★10101 | upd:2026-08-31 | lic:NOASSERTION | Online Accounting Software
+LibreCodeCoop/akaunting-docker | ★23 | upd:2026-04-18 | lic:GPL-3.0 | Libre and Online Accounting Software 
+woahbase/alpine-akaunting | ★6 | upd:2021-10-22 | lic:none | Accounting webapp service on Alpine + Nginx + Php7
+abduljabbar021/akaunting-bank-statement | ★5 | upd:2022-08-23 | lic:none | An App/Module made to generate Bank Account Statements with Debit/Credit & Balance info etc
+Radii-Holdings/Internal-AKAUNTING | ★1 | upd:2020-09-08 | lic:Unlicense | the accounting software here 2.0 dockerized and deployed https://github.com/akaunting/akaunting  --- to update periodically
+micebrain/akaunting | ★1 | upd:2020-08-29 | lic:GPL-3.0 | Open source accounting software
+DiveshR/online-accounting-software | ★1 | upd:2024-04-23 | lic:NOASSERTION | Online accounting software designed for small businesses and freelancers. Akaunting is built with modern technologies such as Laravel, VueJS, Tailwind, RESTful API etc. Thanks to its modular structure, Akaunting provides an awesome App Store for users and developers.
+lgcn/akaunting | ★0 | upd:2020-10-09 | lic:none | Accounting software based on Akaunting
+howtomgr/akaunting | ★0 | upd:2025-09-16 | lic:WTFPL | akaunting is a free and open-source accounting software. Akaunting provides free accounting software for small businesses
+Marmagsael/Akaunting | ★0 | upd:2019-02-23 | lic:GPL-3.0 | Simpacc Accounting
+abisb123/akaunting | ★0 | upd:2022-06-21 | lic:GPL-3.0 | Accounting software
+Anoopphago7/Akaunting | ★0 | upd:2024-10-05 | lic:NOASSERTION | Accounting Software including basic accounting and filter
+pomoria/akaunting | ★0 | upd:2023-10-06 | lic:none |  Online Accounting Software 
+elightwalk/akaunting | ★0 | upd:2025-10-14 | lic:NOASSERTION | Online Accounting Software
+AmineTibari/akaunting_mobile_app | ★0 | upd:2026-03-16 | lic:none | Mobile application for the Akaunting accounting system developed with Flutter.

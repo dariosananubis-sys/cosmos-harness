@@ -1,0 +1,15 @@
+twentyhq/twenty | ★55981 | upd:2026-09-01 | lic:NOASSERTION | The open alternative to Salesforce, designed for AI.
+shodgson/n8n-nodes-twenty | ★118 | upd:2025-07-06 | lic:MIT | n8n community node for Twenty CRM 
+mhenry3164/twenty-crm-mcp-server | ★100 | upd:2026-07-30 | lic:MIT | A Model Context Protocol (MCP) server for Twenty CRM integration. Enables natural language interactions with your CRM data through Claude and other AI assistants. Supports CRUD operations, dynamic schema discovery, and advanced search across people, companies, tasks, and notes.
+JhumanJ/twenty-crm-extension | ★35 | upd:2025-12-17 | lic:none | Chrome extension for twenty
+Logrui/n8n-nodes-twenty-dynamic | ★18 | upd:2026-02-21 | lic:MIT | n8n node for Twenty CRM with custom database and field support
+neilk17/twenty-crm-chrome-extension | ★15 | upd:2026-06-22 | lic:AGPL-3.0 | Chrome Extension for Twenty CRM
+pakeku/twenty-crm-on-coolify | ★12 | upd:2026-02-25 | lic:MIT | Run twenty on your Coolify instance.
+nobilix/twenty-crm-skill | ★11 | upd:2026-06-04 | lic:MIT | Agent Skill for reading and modifying Twenty CRM data on any self-hosted or cloud deployment.
+lilremark/twentycrmclientportal | ★10 | upd:2026-08-05 | lic:GPL-3.0 | A self-hosted client portal powered by Twenty CRM
+wonderwhy-er/twenty-crm-cli | ★10 | upd:2025-06-09 | lic:NOASSERTION | Command-line interface for Twenty CRM. Built with Desktop Commander for AI-powered terminal automation and Claude AI integration.
+dayumsam/lead-enrich | ★8 | upd:2026-03-25 | lic:MIT | Chrome extension that helps sales teams import LinkedIn profiles into [Twenty CRM]
+amrpyt/twenty-crm-automation | ★8 | upd:2025-10-25 | lic:none | Complete automation guide for Twenty CRM - Create objects, fields, relations, and views programmatically using REST and GraphQL APIs
+KonstiDoll/twenty-crm-mcp-server | ★7 | upd:2026-06-09 | lic:MIT | A clean, GraphQL-based Model Context Protocol server for Twenty CRM. Enables natural language interactions with your CRM data through Claude and other AI assistants.
+billerickson/twentyten-crm | ★6 | upd:2012-11-01 | lic:none | A CRM based on TwentyTen. NOTE: this is no longer used, and is here for archival purposes
+devchaudhary24k/skill-twenty-crm | ★6 | upd:2026-04-16 | lic:none | Agent-ready Twenty CRM toolkit. 396 bash scripts covering every REST endpoint, CRUD, batch, filters, merges across 30+ objects. Drop-in skill for Claude Code, OpenClaw, MCP clients, or any agent/CLI with bash + curl + jq.

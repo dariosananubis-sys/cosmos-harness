@@ -1,0 +1,15 @@
+mdiago/VeriFactu | ★337 | upd:2026-08-26 | lic:AGPL-3.0 | Verifactu: Envío de registros de facturación a la AEAT
+josemmo/Verifactu-PHP | ★108 | upd:2026-02-22 | lic:MIT | Librería para la implementación del sistema VERI*FACTU de la AEAT española
+dentalpin/dentalpin | ★62 | upd:2026-08-31 | lic:NOASSERTION | The open source agentic dental software. Built for AI.
+Eseperio/verifactu-php | ★52 | upd:2026-08-22 | lic:none | Library for connecting with Verifactu, a spanish legal service for invoice control
+squareetlabs/LaravelVerifactu | ★23 | upd:2026-06-23 | lic:MIT | Paquete Laravel para gestión y registro de facturación electrónica VeriFactu. Compatible con Laravel 10 a 12.x
+EduardoRuizM/verifactu-api-python | ★22 | upd:2025-11-26 | lic:none | Sistema de facturas VeriFactu con envío a la AEAT
+garacil/verifactu | ★18 | upd:2026-08-22 | lic:GPL-3.0 | Verifactu para Dolibarr
+jdgOpenCode/verifactu | ★17 | upd:2026-02-21 | lic:none | Librerías PHP para usar el sistema veri*factu
+EduardoRuizM/verifactu-api-php | ★15 | upd:2025-11-26 | lic:none | Sistema de facturas VeriFactu con envío a la AEAT
+invopop/gobl.verifactu | ★15 | upd:2026-08-17 | lic:AGPL-3.0 | Convert GOBL into VeriFactu documents and send to the AEAT
+EduardoRuizM/verifactu-api-nodejs | ★15 | upd:2026-04-14 | lic:none | Sistema de facturas VeriFactu con envío a la AEAT
+emiliopm/verifactu | ★15 | upd:2025-06-11 | lic:Apache-2.0 | Ley antifraude 2021 (VERIFACTU) - Programas informáticos
+seccion31/verifactu-delphi-demo | ★12 | upd:2024-12-05 | lic:none | verifactu demo alta-anulacion de factura
+mybooking-es/verifactu-rb | ★11 | upd:2026-08-25 | lic:MIT | 
+NemonInvocash/verifactu-php | ★9 | upd:2026-07-09 | lic:MIT | Cliente PHP para la API de Verifactu y TicketBAI (TBAI): emisión y validación de facturas electrónicas conforme a la normativa de la AEAT. Sin dependencias, instalable con Composer.

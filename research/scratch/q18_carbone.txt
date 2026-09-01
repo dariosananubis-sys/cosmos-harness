@@ -1,0 +1,3 @@
+carboneio/carbone | ★2097 | upd:2026-04-07 | lic:NOASSERTION | Fast and simple report generator, from JSON to pdf, xslx, docx, odt...
+carboneio/carbone-sdk-java | ★6 | upd:2026-06-30 | lic:none | Generate documents with Carbone, using templates and JSON data-set. Create invoices, reports, certificates, contracts, financial statements, documents like Word files, Excel sheets, CSVs, PowerPoint slides, and more.
+GujiriRoshan/carboneReportGeneratorApi | ★0 | upd:2021-07-15 | lic:none | 

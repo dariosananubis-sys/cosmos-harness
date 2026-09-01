@@ -15,6 +15,22 @@ qué cargar y, sobre todo, **qué no existe todavía**.
 Producto final: un repo que se puede clonar sobre cualquier proyecto y que deja el harness
 organizado por niveles, con carga perezosa real y verificable.
 
+Y encima de ese esqueleto, **un universo de oficios**: mínimo veinte ámbitos especializados, cada
+uno lleno de las mejores herramientas que existan hoy para ese trabajo — no listas de consejos,
+herramientas que se ejecutan. El mapa está en `spec/UNIVERSO.md`.
+
+Las dos mitades parecen tirar en contra: cuantos más oficios, más contexto. **Solo lo hacen si todo
+lo que existe está cargado.** Con contención estricta, el universo puede crecer sin límite mientras
+el coste de entrada se queda quieto. Ese es el proyecto entero, en una frase.
+
+Dos exigencias que el encargo fija y que no son negociables:
+
+- **Capacidad y criterio van separados.** Un oficio que sabe programar mucho y no sabe qué no
+  escribir produce más código de más, no menos. Por eso `codigo` y `criterio` son dos sistemas
+  distintos que se cargan juntos.
+- **Los oficios se combinan.** La contención dice dónde vive algo y cuándo se carga, **nunca** con
+  quién se junta. Detalle y mecanismo en `spec/COMPOSICION.md`.
+
 ## 2. El principio rector (lo que de verdad importa)
 
 > **No se le pide al agente que gaste menos. Se elimina la razón para gastar.**
@@ -46,7 +62,8 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 
 | Nivel | Qué es | Contiene |
 |---|---|---|
-| **Galaxia** | El harness entero. Hay una. | Sistemas solares |
+| **Universo** | Todo. Hay uno. | Galaxias |
+| **Galaxia** | Una familia de oficios afines | Sistemas solares |
 | **Sistema solar** | Un dominio de trabajo (Web, Datos, Infra, Estudio) | Planetas |
 | **Estrella** | El contexto que ilumina ese sistema: su `CLAUDE.md` | — (irradia) |
 | **Planeta** | Un proyecto concreto | Continentes |

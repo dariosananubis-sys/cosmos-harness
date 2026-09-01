@@ -1,0 +1,15 @@
+kimai/kimai | ★4954 | upd:2026-08-31 | lic:AGPL-3.0 | Kimai is the #1 open-source time-tracking application. From freelancers to companies and organisations - everyone can manage timesheets, generate reports, create invoices and so much more... Web-based multi-user application, available as On-Premise or SaaS version: https://www.kimai.org
+Foraum-GmbH/kimai-clock | ★44 | upd:2026-08-30 | lic:MIT | KimaiClock is a lightweight macOS menu bar app that lets you track and manage Kimai 2 time entries directly from your desktop.
+owlysk/CodeTimer | ★36 | upd:2025-09-29 | lic:MIT | Timer Widget for Kimai Time Tracking
+glazperle/kimai_mcp | ★33 | upd:2026-08-14 | lic:MIT | A comprehensive Model Context Protocol (MCP) server for Kimai time-tracking integration. Provides tools for timesheet management, project tracking, team collaboration, and reporting with smart user selection and Claude Desktop integration.
+infeeeee/kimai2-cmd | ★27 | upd:2024-02-27 | lic:MIT | Command line client for Kimai2, the open source, self-hosted time tracker
+kimai/cli | ★24 | upd:2026-08-04 | lic:MIT | Console application for Kimai remote access - time-tracking via bash
+kimai/www.kimai.org | ★22 | upd:2026-08-28 | lic:AGPL-3.0 | Website for the Kimai time-tracker
+kimai/DemoBundle | ★19 | upd:2026-01-16 | lic:MIT | Kimai Demo bundle for developers, who want to create a plugin and extend the time-tracking experience
+pinpox/punchcard | ★15 | upd:2026-08-14 | lic:AGPL-3.0 | Simple time tracking for small teams built with Go and HTMX with OIDC support
+fkoester/docker-kimai | ★10 | upd:2021-05-22 | lic:AGPL-3.0 | A docker image for Kimai time tracking based on the official php docker image.
+playmoweb/KimTrack | ★10 | upd:2026-07-08 | lic:none | Native menu-bar time tracker for Kimai—with one-click start/stop, smart idle detection & cross-platform support.
+mwaeckerlin/kimai | ★8 | upd:2018-01-30 | lic:GPL-3.0 | Kimai - OpenSource Time Tracking
+Specter-13/maui-for-kimai | ★7 | upd:2023-05-10 | lic:MIT | MAUI for Kimai - open-source time-tracking companion to Kimai tracker
+stavtsob/Dolibarr-Kimai-Merger | ★7 | upd:2023-08-29 | lic:MIT | Dolibarr & Kimai Merger is a Codeigniter application that can be used to sync users, customers, projects, tasks from Dolibarr to Kimai and to register Kimai's timesheet to Dolibarr as time-spents. With this application you can setup a complete ERP-CRM that has the pros of Kimai's easy and efficient time-tracking.
+thejackwu/Kimai-chrome | ★6 | upd:2022-12-10 | lic:MIT | Chrome extension for Kimai time tracking application

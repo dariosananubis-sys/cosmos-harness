@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openapi-generator
-padre: documentos/desde-el-codigo
+padre: documentos
 resumen: Del mismo esquema salen documentacion, cliente y esqueleto: no pueden divergir.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: gspread
-padre: analitica/hojas-de-calculo
+padre: analitica
 resumen: Lee y escribe hojas de calculo en la nube por su API oficial, como si fueran una tabla mas.
 ---
 

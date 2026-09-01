@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mkdocs-material
-padre: documentos/sitios
+padre: documentos
 resumen: Documentacion navegable desde Markdown con busqueda, versiones e idiomas sin HTML.
 ---
 

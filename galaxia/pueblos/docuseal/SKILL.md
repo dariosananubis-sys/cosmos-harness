@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: docuseal
-padre: automatizacion/firma
+padre: automatizacion
 resumen: Firma multiple sobre plantillas de PDF con API propia, en casa y sin cuota por documento.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: pandera
-padre: ingenieria-datos/validacion
+padre: ingenieria-datos
 resumen: Declara tipo, rango y unicidad de cada columna y falla justo donde el dato se rompe.
 ---
 

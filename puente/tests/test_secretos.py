@@ -14,13 +14,17 @@ from puente.secretos import _hallazgos_de_ruta, escanear_flujo
 
 RUTA = b"src/configuracion.py"
 
+# Los cebos se arman en tiempo de ejecución, nunca literales: un fichero de pruebas
+# con secretos enteros dentro hace que el escáner se denuncie a sí mismo, y entonces
+# el gate se queda en rojo para siempre o alguien lo silencia con una excepción.
 SECRETOS = {
-    "clave privada": b"-----BEGIN RSA PRIVATE KEY-----\nMIIE\n",
+    "clave privada": b"-----BEGIN RSA " + b"PRIVATE KEY-----\nMIIE\n",
     "token GitHub": b'token = "ghp_' + b"A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7" + b'"\n',
-    "clave AWS": b"AKIAIOSFODNN7EXAMPLE\n",
-    "secreto asignado": b'api_key = "aB3xK9mQ2pL7vN4tR8wY"\n',
-    "URI con credencial": b"postgres://usuario:Zx91kdLL2mQ@servidor.interno/base\n",
-    "IBAN asignado": b'iban = "ES9121000418450200051332"\n',
+    "clave AWS": b"AKIA" + b"IOSFODNN7EXAMPLE\n",
+    "secreto asignado": b'api_key = "' + b"aB3xK9mQ2pL7vN4tR8wY" + b'"\n',
+    "URI con credencial": b"postgres:" + b"//usuario:Zx91kdLL2mQ@" + b"servidor.interno/base\n",
+    "correo electrónico": b"contacto = persona.apellido@" + b"servidor-interno.local\n",
+    "IBAN asignado": b'iban = "' + b"ES9121000418450200051332" + b'"\n',
 }
 
 RUIDO = (
@@ -54,7 +58,7 @@ class SecretosPlantados(unittest.TestCase):
         self.assertTrue(hallazgos)
         for hallazgo in hallazgos:
             self.assertIn(etiqueta_de_ruta(RUTA), hallazgo)
-            self.assertNotIn("aB3xK9mQ2pL7vN4tR8wY", hallazgo)
+            self.assertNotIn("aB3x" "K9mQ2pL7vN4tR8wY", hallazgo)
             self.assertNotIn("configuracion", hallazgo)
 
 

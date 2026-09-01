@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 from .compilar import errores_vista
 from .generar import generar_indice
-from .medir import medir_arbol
+from .medir import contexto_inicial, medir_casos
 from .modelo import (
     NIVELES_ADJUNTOS,
     NIVELES_AGUA,
@@ -328,11 +328,14 @@ def _comprobar_e15(arbol: Arbol, _: Configuracion, indice: Path) -> list[ErrorVa
 
 
 def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorValidacion]:
-    medicion = medir_arbol(arbol, metodo=config.metodo, presupuesto=config.entrada)
+    casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
+    medicion = casos.peor
     if medicion.entrada <= config.entrada:
         return []
     caros = ", ".join(f"{parte.nombre} ({parte.tokens})" for parte in medicion.detalle_entrada[:3])
-    return [_error("E16", None, f"contexto de entrada {medicion.entrada} tokens > {config.entrada}; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras.", ruta="presupuesto")]
+    excede = medicion.entrada - config.entrada
+    culpable = casos.peor_nicho or "sin nichos"
+    return [_error("E16", None, f"peor nicho {culpable}: contexto de entrada {medicion.entrada} tokens > {config.entrada}; excede en {excede} tokens; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras del nicho culpable.", ruta="presupuesto")]
 
 
 def _shingles(nodo: Nodo) -> set[tuple[str, str, str, str]]:
@@ -340,18 +343,17 @@ def _shingles(nodo: Nodo) -> set[tuple[str, str, str, str]]:
     return {tuple(palabras[indice:indice + 4]) for indice in range(max(0, len(palabras) - 3))}
 
 
-def _siempre_cargados(arbol: Arbol) -> list[Nodo]:
-    referencias_galaxia = {nodo.referencia for nodo in arbol.nodos if nodo.cosmos == "galaxia"}
+def _siempre_cargados(arbol: Arbol, nichos: tuple[str, ...] | None) -> list[Nodo]:
+    contexto = contexto_inicial(arbol, nichos)
     return [
         nodo
         for nodo in arbol.nodos
-        if nodo.cosmos in {"galaxia", "oceano"}
-        or (nodo.cosmos == "estrella" and nodo.datos.get("ilumina") in referencias_galaxia)
+        if nodo.cosmos == "oceano" and cuerpo(nodo) and cuerpo(nodo) in contexto
     ]
 
 
 def _comprobar_e17(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
-    nodos = sorted(_siempre_cargados(arbol), key=lambda nodo: nodo.ruta_relativa)
+    nodos = sorted(_siempre_cargados(arbol, config.nichos), key=lambda nodo: nodo.ruta_relativa)
     errores = []
     for indice, primero in enumerate(nodos):
         a = _shingles(primero)
@@ -386,6 +388,7 @@ def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
         config.destino_compilacion,
         config.manifiesto_compilacion,
         config.modo_compilacion,
+        nichos=config.nichos,
         config_path=config.ruta,
     )
     return [

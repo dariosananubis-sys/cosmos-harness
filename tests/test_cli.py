@@ -30,6 +30,20 @@ class PruebasCLI(unittest.TestCase):
         self.assertEqual(0, codigo)
         self.assertIn("Fuera de COSMOS . no_medido", salida)
 
+    def test_medir_nichos_repetidos_y_combinacion(self) -> None:
+        codigo, salida = self.ejecutar(
+            ["medir", "--config", str(CONFIG), "--nicho", "construccion", "--nicho", "analisis"]
+        )
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("Combinación", salida)
+        self.assertIn("construccion, analisis", salida)
+
+        codigo, salida = self.ejecutar(
+            ["medir", "--config", str(CONFIG), "--combinacion", "construccion,analisis"]
+        )
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("construccion, analisis", salida)
+
     def test_generar(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:
             destino = Path(temporal) / "indice.md"

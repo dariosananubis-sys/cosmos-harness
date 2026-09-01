@@ -11,10 +11,30 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/advertools"
     },
+    "aflplusplus": {
+      "hash": "81df5bdb21da58bf3afc4ba5a7f1da4995c6107251c9fdc9e1d8149e22155aeb",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/aflplusplus"
+    },
     "agent-browser": {
       "hash": "bdfd48bbb62f6632e5c36cbee182ebe81a6fffe4bf7fe7d9b868b64729e17b42",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/agent-browser"
+    },
+    "amass": {
+      "hash": "7b6e11aecf784ba53399d8edf7e64c6321c712fa375a74cc56733c699d6bed95",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/amass"
+    },
+    "arx": {
+      "hash": "c9f56e20f524e0bc52f1424efde886cf91e1610af543c1da77868fa97b9108aa",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/arx"
+    },
+    "atomic-red-team": {
+      "hash": "49225061e8020392c005134fc3eb49f015ddd756bd423683c27c340b6e6dbf7e",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/atomic-red-team"
     },
     "axe-core": {
       "hash": "cebbffbf72a6cbbedffb61415617028943857aa628c327dffe25667e523bc6fa",
@@ -26,15 +46,40 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/bearer"
     },
+    "bevy": {
+      "hash": "e9c0a446bdbd7696edb0191c51d511a4fb69857187ee38f4250c9868014e499d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/bevy"
+    },
+    "bloodhound": {
+      "hash": "021495ea2ad9c1e1c44daa50ccbf6d9a8816861e416edfa82a9c1bec24227dd6",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/bloodhound"
+    },
     "caddy": {
       "hash": "852963afb92ce49d548b6885efbef1ab6ce8548544a3f96713c2e1048304cb5a",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/caddy"
     },
+    "casdoor": {
+      "hash": "3a90bde82fc060f26d7bb00d06ee6f043b1c9309e64f1e76804b61a4aec5931c",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/casdoor"
+    },
     "ccxt": {
       "hash": "3558e12fd2e846be6d5dfa5773a1a70f7f1e0921c899439f7037837454809e28",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/ccxt"
+    },
+    "celery": {
+      "hash": "e67fb3e4c5ca220d9f6b6a7586cec8b3d722cf80bf60a34a3c5ce3afbfc948cc",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/celery"
+    },
+    "chainsaw": {
+      "hash": "e12887e57e625e050b0c58e2d8df64b9f6886c3b61ba70560b7986598a449a90",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/chainsaw"
     },
     "claude-agent-sdk": {
       "hash": "731c3f7af4e4b057f968ea15b049c9da89c70a343a5aacf0cf53f3684004e773",
@@ -56,30 +101,95 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/context7"
     },
+    "coraza": {
+      "hash": "1885b91b4d868d75e70abbe41a9836094813baf576f4af4171804ea1f56a8fad",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/coraza"
+    },
+    "crowdsec": {
+      "hash": "9d129f3f7ef86a8a947d154e54cc73ec00ec6a07ae6a6db85e44fb123dcc4300",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/crowdsec"
+    },
+    "d2": {
+      "hash": "e2262bdd89f9fe0c7a2266bcf5d066e10739ec431328154fca1b0eb0f6f2b287",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/d2"
+    },
     "dbt-core": {
       "hash": "7b418631d66d83ef56f95e6ec374281b280bc77b6ba42ce79a4ebe93e6fe3858",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/dbt-core"
+    },
+    "defectdojo": {
+      "hash": "b8c05073620e8fa07ea89ec09158d90084bd5a8f983b856925492da4869a3d1c",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/defectdojo"
     },
     "docling": {
       "hash": "4e74432a876b4c65a2dddd61cca4c44c290dbe8aa5c8ae2fa91ca55a92bfed44",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/docling"
     },
+    "docuseal": {
+      "hash": "80ebe15e1e52ff120da9c84d958717679a9bc371f12be857eff9a8263a440312",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/docuseal"
+    },
     "duckdb": {
       "hash": "37e3de8ec06885d989165de12178fdd168952a9edb96d9c2d5d7b431315b9650",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/duckdb"
+    },
+    "dvc": {
+      "hash": "15810d1f75d1589233822fa0c62d0633305e76ef916d2e568516c5e98a245752",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/dvc"
+    },
+    "echidna": {
+      "hash": "587f49056130b8605733c80c95f6ace89a534ccc185afa1421036ac6cae31077",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/echidna"
+    },
+    "esp-idf": {
+      "hash": "1cbad26d715ed49b20e1678bfd4dbca76b11898900da4dc3a2bc57eee3d09918",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/esp-idf"
+    },
+    "esphome": {
+      "hash": "305df5eefd6ad74475f224e2870fb285c9febc32dd503026699e96b09151cbb3",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/esphome"
     },
     "evidence": {
       "hash": "8b90515ae2f0169cc0c27b864fd5f2c1df0ee3b4b346287af2b12702e09ee723",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/evidence"
     },
+    "fastlane": {
+      "hash": "07ff2569560c8483902f308f3a4b863a3641aeb7c5be671f4e614adce3f31877",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/fastlane"
+    },
     "ffmpeg": {
       "hash": "be357b4dc2e7602401903ed9e071846aa0e2bb996e6c4ade6897d88dc4b1cdd7",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/ffmpeg"
+    },
+    "flutter": {
+      "hash": "d110ffec642e3cfb753a419688b0e78320d3ca32fe8276ca6fa8a9c8b677b3e7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/flutter"
+    },
+    "fossology": {
+      "hash": "1a288bff338ac35c0a378d04c08f24d8734ecfa9f573cc9bb7db0cbc92540e19",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/fossology"
+    },
+    "foundry": {
+      "hash": "70c5aaabab85494307e835464df74bd32d1ee483f2782e0eb48fc069feb3b7ff",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/foundry"
     },
     "freqtrade": {
       "hash": "3bd6317adf9e36e7b498033a30945e997af03cc6f20021669b35f5ea46f02d2d",
@@ -91,15 +201,35 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/geo-optimizer"
     },
+    "ghidra": {
+      "hash": "a5778e6f3a3e1b2a794b6758e6afa11a816d079f2853cdacad37343de0b574e5",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ghidra"
+    },
     "gitea": {
       "hash": "8432e421674edd2b0d2f76e98090ae27c9ae96f9c21accee31009277981db13a",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/gitea"
     },
+    "gobl": {
+      "hash": "f06fcb88afd588e07976f65763b4240aea73b8cdf4fb2751c0894bf48f83aa1f",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/gobl"
+    },
+    "godot": {
+      "hash": "009d5bce4481e4f35616864d205664cf02dff5ca761633f074a997f5f0152bb3",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/godot"
+    },
     "gspread": {
       "hash": "1d291772b17f0d0ebe9653f87f855a4df0d4b813acc897bcd3b559286b3b8d51",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/gspread"
+    },
+    "hammerspoon": {
+      "hash": "0d546fe6aa676e939c1d04eeae1b5d913a2beb1d68eb64888418f4329f1575cb",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/hammerspoon"
     },
     "hftbacktest": {
       "hash": "e278338298675ba557da03617aefd47237f2d6f58e181b3f5756389a1f68a94c",
@@ -110,6 +240,11 @@
       "hash": "f5026120da2563a17509f84d20b31ebbc8f52cf07e693b6ab493a8622e6044a6",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/ib-async"
+    },
+    "impacket": {
+      "hash": "0c4329d52a4860ef2c9287646a5ba2398ef57f2372c72c23cb50f5469e43e09c",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/impacket"
     },
     "kokoro": {
       "hash": "669ca8f4e61b823e6bb8011be4b7314b21cf1baa984596c9da9268dd7f3eaf42",
@@ -126,20 +261,55 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/lancedb"
     },
+    "libresprite": {
+      "hash": "cadaea77d1ad007eb01dbcf0608235a36e65e7eb82ff4ebcc70c992b5b865efe",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/libresprite"
+    },
+    "libsodium": {
+      "hash": "bad858557f9986b992cb500f87557569d62801b0cbc40de76104ae0a5a5f08e9",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/libsodium"
+    },
     "lighthouse": {
       "hash": "372e539627b92e7189286e2fb13e91b3b36e31c0f79c479118de90f9b3687049",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/lighthouse"
+    },
+    "lynis": {
+      "hash": "edd768ede2a5f1fb424740e3540558eca89b6d7b2cade3d8123d074efd29961b",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/lynis"
     },
     "markitdown": {
       "hash": "aeeb13eda9d02e049271ff7a1b1e4318c05f46f17e8d3de54ab6ce5de6581c01",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/markitdown"
     },
+    "matomo": {
+      "hash": "188ceb31301d515814616cb37ed91431063ec64e935cff9d9504f02ab2cc29d7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/matomo"
+    },
     "mem0": {
       "hash": "a48805485ae346f4bcc9fe7ea14b6b148008dc3b75b934e653862dc064136108",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/mem0"
+    },
+    "mermaid": {
+      "hash": "50eb4f4129741d18af4d24a1e8188a83870a17877a47e0da8bb04e8da087bfd7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/mermaid"
+    },
+    "metasploit": {
+      "hash": "cfd023cb64197021550eb3aa5add0c67d2efbbb278b658fdb94a0e4298d5d728",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/metasploit"
+    },
+    "mkdocs-material": {
+      "hash": "73e9f7095345fcd0a792bc19638d98a2752ceaea225e967f3d660b73e8c326e4",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/mkdocs-material"
     },
     "mlflow": {
       "hash": "8cc9374c1553308a5fe05a506c260343d8b3cba4918a3288ff2dc955b4eda76e",
@@ -151,6 +321,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/mlx-lm"
     },
+    "n8n": {
+      "hash": "69ba2b434cbb039e0abc14aa66defb1878867fe3c97aaf1c16b876baccfdde0c",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/n8n"
+    },
     "nautilus-trader": {
       "hash": "8b2fe2e45e18ed6e2811f78344c7fdb271b798a59649e9489e0be0f5da5a0d85",
       "modo": "symlink",
@@ -160,6 +335,11 @@
       "hash": "58def42d521ab61d1b913c88161d957cddf33590261c15a1046878485f4c44c2",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/ntfy"
+    },
+    "nuclei": {
+      "hash": "d84d1d7007ae44a2d72614a47fd75bca632711a95ede7a6b5e3716b33e8bbd12",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/nuclei"
     },
     "ocrmypdf": {
       "hash": "0a80d746528df0d5527ee3244c847c1a3ecc94519614578bc13e875405b7af8d",
@@ -171,10 +351,30 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/ollama"
     },
+    "openapi-generator": {
+      "hash": "a2b582c8fe39800e2bec9cacadeb8214e0d1eefe19dfa1d11a8bb802cdb3e2ef",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/openapi-generator"
+    },
     "openclaw": {
       "hash": "ca1c5010ad7b6ea71edd62c2ade1b5cea6f1547bd04e89548835786264a97968",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/openclaw"
+    },
+    "openproject": {
+      "hash": "bc23ba106eb9c2e41a9cdb8d35db46612f205fafa7d8263fc8444e24cbfea203",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/openproject"
+    },
+    "openzeppelin-contracts": {
+      "hash": "fcb8455d4babb635d41ad40b1bf7fad0a1e69ad862b4edc1624451b733cc7758",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/openzeppelin-contracts"
+    },
+    "ort": {
+      "hash": "0b5e448f77d8d0b3ba3a90714f30af1d49f7c4fad55c18c25dd5850daad49ba0",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ort"
     },
     "osv-scanner": {
       "hash": "42279f768336dc765d29305874c6670b1430c5dae801136f5d81b6b3c4a11c02",
@@ -191,6 +391,21 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/pandoc"
     },
+    "phaser": {
+      "hash": "6b11e0d218fe8f72191f95abae04753ca32ac65b9d606a45290dd45deb1abfa2",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/phaser"
+    },
+    "pixi": {
+      "hash": "3145e7a4e89ea66003500dcbbd73314966409ddfc4c99e49cb34e2815a16d7cf",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/pixi"
+    },
+    "platformio": {
+      "hash": "e475c48ed5ec617e7341d565692c67271116be7034b1ee5e05dc28d3624ac99b",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/platformio"
+    },
     "playwright": {
       "hash": "c24070340dde4564e1f17e4fb7a85dd386ec8c993b343a04ea819726d7aa7545",
       "modo": "symlink",
@@ -206,10 +421,20 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/presidio"
     },
+    "pwntools": {
+      "hash": "4d67ee82a523cadfba873f173f2be29cd8506ddde9526b9c7bfaf904c26fad6e",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/pwntools"
+    },
     "rapidfuzz": {
       "hash": "d8337bc3d5d4801111281f3c461b87024a7e97f4fa918e2f4f61f474bdd58a32",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/rapidfuzz"
+    },
+    "react-native": {
+      "hash": "5cde3694e01fd8eabff9bb572cfac347af81d719ff5933e8101c5ba27a1bdaff",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/react-native"
     },
     "rembg": {
       "hash": "8f6e0e50b47f3c35f85660ee24d37555d34b7f2877f9bc5650369a9192e89511",
@@ -220,6 +445,21 @@
       "hash": "d43e636cb8ef5e0096967bce75d9505752b8d61fd869aa8d74ba6b145c46cbf2",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/restic"
+    },
+    "rr": {
+      "hash": "d87abfe9767db7f60d252506e61c483a192d641bbcfbaed20807a697cad8180a",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/rr"
+    },
+    "samply": {
+      "hash": "a5c62271241b5da545d5f4946f9faa58145bc4fb37203269df7cf297a0234572",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/samply"
+    },
+    "scipy": {
+      "hash": "6eaac8960220c7766f69255187f25d5b5724bbcd13a74fc5cb460d33f6c4bffd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/scipy"
     },
     "scorecard": {
       "hash": "d1c4b6ea3959a33cbff202b6eed06643873557d3c1d45e8b747ac45f9aae5241",
@@ -256,10 +496,30 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/shopify-toolkit"
     },
+    "sigma-cli": {
+      "hash": "d55e6fa1dc6b82644f540c1f0945b3f2748341d957d9c15c2294c4006c0bc6bd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/sigma-cli"
+    },
+    "slither": {
+      "hash": "9b032b9e86dc419c77ca221dd8cc3e3ec12656c2016b77059c061d1b1613b4fd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/slither"
+    },
+    "snakemake": {
+      "hash": "959df7557c491945d8d05ec512444ceacb2b44ecd41d6fd890b9d96a73dde153",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/snakemake"
+    },
     "sops": {
       "hash": "5e7e11919d711572516815c40226542256485aaba0d481dbca07c301ebac4c28",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/sops"
+    },
+    "sqlmap": {
+      "hash": "fb5009e23203bb10bac2546368f5ad98dbde57157cc8a8510a5e61e2fdbe03c7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/sqlmap"
     },
     "statsforecast": {
       "hash": "66caf41b6c7615b0c83efc88549268caf694bfa3078e5a33e3ef3c4dbcce549b",
@@ -276,10 +536,25 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/stripe-agent-toolkit"
     },
+    "tauri": {
+      "hash": "8342548d07c576baa1b94427637e8c11d6924b3b832bec96a580d9f6ea70bfed",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/tauri"
+    },
+    "tokio": {
+      "hash": "3c19942c0b4fb7ba3ba70dd7e95cc9791b9189c3e38031e1c2cb043f1a377b42",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/tokio"
+    },
     "trafilatura": {
       "hash": "b3333242c7bbe7f03716b5f31502c8cc6bda2290b3ffe7ac30014ba9913ef371",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/trafilatura"
+    },
+    "tree-sitter": {
+      "hash": "d297b0db4813dfa9ecf8a73697befd65232c303b353b3f84b5be2fcd58c810ba",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/tree-sitter"
     },
     "trivy": {
       "hash": "3ba0345856f8b10e917c2279fdabe5dd04f2e59e686e8a2e104636deb4b19dda",
@@ -290,6 +565,11 @@
       "hash": "473515522fc6fb9862bddc026779ebd7e1bba5cfd7cb684b424f5c51028540d7",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/trufflehog"
+    },
+    "twenty": {
+      "hash": "e2e348d2b384af7610ab300fa6a7f889833e76d8d519cad5b65ac4eaa7ca1605",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/twenty"
     },
     "unlighthouse": {
       "hash": "525faec01a20c6d56d865c64cf7e442e8aa26043efc64f9feb4d51f84e8bf8b7",
@@ -306,6 +586,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/victoriametrics"
     },
+    "volatility3": {
+      "hash": "17bc0289428befa00a218920a45f273cf8534ce2f2d63c7d56e9fc8b08dd2319",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/volatility3"
+    },
     "weasyprint": {
       "hash": "bcd4f717858cb024588ba8a185d571e7c2042d2cab47c94606c3e0a05529a746",
       "modo": "symlink",
@@ -321,6 +606,11 @@
       "modo": "symlink",
       "origen": "../galaxia/pueblos/whisper-cpp"
     },
+    "windmill": {
+      "hash": "898cb070f8ee06a649e0b8d0ea1a5fb9c9874889b557f4a507429037fb8d0160",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/windmill"
+    },
     "woocommerce-skills": {
       "hash": "ebaa2cc6f8ea9a5574d2d6d20726153328f652c2c57257e48e3afa2bcea52404",
       "modo": "symlink",
@@ -330,6 +620,21 @@
       "hash": "151ab5d89d78484416221cb94de851511358769d0aead06faa1249ab9578f558",
       "modo": "symlink",
       "origen": "../galaxia/pueblos/wordpress-skills"
+    },
+    "yara": {
+      "hash": "5e8520eff1c7b3a85a7ab805ebdab07c3de18279b6a797cda63d3ecf9eb523c5",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/yara"
+    },
+    "zaproxy": {
+      "hash": "9c5acb9054936073a1a5d51cc1c3febaa7104db7e352aa886257d3029e2bc919",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/zaproxy"
+    },
+    "zephyr": {
+      "hash": "ff83b32b7151a766d8e51a46242c66be610a56f2c9164e00acda5c9c82c46900",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/zephyr"
     }
   },
   "version": 1

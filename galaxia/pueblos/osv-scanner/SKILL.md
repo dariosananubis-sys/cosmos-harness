@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: osv-scanner
-padre: ciberseguridad/cadena-de-suministro
+padre: ciberseguridad/analisis/cadena-de-suministro
 resumen: Compara los ficheros de bloqueo contra la base publica y devuelve poco ruido para revisar.
 ---
 

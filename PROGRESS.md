@@ -234,15 +234,15 @@ Compilación seca idempotente del ejemplo:
 COSMOS  compilar  seco
 
 Creadas 0; actualizadas 0; iguales 2; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
-IGUAL /Users/dariosatino/cosmos/.claude/skills/probar-salida
-IGUAL /Users/dariosatino/cosmos/.claude/skills/revisar-formato
+IGUAL <repo>/.claude/skills/probar-salida
+IGUAL <repo>/.claude/skills/revisar-formato
 ```
 
 La misma batería se ejecutó además con `/opt/homebrew/bin/python3.11`: 47 tests, OK, 1 saltado.
 
 ## Batería final literal
 
-Comando ejecutado desde `/Users/dariosatino/cosmos`:
+Comando ejecutado desde `<repo>`:
 
 ```text
 python3 -m unittest discover -s tests -v

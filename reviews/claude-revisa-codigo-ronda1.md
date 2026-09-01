@@ -11,7 +11,7 @@ Preparación común (`validar.py` aún no existe, así que el `__init__` del paq
 
 ```bash
 cd /tmp && rm -rf cosmostest && mkdir -p cosmostest/arbol && cd cosmostest
-mkdir cosmos_t && cp /Users/dariosatino/cosmos/cosmos/{modelo,medir,generar}.py cosmos_t/
+mkdir cosmos_t && cp <repo>/cosmos/{modelo,medir,generar}.py cosmos_t/
 : > cosmos_t/__init__.py
 cat > arbol/galaxia.md <<'EOF'
 ---
@@ -98,7 +98,7 @@ cd /tmp/cosmostest && python3 -c "
 from cosmos_t.medir import contar_aprox
 from pathlib import Path
 for f in ['GOAL.md','spec/TAXONOMIA.md']:
-    t = Path('/Users/dariosatino/cosmos/'+f).read_text(encoding='utf-8')
+    t = Path('<repo>/'+f).read_text(encoding='utf-8')
     pal = contar_aprox(t); by = len(t.encode())/4
     print(f'{f:22} aprox={pal:6}  bytes/4={by:8.0f}  ratio={by/pal:.2f}')
 "

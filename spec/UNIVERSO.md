@@ -117,13 +117,13 @@ catálogo, porque el catálogo se paga en todas las sesiones.
 ## El límite que hace que esto no se descontrole
 
 El catálogo ya no se paga entero: desde el **catálogo por nicho**, en el contexto de entrada solo
-aparecen las herramientas del oficio en el que se está trabajando. Medido con 209 herramientas
-montadas:
+aparecen las herramientas del oficio en el que se está trabajando.
 
-```
-Entrada base .... 1.128 tokens   (índice + océanos, sin ninguna herramienta)
-Peor nicho ...... 1.771 tokens   (ciberseguridad, 26 herramientas)
-Presupuesto ..... 4.000          quedan 2.229 en el peor caso
+**Las cifras de este documento no se escriben a mano.** Para el estado real:
+
+```bash
+python3 -m cosmos medir     # entrada base, peor nicho, agua y presupuesto
+python3 -m cosmos estado    # cuántas herramientas tiene cada oficio
 ```
 
 Eso cambia el límite de sitio: **ya no lo marca el total, lo marca el nicho más grande**. Añadir

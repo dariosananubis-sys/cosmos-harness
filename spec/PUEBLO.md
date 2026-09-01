@@ -80,8 +80,10 @@ de su vecino, no qué categoría de cosa es.
 ## Cuándo un pueblo lleva ficheros propios
 
 Si la herramienta necesita configuración, plantillas o guiones para ser útil, van **dentro del
-directorio del pueblo** (son `casa` en la taxonomía) y se referencian desde el cuerpo. `compilar`
-exporta el directorio entero, así que llegan con la skill.
+directorio del pueblo** y se referencian desde el cuerpo. No son nodos y no llevan frontmatter:
+`compilar` exporta el directorio entero, así que llegan con la skill sin que nadie los declare.
+(Hasta el 2026-09-01 eran un nivel propio, `casa`; se retiró sin haber tenido nunca un nodo —
+`spec/TAXONOMIA.md`.)
 
 Un pueblo cuya utilidad depende de un fichero que no está es peor que no tenerlo: promete algo y no
 lo entrega.

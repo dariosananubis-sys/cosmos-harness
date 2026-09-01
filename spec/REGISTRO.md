@@ -56,16 +56,18 @@ Una entrada del registro es un nodo como cualquier otro, y el validador la trata
 ---
 cosmos: lluvia
 nombre: backtest-sin-comisiones-miente
-moja:
-  - "mercados/**"
+moja: []
 resumen: Un backtest sin comisiones ni deslizamiento infla el resultado hasta invertirlo.
 ---
 ```
 
+`moja: []` no es una formalidad, es **la** regla de esta carpeta: una memoria no se carga sola, se
+consulta. Y no es una convención que haya que recordar — E10 la exige.
+
 Que sean nodos de verdad tiene tres consecuencias que valen el esfuerzo:
 
 1. El validador **también las comprueba**: nada de resúmenes vacíos ni entradas huérfanas.
-2. El medidor las cuenta, y como son agua sin `moja` global, **cuestan cero al entrar**.
+2. El medidor las cuenta, y como su `moja` está vacío, **cuestan cero al entrar**.
 3. Se buscan igual que todo lo demás. Una memoria que no se encuentra no existe.
 
 ## La regla de oro del registro
@@ -76,8 +78,15 @@ Ni una línea. Es historia, y la historia se consulta, no se lleva puesta. Un re
 solo crecería sin techo y se comería el presupuesto en un mes — que es, exactamente, cómo un harness
 acaba con 27.000 tokens de prólogo.
 
-Por eso ninguna entrada lleva `moja: ["**"]`, y el validador lo rechaza igual que a cualquier océano
-encubierto (E11).
+Por eso ninguna entrada lleva alcance en absoluto, y el validador lo rechaza (E10). No basta con
+prohibir `moja: ["**"]`: un `moja: ["puente/**"]` tampoco se carga —una lluvia entra solo por
+consulta— pero **sí se cobra**, porque `agua_condicional` mete en el presupuesto toda agua no
+oceánica con alcance. Medido el 2026-09-01, al conectar el registro al árbol: dos entradas con
+`moja` sumaban **7.700 tokens** al peor caso, por documentos que no se abren nunca. La regla de
+arriba dejó de ser un párrafo y pasó a ser E10.
+
+Para que el validador las vea, `cosmos.toml` declara `[raiz] registro`. Sin esa línea el registro
+está escrito y el árbol no lo mira, que es como estuvo hasta el 2026-09-01.
 
 ## Qué se escribe y qué no
 

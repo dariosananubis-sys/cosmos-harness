@@ -15,7 +15,7 @@ por construcción — que es exactamente lo que pide el principio rector del `GO
 
 | Campo | Obligatorio | Tipo | Regla |
 |---|---|---|---|
-| `cosmos` | sí | enum | El nivel. Uno de los 16 de la taxonomía |
+| `cosmos` | sí | enum | El nivel. Uno de los 14 de la taxonomía |
 | `nombre` | sí | slug | `[a-z0-9-]+`, único dentro de su padre |
 | `resumen` | sí | string | **Máximo 120 caracteres.** Es lo único que se ve desde arriba |
 
@@ -48,9 +48,7 @@ resumen: Automatiza un navegador real por CDP; captura, rellena y verifica.
 4 continente
 5 pais
 6 provincia
-7 ciudad
-8 pueblo
-9 casa
+7 pueblo
 ```
 
 Regla de contención: `rango(padre) < rango(hijo)`. **Estrictamente menor, no exactamente uno
@@ -58,9 +56,13 @@ menos.** Un pueblo puede colgar directamente de una provincia, de un país o de 
 inventar niveles intermedios vacíos.
 
 Esto es deliberado y hay que respetarlo: obligar a la cadena completa produce niveles de relleno
-—una provincia con un solo hijo, una ciudad que no es más que un envoltorio— y esos niveles de
+—una provincia con un solo hijo, un país que solo envuelve a otro— y esos niveles de
 relleno son fuga pura, porque cada uno aporta un `resumen` que se paga y no informa de nada. Se
 crea un nivel cuando **agrupa de verdad**; si no agrupa, no existe.
+
+Los rangos 7 y 9 de la versión anterior (`ciudad` y `casa`) se retiraron el 2026-09-01: cero nodos
+en los dos árboles del repositorio y cero tests que los crearan. El motivo y el camino de vuelta,
+en `spec/TAXONOMIA.md`.
 
 Hay exactamente **una** galaxia por instalación, y es el único nodo sin `padre`.
 
@@ -106,7 +108,7 @@ resumen: Formato de mensajes de commit y reglas de rama.
 | `mar` | Globs amplios, pero **no** `**` |
 | `lago` | Globs acotados, **no** `**`, y no la raíz de un sistema entero |
 | `rio` | Se invoca a mano: `moja: []` permitido; lleva `invoca` con su nombre de comando |
-| `lluvia` | Se consulta a mano: `moja: []` permitido |
+| `lluvia` | Se consulta a mano: `moja` **tiene que ser** `[]`; con alcance se cobraría sin cargarse |
 
 El validador **cuenta los océanos**. Un océano es contexto permanente para todo el mundo y para
 siempre, así que su número es la métrica de salud más honesta del sistema: si crece, el harness se

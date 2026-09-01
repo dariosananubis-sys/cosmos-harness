@@ -51,7 +51,7 @@ def inventariar(arbol: Arbol) -> Inventario:
         padre = nodo.datos.get("padre")
         if isinstance(padre, str) and padre:
             hijos[padre].append(nodo.nombre)
-        if nodo.cosmos in {"pueblo", "ciudad"} and isinstance(padre, str):
+        if nodo.cosmos == "pueblo" and isinstance(padre, str):
             por_nicho[_nicho(padre)] += 1
 
     sistemas = [n.nombre for n in arbol.nodos if n.cosmos == "sistema-solar"]
@@ -107,7 +107,12 @@ def formatear(inv: Inventario) -> str:
     if inv.niveles_vacios:
         lineas.extend(["", "  Niveles sin un solo nodo"])
         lineas.append("    " + ", ".join(inv.niveles_vacios))
-        lineas.append("    (no es un fallo: la taxonomía prevé más niveles de los que un árbol usa)")
+        # H20 salió de leer esta lista como «media taxonomía está muerta». No lo
+        # estaba: seis de los ocho niveles vivían en el otro árbol del repositorio.
+        # El inventario carga la raíz que le pasan y no puede saberlo; quien sí puede
+        # es el canario, que cuenta sobre todos los árboles a la vez.
+        lineas.append("    (no es un fallo: son niveles que este árbol no necesita)")
+        lineas.append("    (que ninguno esté muerto lo vigila tests/test_niveles_vivos.py)")
 
     if inv.niveles_de_relleno:
         lineas.extend(["", "  Niveles con un solo hijo — no agrupan, y su resumen se paga"])

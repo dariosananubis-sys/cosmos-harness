@@ -14,8 +14,8 @@ de buenas intenciones, y ya hay muchos.
 
 | Magnitud | Qué es | Por qué importa |
 |---|---|---|
-| **Entrada base** | Índice de galaxia + océanos + mapa de descenso, sin ciudades ni pueblos | Se paga en **cada** sesión y en **cada** subagente, para siempre |
-| **Entrada de nicho** | La base + el catálogo de ciudades y pueblos del nicho activo | Es el coste real al entrar en un oficio |
+| **Entrada base** | Índice de galaxia + océanos + mapa de descenso + ríos, sin pueblos | Se paga en **cada** sesión y en **cada** subagente, para siempre |
+| **Entrada de nicho** | La base + el catálogo de pueblos del nicho activo | Es el coste real al entrar en un oficio |
 | **Agua condicional** | Los mares y lagos, que se cargan solos por `paths:` sin que nadie los invoque | No está en la entrada y se paga igual; ocultarlo es la fuga que este medidor existe para cazar |
 | **Peor caso con agua** | Entrada del peor nicho + agua condicional | El techo real de una sesión de trabajo, y **el número que E16 compara con el presupuesto** |
 | **Árbol** | La suma de todo el contenido del árbol, si se cargara entero | El contrafactual: lo que costaría no tener COSMOS |

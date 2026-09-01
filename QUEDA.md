@@ -1,5 +1,13 @@
 # Lo que queda — estado medido, 2026-09-01
 
+> **CADUCADO.** La revisión adversarial (hallazgo H11) comprobó que este fichero, presentado como
+> «estado medido», era falso en 6 de sus 8 puntos: el repo avanzó y el documento no. Es el mismo
+> fallo que COSMOS resuelve para el índice — **lo que se escribe a mano se desincroniza**.
+>
+> Se conserva por su valor histórico, no como estado. El inventario vivo se saca ejecutando los
+> comandos del final, y la pieza pendiente es convertir esto en `cosmos estado`, generado, para que
+> no pueda volver a mentir.
+
 No es una lista de intenciones: cada línea sale de contar el repo. El comando que la produce está al
 final, para que esto se pueda rehacer en vez de creerse.
 

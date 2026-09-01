@@ -1,7 +1,7 @@
 ---
 cosmos: sistema-solar
 nombre: construccion
-padre: galaxia/cosmos-ejemplo
+padre: ""
 resumen: Reúne herramientas para construir artefactos de software.
 ---
 

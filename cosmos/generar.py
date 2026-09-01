@@ -5,14 +5,14 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 
-from .modelo import Arbol, NIVELES_SOLIDOS, Nodo
+from .modelo import RANGOS, Arbol, NIVELES_SOLIDOS, Nodo
 
 
 MARCA = "<!-- Generado por cosmos generar. No editar a mano. -->"
 
 
-def _orden(nodo: Nodo) -> tuple[str, str, str]:
-    return nodo.cosmos, nodo.nombre, nodo.ruta_relativa
+def _orden(nodo: Nodo) -> tuple[int, str, str]:
+    return RANGOS.get(nodo.cosmos, 99), nodo.referencia, nodo.ruta_relativa
 
 
 def generar_indice(arbol: Arbol) -> str:

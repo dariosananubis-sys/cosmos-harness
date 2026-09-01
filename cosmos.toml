@@ -3,10 +3,16 @@ entrada = 4000
 resumen = 120
 oceanos = 7
 galaxia_lineas = 40
-
-[guardarrailes]
-umbral_solapamiento = 0.25
+solapamiento = 0.25
 
 [raiz]
 arbol = "ejemplo"
 indice = "ejemplo/COSMOS.md"
+
+[medicion]
+metodo = "aprox"
+
+[compilacion]
+destino = ".claude/skills"
+modo = "symlink"
+manifiesto = ".cosmos/compilado.json"

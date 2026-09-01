@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Iterable
 
+from .compilar import errores_vista
 from .generar import generar_indice
 from .medir import medir_arbol
 from .modelo import (
@@ -22,6 +23,7 @@ from .modelo import (
     Arbol,
     Configuracion,
     Nodo,
+    cuerpo,
 )
 
 
@@ -326,20 +328,15 @@ def _comprobar_e15(arbol: Arbol, _: Configuracion, indice: Path) -> list[ErrorVa
 
 
 def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorValidacion]:
-    medicion = medir_arbol(arbol, metodo="aprox", presupuesto=config.entrada)
+    medicion = medir_arbol(arbol, metodo=config.metodo, presupuesto=config.entrada)
     if medicion.entrada <= config.entrada:
         return []
     caros = ", ".join(f"{parte.nombre} ({parte.tokens})" for parte in medicion.detalle_entrada[:3])
     return [_error("E16", None, f"contexto de entrada {medicion.entrada} tokens > {config.entrada}; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras.", ruta="presupuesto")]
 
 
-def _cuerpo_markdown(nodo: Nodo) -> str:
-    partes = nodo.contenido.split("---", 2)
-    return partes[2] if len(partes) == 3 else nodo.contenido
-
-
 def _shingles(nodo: Nodo) -> set[tuple[str, str, str, str]]:
-    palabras = [palabra for palabra in _normalizar(_cuerpo_markdown(nodo)).split() if palabra not in PALABRAS_VACIAS_E17]
+    palabras = [palabra for palabra in _normalizar(cuerpo(nodo)).split() if palabra not in PALABRAS_VACIAS_E17]
     return {tuple(palabras[indice:indice + 4]) for indice in range(max(0, len(palabras) - 3))}
 
 
@@ -379,8 +376,28 @@ def _comprobar_e18(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
     for nombre, nodos in por_nombre.items():
         if len(nodos) > 1:
             for primero, segundo in zip(nodos, nodos[1:]):
-                errores.append(_error("E18", segundo, f"colisión al aplanar {nombre!r}: {primero.ruta_relativa} y {segundo.ruta_relativa}", "Renombra una de las dos skills; la vista plana exige nombres globalmente únicos.", campo="nombre"))
+                errores.append(_error("E18", segundo, f"colisión al aplanar {nombre!r}: {primero.ruta_cosmos} y {segundo.ruta_cosmos}", "Renombra una de las dos skills; la vista plana exige nombres globalmente únicos.", campo="nombre"))
     return errores
+
+
+def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
+    problemas = errores_vista(
+        arbol,
+        config.destino_compilacion,
+        config.manifiesto_compilacion,
+        config.modo_compilacion,
+        config_path=config.ruta,
+    )
+    return [
+        _error(
+            "E19",
+            None,
+            f"vista plana desincronizada: {problema}",
+            "Ejecuta 'cosmos compilar'; no edites la vista plana a mano.",
+            ruta=str(config.destino_compilacion),
+        )
+        for problema in problemas
+    ]
 
 
 Comprobacion = Callable[[Arbol, Configuracion, Path], list[ErrorValidacion]]
@@ -389,6 +406,7 @@ COMPROBACIONES: tuple[Comprobacion, ...] = (
     _comprobar_e05, _comprobar_e06, _comprobar_e07, _comprobar_e08, _comprobar_e09,
     _comprobar_e10, _comprobar_e11, _comprobar_e12, _comprobar_e13, _comprobar_e14,
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,
+    _comprobar_e19,
 )
 
 
@@ -398,12 +416,13 @@ def validar_arbol(
     configuracion: Configuracion | None = None,
     indice: str | Path | None = None,
     comprobaciones: Iterable[Comprobacion] | None = None,
+    omitir_codigos: frozenset[str] = frozenset(),
 ) -> ResultadoValidacion:
     config = configuracion or Configuracion(arbol=arbol.raiz, indice=arbol.raiz / "COSMOS.md")
     ruta_indice = Path(indice) if indice is not None else config.indice
     errores: list[ErrorValidacion] = []
     for comprobacion in COMPROBACIONES if comprobaciones is None else comprobaciones:
-        errores.extend(comprobacion(arbol, config, ruta_indice))
+        errores.extend(error for error in comprobacion(arbol, config, ruta_indice) if error.codigo not in omitir_codigos)
     errores.sort(key=lambda error: (error.codigo, error.ruta, error.linea or 0, error.mensaje))
     return ResultadoValidacion(errores, configuracion_por_defecto=not config.encontrada)
 

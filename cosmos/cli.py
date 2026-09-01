@@ -61,7 +61,7 @@ def _parser() -> argparse.ArgumentParser:
     generar = base("generar", "regenera el índice de galaxia")
     generar.add_argument("--salida", "--indice", dest="salida", type=Path, help="ruta de salida")
 
-    compilar = base("compilar", "genera la vista plana de ciudades y pueblos")
+    compilar = base("compilar", "genera la vista plana de los pueblos")
     compilar.add_argument("--modo", choices=("symlink", "copia"))
     compilar.add_argument("--destino", type=Path)
     compilar.add_argument("--seco", action="store_true", help="describe cambios sin escribir")
@@ -320,7 +320,12 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "desenganchar":
             return _desenganchar(args, config)
 
-        arbol = cargar_arbol(config.arbol, excluir=config.indice, excluir_directorios=(config.destino_compilacion,))
+        arbol = cargar_arbol(
+            config.arbol,
+            excluir=config.indice,
+            excluir_directorios=(config.destino_compilacion,),
+            tambien=(config.registro,) if config.registro else (),
+        )
         if args.comando == "validar":
             return _validar(args, config, arbol)
         if args.comando == "medir":

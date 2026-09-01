@@ -10,9 +10,9 @@ Escribe la implementación **Codex**. Revisa **Claude**.
 > `skills/suite/hija/SKILL.md` **no se descubre**: invocarla da «Unknown skill».
 > Issue `anthropics/claude-code#18192`, abierto en enero de 2026, sin resolver.
 
-O sea: el runtime al que apuntamos **no soporta de forma nativa** el tramo «ciudad contiene pueblo»
-de la taxonomía. El nivel de contención que COSMOS define para las skills no existe en la
-plataforma.
+O sea: el runtime al que apuntamos **no soporta de forma nativa** que un pueblo cuelgue de una
+provincia, de un país o de un continente. La contención que COSMOS define para las skills no existe
+en la plataforma: para ella, o están en el nivel superior o no están.
 
 El apaño de la comunidad son symlinks a mano en el nivel superior. Funciona, y es exactamente lo que
 COSMOS prohíbe: depende de que alguien se acuerde de crear el symlink al añadir una skill. Una
@@ -91,7 +91,7 @@ cosmos compilar [--nicho <n>] [--modo symlink|copia] [--destino <ruta>] [--seco]
 
 | Flag | Qué hace |
 |---|---|
-| `--nicho` | Aplana solo las ciudades y pueblos contenidos por ese sistema solar |
+| `--nicho` | Aplana solo los pueblos contenidos por ese sistema solar |
 | `--modo` | `symlink` (por defecto) o `copia` |
 | `--destino` | Dónde se escribe la vista plana. Por defecto, lo que diga `cosmos.toml` |
 | `--seco` | Dice qué haría y no toca nada |

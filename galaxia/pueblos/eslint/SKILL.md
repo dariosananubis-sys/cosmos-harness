@@ -8,8 +8,7 @@ resumen: El linter de JavaScript y TypeScript con reglas para cada marco de trab
 https://github.com/eslint/eslint · MIT · 27.495★ · push 2026-09-01 (comprobado 2026-09-01, v10.9.1)
 
 ```bash
-npm i -D eslint
-npx eslint --init            # genera eslint.config.js (configuracion plana, v9+)
+npm init @eslint/config      # crea eslint.config.js (configuracion plana, v9+) e instala eslint
 
 npx eslint .
 npx eslint . --fix

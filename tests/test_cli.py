@@ -10,10 +10,21 @@ from cosmos.cli import ejecutar
 
 
 REPO = Path(__file__).resolve().parents[1]
-CONFIG = REPO / "cosmos.toml"
+# El árbol de juguete tiene su propia configuración desde que `cosmos.toml` pasó a
+# apuntar a la galaxia real: el comando por defecto tiene que mirar lo que importa.
+CONFIG = REPO / "ejemplo.toml"
 
 
 class PruebasCLI(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # La vista plana es un artefacto generado y no se versiona: en un clon
+        # limpio hay que arrancarla antes de validar. Es idempotente.
+        salida = io.StringIO()
+        with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(salida):
+            codigo = ejecutar(["arrancar", "--config", str(CONFIG)])
+        assert codigo == 0, salida.getvalue()
+
     def ejecutar(self, argumentos: list[str]) -> tuple[int, str]:
         salida = io.StringIO()
         with contextlib.redirect_stdout(salida), contextlib.redirect_stderr(salida):

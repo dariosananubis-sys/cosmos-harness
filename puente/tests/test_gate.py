@@ -42,16 +42,16 @@ class Instantanea(unittest.TestCase):
         self.temporal.cleanup()
 
     def test_verifica_lo_que_esta_en_el_indice(self) -> None:
-        gate._ordenes = lambda _: _comprobacion("INDICE")
+        gate._ordenes = lambda *_: _comprobacion("INDICE")
         self.assertEqual(gate.verificar_instantanea(silencioso=True, raiz=self.repo), 0)
 
     def test_no_verifica_el_arbol_de_trabajo_sucio(self) -> None:
-        gate._ordenes = lambda _: _comprobacion("SUCIO")
+        gate._ordenes = lambda *_: _comprobacion("SUCIO")
         self.assertEqual(gate.verificar_instantanea(silencioso=True, raiz=self.repo), 1)
 
     def test_un_fichero_borrado_del_disco_sigue_en_la_instantanea(self) -> None:
         (self.repo / "fichero.txt").unlink()
-        gate._ordenes = lambda _: _comprobacion("INDICE")
+        gate._ordenes = lambda *_: _comprobacion("INDICE")
         self.assertEqual(gate.verificar_instantanea(silencioso=True, raiz=self.repo), 0)
 
 

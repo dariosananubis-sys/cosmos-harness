@@ -1,0 +1,15 @@
+huginn/huginn | ★49875 | upd:2026-08-29 | lic:MIT | Create agents that monitor and act on your behalf.  Your agents are standing by!
+martinbjeldbak/self-hosted | ★28 | upd:2025-01-16 | lic:none | My docker-compose based self-hosted setup including media centre, dns, home automation, and more
+alrik11es/muninn | ★13 | upd:2023-01-04 | lic:MIT | Create agents in PHP that monitor and act on your behalf. A Laravel based Huginn port.
+jaywink/ansible-huginn | ★4 | upd:2023-02-07 | lic:MIT | Ansible Huginn role with Docker
+Robusr/Huginn | ★4 | upd:2026-07-16 | lic:MIT | An AI-powered agent dedicated to automated data statistics and analysis.
+TheDarkLightX/Helix-A-Next-Gen-Event-Driven-Multi-Agent-Platform | ★3 | upd:2026-07-23 | lic:MIT | Self-hosted personal event-automation (like Huginn/IFTTT, but smarter)
+rockbenben/HuginnAgentsInChinese | ★1 | upd:2019-10-03 | lic:none | Huginn Agents 中文版
+thiennhiengiek/Workflow-automation-Huginn- | ★1 | upd:2022-03-03 | lic:none | Workflow automation|[N8N](https://n8n.io/)|Node-based workflow automation tool for developers|<a
+mariobreskic/my-huginn-scenarios-for-goodreads-automation | ★1 | upd:2026-01-26 | lic:none | Anonymized and per ChatGPT annotated huginn scenarios for posting new additions to specific Goodreads shelves to Social Media, as well posting the ones finished
+sergio-fry/huginn_ruby_agent | ★1 | upd:2024-01-07 | lic:none | Create agents with Ruby lang for a Huginn automation platform
+mariobreskic/pesos-social-archive-huginn | ★1 | upd:2026-08-30 | lic:MIT | Platform-neutral Huginn and WordPress template for archiving social media posts using PESOS.
+KadasX/Huginn | ★1 | upd:2025-07-11 | lic:NOASSERTION | **Huginn** is an AI-enhanced extension for [Bjorn](https://github.com/infinition/Bjorn), the Raspberry Pi-based ethical hacking assistant. Named after one of Odin's ravens, Huginn represents "thought"—perfectly aligned with the project’s goal of augmenting network security assessments with intelligent analysis and automation.system.
+kogulan/server-setup | ★1 | upd:2026-07-29 | lic:none | One-click Ubuntu 24.04 automation server setup for OCI. Deploy n8n, Activepieces, Huginn, PHP web hosting, SFTP, Adminer, Docker, automatic SSL, backups, and reverse proxy configuration in minutes.
+azmisahin-test/huginn-automation | ★0 | upd:2024-10-12 | lic:none | huginn automation and intelligence gathering mission
+ram-prashanth/auto-mate | ★0 | upd:2024-09-06 | lic:none | own automation assistant using huginn

@@ -1,0 +1,2 @@
+GBLS/docassemble-workinggroup | ★18 | upd:2019-04-02 | lic:none | A repository to store knowledge/skill shares for Greater Boston Legal Services' document automation working groups, including tutorials
+michaelhofrichter/docassemble-LSCITCProjectPlanning | ★0 | upd:2020-01-16 | lic:MIT | Docassemble tool to help figure out and plan a document automation project.

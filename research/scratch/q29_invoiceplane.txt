@@ -1,0 +1,15 @@
+InvoicePlane/InvoicePlane | ★3129 | upd:2026-09-01 | lic:NOASSERTION | A self-hosted open source application for managing your invoices, clients and payments.
+sameersbn/docker-invoiceplane | ★44 | upd:2019-07-06 | lic:MIT | Dockerfile to create a Docker container image for InvoicePlane
+mhzawadi/invoiceplane | ★25 | upd:2026-06-18 | lic:none | InvoicePlane is a self-hosted open source application for managing your invoices, clients and payments.
+InvoicePlane/InvoicePlane-v2 | ★25 | upd:2026-08-26 | lic:none | 
+InvoicePlane/ip-lrvl-v2-arch | ★21 | upd:2017-03-19 | lic:NOASSERTION | OLD Development Repository for InvoicePlane 2 (with Laravel of course)
+InvoicePlane/InvoicePlane-Docker | ★14 | upd:2026-08-18 | lic:none | 
+turbo124/Plane2Ninja | ★14 | upd:2021-01-05 | lic:MIT | Export data from Invoice Plane to Invoice Ninja
+funktionslust/invoiceplane-docker | ★5 | upd:2026-02-22 | lic:MIT | Production-ready Docker image for InvoicePlane - self-hosted invoicing application.
+InvoicePlane/InvoicePlane-Themes | ★5 | upd:2024-05-03 | lic:none | The official InvoicePlane Themes repository.
+pacificweb/WooCommerce2InvoicePlane | ★4 | upd:2019-05-09 | lic:none | SQL scripts to export your WooCommerce data in order to load them into InvoicePlane
+InvoicePlane/Wiki | ★3 | upd:2026-07-02 | lic:none | The source for the InvoicePlane wiki backend
+1twitif/docker-invoicePlane | ★3 | upd:2018-07-31 | lic:none | ready to use invoicePlane docker-compose container
+adskiremote/opencart-invoiceplane | ★3 | upd:2017-08-28 | lic:none | An Opencart extension to connect invoices, customers to InvoicePlane
+InvoicePlane/Migrationtool | ★3 | upd:2015-07-16 | lic:NOASSERTION | Tool to migrate from FusionInvoice v1.x to InvoicePlane
+InvoicePlane/InvoicePlane-e-invoices | ★2 | upd:2026-07-02 | lic:none | 

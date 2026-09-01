@@ -1,0 +1,15 @@
+espocrm/espocrm | ★3314 | upd:2026-08-29 | lic:AGPL-3.0 | EspoCRM – Open Source CRM Application
+espocrm/documentation | ★152 | upd:2026-09-01 | lic:none | EspoCRM Documentation
+espocrm/espocrm-docker | ★91 | upd:2026-08-20 | lic:AGPL-3.0 | Official Docker Image for EspoCRM
+cauldr0nx/EspoMCP | ★51 | upd:2026-06-24 | lic:none | Opensource MCP Server for EspoCRM
+espocrm/ext-template | ★48 | upd:2026-09-01 | lic:NOASSERTION | Template repository for EspoCRM extensions
+definitepotato/espocrm | ★48 | upd:2025-07-10 | lic:MIT | An API client for EspoCRM in Go.
+definitepotato/espocrmz | ★35 | upd:2026-03-01 | lic:MIT | An API client for EspoCRM in Zig.
+novastream/Modern-Theme | ★31 | upd:2025-05-08 | lic:MIT | A modern theme for EspoCRM
+Kharg/link-button | ★28 | upd:2025-02-15 | lic:none | Button field for EspoCRM
+traien/n8n-nodes-espocrm | ★28 | upd:2026-07-21 | lic:MIT | 
+espocrm/ext-real-estate | ★27 | upd:2026-08-04 | lic:AGPL-3.0 | Real Estate extension for EspoCRM
+o-data/EspoCRM-Learning-and-Design | ★21 | upd:2021-10-26 | lic:none | 
+espocrm/ext-sms-providers | ★20 | upd:2024-10-23 | lic:GPL-3.0 | Implementations for different SMS providers for EspoCRM. Can be used for 2-factor authentication or automatic SMS sending via Workflow and BPM tools.
+espocrm/php-espo-api-client | ★20 | upd:2026-03-16 | lic:MIT | PHP API client for EspoCRM
+espocrm/ext-export-import | ★18 | upd:2026-02-23 | lic:AGPL-3.0 | Data export and import tool for EspoCRM

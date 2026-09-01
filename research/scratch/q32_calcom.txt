@@ -1,0 +1,15 @@
+rbbydotdev/someday | ★1064 | upd:2026-07-20 | lic:MIT | Free to host calendar availability picker - open-source cal.com / calendly alternative built on Google-Apps-Script for Gmail users. Built with modern technologies like React, TypeScript, Shadcn/UI, and Vite.  https://someday-demo.vercel.app
+olivierlambert/calrs | ★243 | upd:2026-08-31 | lic:AGPL-3.0 | Fast, self-hostable scheduling platform. Like Cal.com, but written in Rust.
+Calnode/calnode | ★69 | upd:2026-08-30 | lic:Apache-2.0 | Lean, self-hostable Calendly & Cal.com alternative — a single Go binary + SQLite, API-first and MCP-native. Apache-2.0.
+src-r-r/ink-in-time | ★31 | upd:2024-02-29 | lic:MIT | The no-frills open source scheduling app alternative to candendly or cal.com
+Danielpeter-99/calcom-mcp | ★19 | upd:2025-06-02 | lic:MIT | A FastMCP server for interacting with the Cal.com API. This enables LLMs to manage event types, create bookings, and access Cal.com scheduling data programmatically.
+uuranus/schedule-calendar-compose | ★13 | upd:2024-12-05 | lic:MIT | Schedule Calendar Library with Jetpack Compose
+paras-verma7454/CalMarshal | ★4 | upd:2025-12-24 | lic:none | Built CalMarshal, a full-stack scheduling application inspired by Cal.com. Integrated features like OAuth authentication, dynamic booking forms, a custom built calendar, availability integration, and real-time event syncing.
+Cal-com-Api/.github | ★3 | upd:2026-05-29 | lic:none | Download cal.com api to build branded scheduling workflows, connect calendars, automate bookings, and manage availability with developer-friendly tools. Compare cal.com pricing, integrations, self-hosting options, and open-source features for teams that need flexible meeting infrastructure.
+Elite1015/cal.com | ★2 | upd:2025-02-23 | lic:NOASSERTION | Scheduling infrastructure for absolutely everyone.
+alexrao2000/cal-chatbot | ★1 | upd:2025-08-15 | lic:none | Meeting scheduling AI agent integrated w/ Cal.com
+foundationfivepro-gif/ai-scheduling-platform | ★1 | upd:2026-04-14 | lic:none | OpenClaw-managed multi-tenant scheduling platform built around self-hosted Cal.com
+jasherjoshuachan/resume-request-workflow | ★1 | upd:2026-04-26 | lic:MIT | Automated resume delivery system built on n8n — Notion dedup, Resend email, Cal.com scheduling
+zavora-ai/skill-scheduling | ★1 | upd:2026-05-31 | lic:NOASSERTION | Resource scheduling skill — bookings, shifts, time-off, timezone overlap, calendar sync (Google/Outlook/Cal.com/Calendly) via mcp-scheduling
+azmaldev/mcp-server-calcom | ★1 | upd:2026-05-14 | lic:MIT | MCP server for Cal.com — AI agents can schedule, cancel, reschedule & check availability
+manavagarwal123/calcom-clone-scheduling-platform | ★1 | upd:2026-03-29 | lic:MIT | Full-stack scheduling and booking platform inspired by Cal.com, featuring event management, availability scheduling, real-time slot booking, and cancellation, built with Next.js, Prisma, and PostgreSQL.

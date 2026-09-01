@@ -36,6 +36,23 @@ si la compartieran, en algún nivel habría dos hermanos con el mismo nombre, qu
 prohíbe. La unicidad global sale gratis de la unicidad local; no hace falta un identificador nuevo
 ni exigir nombres únicos en todo el árbol.
 
+**La aciclicidad sale gratis, y por eso E04 se retira.** Para todo sólido `n` distinto de la
+galaxia, `ruta(n) = ruta(padre(n)) + "/" + nombre(n)` y `nombre` cumple `^[a-z0-9-]+$`, luego tiene
+longitud ≥ 1. Por tanto `len(ruta(n)) > len(ruta(padre(n)))` **estrictamente**. Un ciclo
+`n₁→n₂→…→n_k→n₁` haría crecer la longitud a lo largo del ciclo y volvería a su punto de partida:
+contradicción. Y si el `padre` no resuelve, salta E02. La galaxia no declara `padre` (E00), así que
+tampoco cierra ciclos, y el agua no tiene `padre` en absoluto.
+
+> **E04 («ciclo») queda retirada.** Su hueco en la numeración **no se reutiliza**: los códigos
+> siguen siendo E00–E03 y E05–E19. La aciclicidad no se vigila porque el diseño la ganó; fingir
+> que se vigila con una comprobación que ningún árbol legal puede disparar es peor que no tenerla
+> (`GOAL.md` §7: un verde que nunca ha dado rojo no se distingue de uno roto).
+
+Lo que sí se vigila es la **premisa** del teorema: que la identidad siga siendo la ruta completa.
+Si alguien redefine `ruta`, los ciclos vuelven a ser posibles y la retirada de E04 deja de estar
+justificada. Por eso existe un canario que mide `len(ruta(n)) > len(ruta(padre(n)))` sobre el árbol
+y una meta-prueba que sustituye la identidad y **exige que el canario se ponga rojo**.
+
 **El agua no tiene ruta**, porque no está contenida en nada. Se identifica por `<nivel>/<nombre>`, y
 su `nombre` es único **dentro de su nivel** (dos lagos no pueden llamarse igual; un lago y un mar,
 sí).
@@ -112,6 +129,31 @@ en `entrada` y por tanto no vuelven a contarse en `resto`: lo que ya se paga, se
 
 Invariante verificable, y es la que fija el fallo para que no vuelva: **ningún árbol ni selección de
 nichos produce una descarga fuera de `[0, 1]`**.
+
+### El agua condicional entra en el presupuesto
+
+`contexto_inicial` no contiene los mares ni los lagos: se cargan solos cuando el `paths:` de su
+`moja` casa con un fichero que se toca, sin que nadie los invoque. Publicar solo la entrada base y
+el peor nicho ocultaba ese coste — medido el 2026-09-01 en la galaxia real: **817 tokens** que se
+activan en la primera línea de Python que se abra, un 32 % por encima del número publicado.
+
+```
+agua_condicional(árbol) = { n : n es agua, n no es océano, moja(n) ≠ [] }
+agua              = Σ tokens(cuerpo(n)) para n en agua_condicional(árbol)
+entrada_con_agua  = entrada + agua
+```
+
+Se excluye el agua con `moja: []` (río y lluvia): no se carga sola, se invoca, y su resumen ya se
+paga en el catálogo. Se excluyen los océanos porque ya están dentro de `entrada`.
+
+`agua` **no** entra en `universo` ni en `descarga`: los cuerpos del agua no-océano ya están dentro
+de `resto`, y sumarlos otra vez sería el doble conteo de §2 por la otra puerta. Como
+`agua_condicional ⊆ resto`, se cumple `entrada_con_agua ≤ universo` y la invariante de la descarga
+sigue en pie.
+
+**E16 compara `entrada_con_agua` con el presupuesto**, no `entrada`. El número que decide rojo o
+verde tiene que ver todo lo que se paga sin pedirlo; si no, el presupuesto vigila una parte del
+coste y el resto entra por debajo.
 
 E16 no usa el caso base. Mide por separado cada sistema solar, con un único nicho activo, y compara
 el presupuesto contra el de mayor `entrada`. Un rojo de E16 nombra ese nicho y el exceso exacto. Las
@@ -224,3 +266,90 @@ metodo = "aprox"                     # "aprox" | "exacto"
 [presupuesto]
 solapamiento = 0.25                  # umbral de E17 (Jaccard sobre n-gramas de 4)
 ```
+
+## 9. Semántica de `moja`, y qué significa «lo moja todo» (E11)
+
+**El problema (H08 de `reviews/revision-adversarial-final.md`):** E11 comparaba con el literal
+`["**"]`. Cinco escrituras distintas mojaban exactamente lo mismo y pasaban en verde:
+
+```
+moja: ["**/*"]    moja: ["**/**"]    moja: ["*"]    moja: ["**/*.*"]    moja: ["./**"]
+```
+
+Una invariante que existe para impedir «un párrafo global disfrazado de regla regional» no puede
+comprobar una cadena: tiene que comprobar la **cobertura**.
+
+**Semántica normativa del glob.** Sobre rutas POSIX relativas a la raíz del proyecto:
+
+| Elemento | Qué casa |
+|---|---|
+| `**/` | cero o más directorios completos |
+| `**` | cualquier cosa, incluidos separadores |
+| `*` | cualquier cosa **dentro de un segmento**, nunca un `/` |
+| `?` | exactamente un carácter que no sea `/` |
+| cualquier otro carácter | él mismo |
+
+Un `./` inicial se descarta antes de traducir; no significa nada distinto de la raíz.
+
+**Un agua que no es océano es un océano encubierto si se cumple cualquiera de las dos:**
+
+1. **Cobertura total** — el conjunto de sus patrones casa con **todas** las sondas del corpus
+   normativo. Es la propiedad semántica: da igual cómo se escriba, si no deja nada fuera es
+   global.
+2. **Ningún patrón acota por nombre** — algún patrón suyo no contiene un solo carácter
+   alfanumérico. `**/*.*` no cubre `Makefile`, así que escapa de (1), pero no nombra nada: acota
+   por «tener un punto», que no es una región. Una regla regional **nombra su región**.
+
+El corpus normativo de sondas son doce rutas de un repositorio real, elegidas para que ninguna
+familia de ficheros quede sin representar: con extensión y sin ella, en la raíz y anidadas,
+ocultas y visibles, con nombre compuesto y con nombre de una letra.
+
+```
+main.py · src/app/main.py · tests/test_x.py · web/index.html · docs/guia.md
+Makefile · src/Makefile · LICENSE · x · .gitignore · a/b/c/d/e.txt
+deep/nested/very/long/path/file.min.js
+```
+
+Añadir una sonda solo endurece la comprobación: cubrir un corpus mayor es más difícil, nunca más
+fácil. Quitar una la debilita, y por eso el corpus es normativo y vive aquí.
+
+## 10. Qué compara E17: los nodos que se pagan a la vez
+
+**El problema (H12):** E17 medía Jaccard de 4-gramas entre los nodos siempre cargados. Sobre la
+galaxia real daba **0,0000 en los diez pares de océanos**, y seguía dando 0,0000 bajando a
+2-gramas. Un 4-grama exige cuatro palabras consecutivas idénticas: cualquier paráfrasis lo esquiva,
+y la paráfrasis es justo lo que engorda un prólogo. La invariante estaba implementada y no medía
+nada.
+
+**Alcance.** E17 compara los nodos que pueden estar en contexto **al mismo tiempo sin que nadie los
+invoque**: los océanos (siempre), el agua no-océano con `moja` (por `paths:`) y las estrellas (al
+descender a su sólido). No compara ciudades ni pueblos: esos se invocan, se pagan una vez y su
+duplicación la vigila E18.
+
+**Medida.** La duplicación que importa es **una afirmación repetida con otras palabras**, no un
+documento parecido. Por eso se mide afirmación a afirmación:
+
+```
+afirmaciones(n) = las frases de cuerpo(n) (cortadas por . ; : y salto de línea)
+                  con al menos 4 palabras con contenido
+palabras(f)     = las palabras de f, normalizadas, sin las vacías
+solape(a, b)    = max sobre pares de afirmaciones (fa, fb) de
+                    |palabras(fa) ∩ palabras(fb)| / |palabras(fa) ∪ palabras(fb)|
+                  contando solo los pares con |∩| ≥ 3
+```
+
+El suelo de **tres palabras con contenido compartidas** es lo que separa una política duplicada de
+una coincidencia de vocabulario, y solo funciona con una lista de vacías que incluya de verdad las
+partículas gramaticales: mientras `no`, `ni` y `ha` contaban como contenido, «una comprobación que
+nunca ha dado rojo» y «una copia que nunca se ha restaurado» —una analogía, no una duplicación—
+compartían cuatro «palabras» y puntuaban 0,44.
+
+Medido sobre la galaxia real (465 pares de nodos co-cargables): con el suelo en 3 quedan
+**exactamente los dos pares** que la revisión adversarial había señalado a mano leyendo el agua y
+las 21 estrellas (H13), y **ningún** falso positivo. El primer par no duplicado queda en 0,286 con
+solo dos palabras compartidas: por debajo del suelo y por debajo del umbral, con margen por los dos
+lados.
+
+E17 salta cuando `solape(a, b) > presupuesto.solapamiento`. El error nombra los dos nodos, el
+porcentaje y **las dos frases concretas**, porque un rojo que no enseña la frase obliga a leer los
+dos ficheros enteros.

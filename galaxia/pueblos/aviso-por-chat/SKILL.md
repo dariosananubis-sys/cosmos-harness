@@ -5,16 +5,35 @@ padre: automatizacion
 resumen: Avisa en el chat de trabajo donde ya esta la gente, por cuenta de servicio o por permiso de un usuario real.
 ---
 
-`cosecha/google-chat-dm.py` — mensaje directo desde una cuenta de servicio, con el aviso que ahorra
-la tarde: la plataforma **no deja que un robot abra una conversacion**, asi que el destinatario tiene
-que haberle escrito una vez o no hay delegacion a nivel de dominio. Si eso no se sabe, el envio
-falla sin motivo aparente y se busca el error en los permisos.
+`cosecha/google-chat-dm.py` y `cosecha/google-chat-oauth-notify.js` — herramienta propia, no hay
+repositorio público. La ruta ES la referencia.
 
-`cosecha/google-chat-oauth-notify.js` — la otra via, para cuando la organizacion solo tiene aprobado
-el flujo de usuario o se quiere que el aviso salga de parte de alguien conocido. Sin dependencias, y
-con dos decisiones que se copian: la lista de destinatarios solo viene del entorno, sin valor de
-reserva escrito en el codigo, para que nadie reciba un mensaje por un resto olvidado; y **nunca
-lanza excepcion**, porque un aviso que falla no puede tumbar el trabajo que lo dispara.
+```bash
+# vía cuenta de servicio (la app de Chat necesita Receive 1:1 + Join spaces)
+export GOOGLE_CHAT_SA_JSON=~/.secrets/<cuenta-servicio>.json
+python3 cosecha/google-chat-dm.py list-spaces
+python3 cosecha/google-chat-dm.py send persona@ejemplo.test "Copia nocturna terminada"
 
-Distinto de un servidor de notificaciones propio, que avisa al movil de quien se suscribe: esto
-llega a la herramienta donde el equipo ya esta, sin pedirle que instale nada.
+# vía OAuth de un usuario real (cuando la organizacion solo aprueba el flujo de usuario)
+export GCHAT_NOTIFY_RECIPIENTS="persona@ejemplo.test,otra@ejemplo.test"
+export GCHAT_CREDENTIALS_FILE=/run/secrets/gchat_credentials
+export GCHAT_TOKEN_FILE=/run/secrets/gchat_token
+node --input-type=module -e "
+import { notifyTeam } from './cosecha/google-chat-oauth-notify.js';
+console.log(await notifyTeam({ status: 'ok', queue: 'copias', label: 'nocturna' }));"
+```
+
+Se prefiere al **Incoming Webhook** del espacio (que es lo que usa la skill `google-chat-send`)
+porque un webhook publica en un espacio, no en el privado de una persona, y no se puede revocar por
+destinatario: quien tenga la URL escribe. Y se prefiere a `ntfy` cuando el aviso tiene que llegar
+donde el equipo ya está mirando, sin pedirle que instale una aplicación.
+
+Ojo, y es el fallo que cuesta la tarde: la API de Chat **no deja que un robot abra una
+conversación**. El destinatario tiene que haber escrito al bot una vez, o hace falta delegación a
+nivel de dominio; si no, el envío falla y el error apunta a permisos que están bien.
+
+A las tres de la mañana: `notifyTeam` **nunca lanza excepción** a propósito —un aviso roto no puede
+tumbar el trabajo que lo dispara—, así que un fallo de envío es silencioso salvo que se mire el
+`{ok, sent, errors}` que devuelve. Regístralo. Y la lista de destinatarios sale solo del entorno,
+sin valor de reserva en el código: con `ENABLED=1` y la lista vacía, corta sin enviar en vez de
+escribir a quien quedó apuntado hace un año.

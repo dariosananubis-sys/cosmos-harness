@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Callable
 
 from .generar import generar_indice
-from .modelo import RANGOS, Arbol, Nodo, cuerpo, nicho_de_nodo, nombres_nichos, normalizar_nichos
+from .modelo import NIVELES_AGUA, RANGOS, Arbol, Nodo, cuerpo, nicho_de_nodo, nombres_nichos, normalizar_nichos
 
 
 HEURISTICA = "heurística v1"
@@ -41,6 +41,8 @@ class ResultadoMedicion:
     detalle_arbol: list[ParteMedida]
     nichos: tuple[str, ...] = field(default_factory=tuple)
     pueblos_visibles: int = 0
+    agua: int = 0
+    detalle_agua: list[ParteMedida] = field(default_factory=list)
     fuera_cosmos: str = field(init=False, default="no_medido")
 
     @property
@@ -48,6 +50,16 @@ class ResultadoMedicion:
         """Alias de compatibilidad; NUCLEO denomina universo al total."""
 
         return self.universo
+
+    @property
+    def entrada_con_agua(self) -> int:
+        """Lo que se paga sin invocar nada: entrada + agua que se carga por 'paths:'.
+
+        NUCLEO §3. El agua condicional ya está dentro de 'resto', así que no se
+        vuelve a sumar a 'universo': solo se publica y se compara con el presupuesto.
+        """
+
+        return self.entrada + self.agua
 
     def como_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -104,6 +116,26 @@ def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str |
             raise MetodoNoDisponible("se pidió método exacto, pero no hay tokenizador local")
         return exacto[0], "exacto", exacto[1], False
     return contar_aprox, "aprox", None, True
+
+
+def agua_condicional(arbol: Arbol) -> list[Nodo]:
+    """Agua que no está en la entrada y se carga sola al tocar un fichero que moja.
+
+    NUCLEO §3. Son los mares y lagos: entran por `paths:`, sin que nadie los
+    invoque, y por eso su coste es real aunque no aparezca en `contexto_inicial`.
+    Quedan fuera los océanos (ya están en la entrada) y el agua con `moja: []`
+    —río y lluvia—, que se invoca a mano y cuyo resumen ya se paga en el catálogo.
+    """
+
+    return [
+        nodo
+        for nodo in arbol.nodos
+        if nodo.cosmos in NIVELES_AGUA
+        and nodo.cosmos != "oceano"
+        and isinstance(nodo.datos.get("moja"), list)
+        and nodo.datos["moja"]
+        and cuerpo(nodo)
+    ]
 
 
 def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
@@ -180,6 +212,10 @@ def medir_arbol(
     resto = sum(parte.tokens for parte in detalle_arbol)
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
+    detalle_agua = [
+        ParteMedida(f"{nodo.cosmos}/{nodo.nombre}", contador(cuerpo(nodo)))
+        for nodo in agua_condicional(arbol)
+    ]
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,
@@ -198,6 +234,8 @@ def medir_arbol(
             for nodo in arbol.nodos
             if nodo.cosmos == "pueblo" and seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
         ),
+        agua=sum(parte.tokens for parte in detalle_agua),
+        detalle_agua=sorted(detalle_agua, key=lambda parte: parte.tokens, reverse=True),
     )
 
 
@@ -253,14 +291,17 @@ def formatear_medicion(resultado: ResultadoMedicion, *, detalle: bool = False) -
         if resultado.descarga == "no_definida"
         else f"{float(resultado.descarga) * 100:.1f} %".replace(".", ",")
     )
-    if resultado.entrada <= resultado.presupuesto:
-        estado = f"OK, quedan {_numero(resultado.presupuesto - resultado.entrada)} tokens"
+    evaluado = resultado.entrada_con_agua
+    if evaluado <= resultado.presupuesto:
+        estado = f"OK, quedan {_numero(resultado.presupuesto - evaluado)} tokens"
     else:
-        estado = f"ROJO, excede en {_numero(resultado.entrada - resultado.presupuesto)} tokens"
+        estado = f"ROJO, excede en {_numero(evaluado - resultado.presupuesto)} tokens"
     lineas = [
         "COSMOS  medir",
         "",
         f"  Entrada ......... {_numero(resultado.entrada)} tokens   ({metodo})",
+        f"  Agua condicional  {_numero(resultado.agua)} tokens   ({len(resultado.detalle_agua)} aguas por paths:, fuera de la entrada)",
+        f"  Entrada con agua  {_numero(evaluado)} tokens   (lo que se paga sin invocar nada)",
         f"  Universo ........ {_numero(resultado.universo)} tokens   ({metodo})",
         f"  Descarga ........ {descarga}",
         f"  Presupuesto ..... {_numero(resultado.presupuesto)}     {estado}",
@@ -292,16 +333,18 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         if evaluada.descarga == "no_definida"
         else f"{float(evaluada.descarga) * 100:.1f} %".replace(".", ",")
     )
-    if evaluada.entrada <= evaluada.presupuesto:
-        estado = f"OK, quedan {_numero(evaluada.presupuesto - evaluada.entrada)} tokens"
+    evaluado = evaluada.entrada_con_agua
+    if evaluado <= evaluada.presupuesto:
+        estado = f"OK, quedan {_numero(evaluada.presupuesto - evaluado)} tokens"
     else:
-        estado = f"ROJO, excede en {_numero(evaluada.entrada - evaluada.presupuesto)} tokens"
+        estado = f"ROJO, excede en {_numero(evaluado - evaluada.presupuesto)} tokens"
     peor_nombre = resultado.peor_nicho or "sin nichos"
     lineas = [
         "COSMOS  medir",
         "",
         f"  Entrada base .... {_numero(resultado.base.entrada)} tokens   (índice + océanos + estructura, sin pueblos; {metodo})",
         f"  Peor nicho ...... {_numero(resultado.peor.entrada)} tokens   ({peor_nombre}, {resultado.peor.pueblos_visibles} pueblos)",
+        f"  Agua condicional  {_numero(evaluada.agua)} tokens   ({len(evaluada.detalle_agua)} aguas por paths:, fuera de la entrada)",
     ]
     if resultado.seleccion is not None:
         nombres = ", ".join(resultado.seleccion_nichos)
@@ -317,9 +360,10 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         ambito = "la combinación"
     lineas.extend(
         [
+            f"  Peor con agua ... {_numero(evaluado)} tokens   ({ambito} + agua condicional)",
             f"  Universo ........ {_numero(evaluada.universo)} tokens   ({metodo})",
             f"  Descarga ........ {descarga}",
-            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado} en {ambito}",
+            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado} en {ambito} con agua",
             "",
             "  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)",
             "",
@@ -332,6 +376,9 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
     else:
         lineas.append("    (entrada vacía)")
     if detalle:
+        if evaluada.detalle_agua:
+            lineas.extend(["", "  Agua condicional, nodo a nodo:"])
+            lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in evaluada.detalle_agua)
         lineas.extend(["", "  Resto, nodo a nodo:"])
         lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in evaluada.detalle_arbol)
     return "\n".join(lineas) + "\n"

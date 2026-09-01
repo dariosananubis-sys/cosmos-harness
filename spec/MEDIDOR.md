@@ -16,6 +16,8 @@ de buenas intenciones, y ya hay muchos.
 |---|---|---|
 | **Entrada base** | Índice de galaxia + océanos + mapa de descenso, sin ciudades ni pueblos | Se paga en **cada** sesión y en **cada** subagente, para siempre |
 | **Entrada de nicho** | La base + el catálogo de ciudades y pueblos del nicho activo | Es el coste real al entrar en un oficio |
+| **Agua condicional** | Los mares y lagos, que se cargan solos por `paths:` sin que nadie los invoque | No está en la entrada y se paga igual; ocultarlo es la fuga que este medidor existe para cazar |
+| **Peor caso con agua** | Entrada del peor nicho + agua condicional | El techo real de una sesión de trabajo, y **el número que E16 compara con el presupuesto** |
 | **Árbol** | La suma de todo el contenido del árbol, si se cargara entero | El contrafactual: lo que costaría no tener COSMOS |
 | **Descarga** | `1 − entrada / árbol` | Qué fracción del sistema está disponible sin estar cargada |
 
@@ -25,7 +27,20 @@ está cargado. Un COSMOS sano vive por encima de 0,95.
 Ojo con leerla al revés: una descarga alta **no** significa que el sistema sea bueno, significa que
 lo que existe no se paga hasta usarse. Un árbol enorme de basura tendría descarga excelente. Por
 eso la descarga se publica siempre junto a la entrada en tokens absolutos, y es la **entrada del
-peor nicho individual** la que tiene presupuesto y la que pone rojo el validador.
+peor nicho individual más el agua condicional** la que tiene presupuesto y la que pone rojo el
+validador.
+
+## El agua no se puede quedar fuera del número
+
+Un mar no aparece en `contexto_inicial`: entra «por `paths:` que matchea». Formalmente es correcto,
+y durante un tiempo sirvió de excusa para no contarlo. Medido en la galaxia real el 2026-09-01: los
+cinco mares suman **817 tokens**, y `mar/criterio` (298) más `mar/resistencia` (83) se activan en
+**cualquier fichero `.py`**. El peor nicho publicado eran 1.771 tokens; el coste real de abrir un
+Python del proyecto, 2.152. El medidor decía «quedan 2.229» sin ver un tercio del gasto.
+
+Publicar «no aparece en la entrada» y callar el resto es la misma mentira que sumar `no_medido`
+como cero, solo que por omisión. Por eso el agua condicional es una magnitud publicada, con su
+desglose, y entra en el número que decide rojo o verde. Definición normativa en `NUCLEO.md` §3.
 
 ## Casos que se miden
 
@@ -87,9 +102,11 @@ COSMOS  medir
 
   Entrada base .... 1.012 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±8%, heurística v1)
   Peor nicho ...... 1.655 tokens   (ciberseguridad, 26 pueblos)
+  Agua condicional  817 tokens     (5 aguas por paths:, fuera de la entrada)
+  Peor con agua ... 2.472 tokens   (peor nicho + agua condicional)
   Universo ........ 61.400 tokens  (estimado, ±8%)
   Descarga ........ 97,3 %
-  Presupuesto ..... 4.000          OK, quedan 2.345 tokens en el peor caso
+  Presupuesto ..... 4.000          OK, quedan 1.528 tokens en el peor caso con agua
 
   Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
 
@@ -117,3 +134,6 @@ dónde está el peso, y casi siempre son dos o tres nodos, no cincuenta.
 3. Un test de que `no_medido` nunca se convierte en `0` en ninguna suma, ni en la salida JSON.
 4. Un test de que un árbol vacío da entrada 0 y descarga `no_definida` — no `100 %`. Dividir entre
    cero y publicar un sobresaliente es el modo de fallo clásico de este tipo de métrica.
+5. Un test de que un mar con cuerpo **sube** `entrada_con_agua` sin tocar `entrada`, y de que
+   `entrada_con_agua ≤ universo`. Sin él, el agua vuelve a quedarse fuera del presupuesto en cuanto
+   alguien refactorice, y nada se pone rojo.

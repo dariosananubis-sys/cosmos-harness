@@ -225,6 +225,9 @@ def errores_vista(arbol: Arbol, destino: Path, manifiesto: Path, modo: str, *, c
             errores.append(f"{nombre}: modo distinto del configurado")
             continue
         esperado = _hash_esperado(nodo.ruta.parent, entrada, modo)
+        if registrada.get("hash") != esperado:
+            errores.append(f"{nombre}: hash desincronizado en el manifiesto")
+            continue
         if _hash_actual(entrada, modo) != esperado:
             errores.append(f"{nombre}: contenido o enlace distinto del árbol")
     for nombre in sorted(set(entradas) - set(esperadas)):

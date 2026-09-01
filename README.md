@@ -52,9 +52,10 @@ Tres piezas, y ninguna depende de que nadie se acuerde de nada:
 
 | Pieza | Qué hace |
 |---|---|
-| `cosmos validar` | E00–E18. Esquema, estructura, duplicación, colisiones y presupuesto. Rojo, no aviso |
+| `cosmos validar` | E00–E19. Esquema, estructura, duplicación, presupuesto y artefactos sincronizados |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
+| `cosmos compilar` | Aplana ciudades y pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
 
 Un aviso se ignora; por eso pasarse de presupuesto es rojo. Un índice a mano se desincroniza; por
 eso se genera. Un validador que nunca ha dicho rojo no se distingue de uno roto; por eso hay un

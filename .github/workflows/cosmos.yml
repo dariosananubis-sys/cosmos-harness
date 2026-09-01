@@ -1,0 +1,58 @@
+# COSMOS se verifica solo. Este workflow es el tercer enganche de
+# spec/GUARDARRAILES.md: pre-commit (cosmos enganchar), sesión y CI.
+#
+# Sin dependencias externas: solo la biblioteca estándar de Python y el checkout.
+# Nada de pip, nada de red.
+name: cosmos
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versión de Python (COSMOS exige 3.11+ por tomllib)
+        run: |
+          python3 --version
+          python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)'
+
+      # El clon está recién bajado y la vista plana es un artefacto generado:
+      # esto es exactamente lo que hace una persona al clonar el repositorio.
+      - name: Arrancar la galaxia
+        run: python3 -m cosmos arrancar
+
+      - name: Arrancar el ejemplo
+        run: python3 -m cosmos arrancar --config ejemplo.toml
+
+      - name: Validar la galaxia
+        run: python3 -m cosmos validar
+
+      - name: Validar el ejemplo
+        run: python3 -m cosmos validar --config ejemplo.toml
+
+      - name: Medir el presupuesto de entrada
+        run: python3 -m cosmos medir
+
+      - name: Escanear secretos sobre los blobs versionados
+        run: python3 -m puente.secretos --todo
+
+      - name: Suite del núcleo
+        run: python3 -m unittest discover -s tests -t .
+
+      - name: Suite del puente
+        run: python3 -m unittest discover -s puente/tests -t .
+
+      # El gate es lo que corre en cada commit local. Si en CI no pasa, el hook
+      # que la gente instala tampoco pasaría, y un gate que no se puede instalar
+      # es el fallo que este proyecto documentó al auditar otro harness.
+      - name: El gate se puede instalar y pasa
+        run: python3 -m puente.gate --sin-pruebas

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -34,7 +35,15 @@ VARIABLES_COSMOS = ("COSMOS_NICHOS", "COSMOS_CONFIG")
 
 
 def raiz_repositorio(inicio: str | Path | None = None) -> Path:
-    base = Path(inicio) if inicio is not None else Path(__file__).resolve().parent.parent
+    """El repositorio que se verifica es donde se está, no donde vive este fichero.
+
+    Anclarlo en `__file__` hacía que COSMOS instalado sobre otro proyecto —vía
+    PYTHONPATH, que es como lo engancha `cosmos enganchar`— verificase su propio
+    árbol y dejase pasar el ajeno. Un gate que mira al repositorio equivocado
+    tranquiliza sin comprobar nada.
+    """
+
+    base = Path(inicio) if inicio is not None else Path.cwd()
     resultado = subprocess.run(
         ["git", "-C", str(base), "rev-parse", "--show-toplevel"],
         capture_output=True,
@@ -72,16 +81,23 @@ def entorno_aislado() -> dict[str, str]:
     return _entorno_limpio(conservar_indice=False)
 
 
-def _ordenes(con_pruebas: bool) -> list[list[str]]:
+SUITES = ("tests", "puente/tests")
+
+
+def _ordenes(con_pruebas: bool, base: Path | None = None) -> list[list[str]]:
     ordenes = [
         # El escaneo se repite dentro: fuera mira el índice real, aquí los bytes
         # exactos que se van a commitear, ya materializados.
         [sys.executable, "-m", "puente.secretos", "--todo"],
-        [sys.executable, "-m", "cosmos", "validar"],
+        # 'arrancar' y no 'validar': la vista plana es un artefacto generado que no
+        # se versiona, así que la instantánea del índice la tiene ausente igual que
+        # un clon recién bajado. Verificar aquí es verificar que ese clon arranca.
+        [sys.executable, "-m", "cosmos", "arrancar"],
     ]
     if con_pruebas:
-        ordenes.append([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-t", "."])
-        ordenes.append([sys.executable, "-m", "unittest", "discover", "-s", "puente/tests", "-t", "."])
+        for suite in SUITES:
+            if base is None or (base / suite).is_dir():
+                ordenes.append([sys.executable, "-m", "unittest", "discover", "-s", suite, "-t", "."])
     return ordenes
 
 
@@ -117,10 +133,32 @@ def verificar_instantanea(
                 print("ERROR: no se pudo preparar la instantánea del índice", file=sys.stderr)
                 return 1
 
-        for orden in _ordenes(con_pruebas):
-            if subprocess.run(
+        # La válvula de escape vive fuera del control de versiones, así que hay
+        # que traerla a mano: sin esto un salto legítimo no llegaría al hook.
+        saltos = base / ".cosmos" / "saltos.log"
+        if saltos.is_file():
+            destino_saltos = instantanea / ".cosmos"
+            destino_saltos.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(saltos, destino_saltos / "saltos.log")
+
+        for orden in _ordenes(con_pruebas, instantanea):
+            resultado = subprocess.run(
                 orden, cwd=instantanea, env=entorno, capture_output=silencioso, check=False
-            ).returncode:
+            )
+            if resultado.returncode:
+                # Un gate que bloquea sin decir por qué se desinstala el mismo día.
+                # En modo silencioso la salida se guarda, no se tira: al fallar se
+                # publica entera, con el comando exacto para reproducirlo.
+                if silencioso:
+                    for flujo in (resultado.stdout, resultado.stderr):
+                        if flujo:
+                            sys.stderr.write(flujo.decode("utf-8", "replace"))
+                sys.stderr.write(
+                    "\nCOSMOS  gate  rojo — commit bloqueado.\n"
+                    f"Falló: {' '.join(orden)}\n"
+                    "Repítelo a mano para ver el detalle, o usa la válvula acotada:\n"
+                    "  cosmos saltar <codigo> --motivo \"...\" --caduca 7d\n"
+                )
                 return 1
     return 0
 

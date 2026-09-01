@@ -1,3 +1,11 @@
+# Configuración por defecto: el árbol REAL, la galaxia.
+#
+# `cosmos validar` a secas —lo que corren el gate de pre-commit, el CI y la
+# persona con prisa— tiene que mirar el árbol que importa. Cuando esto apuntaba
+# al ejemplo de juguete, el índice de la galaxia se podía falsificar entero y el
+# comando por defecto seguía en verde (revisión adversarial, H02). El ejemplo
+# tiene ahora su propia configuración en `ejemplo.toml`.
+
 [presupuesto]
 entrada = 4000
 resumen = 120
@@ -6,13 +14,20 @@ galaxia_lineas = 40
 solapamiento = 0.25
 
 [raiz]
-arbol = "ejemplo"
-indice = "ejemplo/COSMOS.md"
+arbol = "galaxia"
+indice = "galaxia/COSMOS.md"
 
 [medicion]
 metodo = "aprox"
 
 [compilacion]
-destino = ".claude/skills"
+destino = ".cosmos/vista-galaxia"
 modo = "symlink"
-manifiesto = ".cosmos/compilado.json"
+manifiesto = ".cosmos/compilado-galaxia.json"
+
+# Nicho activo del runtime acotado. Lista vacía = todos los sistemas solares.
+# Vive aquí y no en un flag de línea de comandos porque una regla que depende de
+# que todo el mundo repita `--nicho` en cada invocación es una regla que se
+# olvida en el turno 40 (H09).
+[nichos]
+activos = []

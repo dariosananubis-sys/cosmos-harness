@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: statsforecast
-padre: analitica/prevision
+padre: analitica
 resumen: Prevision con modelos estadisticos clasicos, rapidos y explicables, sin redes neuronales.
 ---
 

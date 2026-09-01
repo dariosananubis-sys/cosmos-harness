@@ -1,0 +1,15 @@
+VladSez/easy-invoice-pdf | ★1086 | upd:2026-08-30 | lic:AGPL-3.0 | Free & Open-Source Invoice Generator - No Sign-Up, No Ads, Instant PDF Export, 100% In-Browser, and Fully Customizable Templates. ⭐ Star the repo if you like it
+htmldocs-js/htmldocs | ★744 | upd:2026-08-18 | lic:MIT | The modern alternative to LaTeX. Create PDF documents templates using React, JSX, and Tailwind
+tuanpham-dev/react-invoice-generator | ★677 | upd:2024-05-27 | lic:MIT | React Invoice Generator allows you quickly make invoices and export them as PDF
+johnuberbacher/invoice-generator | ★293 | upd:2024-06-30 | lic:none | An Invoice creator project built with React. Uses jspdf-react to capture the data from the modal and convert it from canvas -> pdf.
+by-cx/InvoiceGenerator | ★184 | upd:2026-08-12 | lic:none | Library to generate PDF invoices.
+omaralalwi/Gpdf | ★157 | upd:2026-08-27 | lic:MIT | Gpdf: PHP PDF Generator - HTML to PDF Converter for Laravel & PHP with native Arabic/RTL support, with built-in 17 fonts, and S3 storage. Extends DomPDF to fix Arabic limitations and add advanced features for documents, invoices, and reports. 
+baptistejamin/node-microinvoice | ★147 | upd:2026-01-09 | lic:MIT | Fast & elegant PDF invoice generator for Node using PDFKit. No Puppeteer
+angelodlfrtr/go-invoice-generator | ★146 | upd:2026-08-11 | lic:Apache-2.0 | Super fast golang invoice / quotation / delivery-note PDF generator
+ETDA/e-TaxInvoice-PDFgen | ★145 | upd:2023-12-25 | lic:AGPL-3.0 | e-Tax Invoice by Email - PDF Generator on PC
+code-boxx/invoicr | ★113 | upd:2024-02-05 | lic:none | Invoicr is a free and open-source PHP invoice generator that is capable of churning out HTML, PDF, DOCX, and PNG invoices.
+contributte/invoice | ★97 | upd:2026-05-22 | lic:MIT | :memo: PDF invoice generator 
+hourmeng12/invoice-generator | ★94 | upd:2024-08-14 | lic:none | A Web Application generates Invoices as PDFs to your device using html-to-image and jsPDF.
+rimiti/invoice-it | ★94 | upd:2023-10-16 | lic:MIT | :page_with_curl: Generate your orders or your invoices and export them in html, pdf or buffer easily.
+relistan/billmonger | ★89 | upd:2021-05-25 | lic:MIT | Dead simple one-page PDF invoice generator. Write YAML, get simple, pretty invoices.
+IonicaBizau/nodeice | ★88 | upd:2025-02-14 | lic:MIT | :moneybag: Another PDF invoice generator

@@ -1,0 +1,15 @@
+by-cx/InvoiceGenerator | ★184 | upd:2026-08-12 | lic:none | Library to generate PDF invoices.
+CiCiApp/PyInvoice | ★47 | upd:2022-09-21 | lic:MIT | Invoice/Receipt Generator
+aleaforny/python-invoice-generator | ★43 | upd:2025-04-09 | lic:GPL-3.0 | Small and easy-to-use library to use Invoice Generator API with Python
+codefirstio/invoice-generator-tkinter-and-doxtpl | ★42 | upd:2024-01-18 | lic:none | Invoice Generator Python project. Source code for tutorial: https://youtu.be/mJc5gAnnlVQ
+flortsch/erpnext-epcqrcode | ★27 | upd:2024-03-10 | lic:MIT | An EPC-QRCode generator in ERPNext for creating QRCodes, e.g., on sales invoices.
+bahramnejhad/Invoice-Generator-Bot-with-Telegram-Integration | ★21 | upd:2024-11-26 | lic:none | This project is a Telegram bot that allows users to generate sales invoices by interacting with the bot. It collects user details, such as their phone number and store information, then allows them to add items to an invoice. Once the items are added, the bot generates a PDF invoice and sends it to the user.
+aalexmrt/django-invoices-generator | ★19 | upd:2025-03-15 | lic:none | Web app for generating and emailing invoices, built with Django, styled with Bootstrap and using SQlite database management.
+coderatul/invoice-generator-python | ★18 | upd:2024-02-11 | lic:none | a simple program to print invoice in python 
+n1ywb/jeffs-gnucash-utils | ★14 | upd:2018-12-01 | lic:GPL-3.0 | Jeff Laughlin's Python utilities for GnuCash. Includes HTML invoice generator.
+artemrizhov/invoicegen | ★13 | upd:2015-12-12 | lic:GPL-3.0 | Batch document generator
+nafeu/invoice-gen | ★13 | upd:2022-12-03 | lic:MIT | Basic invoice generator for quick PDF invoices/quotes.
+devshazam/TelegramBot-Invoice-Generator_Django_v4.2024 | ★13 | upd:2024-12-20 | lic:none | 💵This is a private bot for generating ⚡ invoices and contracts for clients of legal entities within the company!💥 
+RajshekharHoratti/Python-PDF-Invoice-Generator-with-database-connection-and-Email-Support | ★10 | upd:2017-07-26 | lic:none | Python PDF Generator with Database Connection and Email support 
+Sneezedip/paypal-receipt-generator | ★9 | upd:2025-05-16 | lic:none | Generate PayPal-style receipts in multiple languages and currencies. Customizable, responsive, and perfect for demos, educational, or testing purposes.
+Randolph001/Automated-Invoice-Generator | ★9 | upd:2025-02-15 | lic:MIT | 

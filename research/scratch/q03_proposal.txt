@@ -1,0 +1,15 @@
+Tencent/ActionDetection-DBG | ★352 | upd:2023-04-07 | lic:NOASSERTION | Code for AAAI2020 paper "Fast Learning of Temporal Action Proposal via Dense Boundary Generator"
+tc39/proposal-generator-arrow-functions | ★125 | upd:2020-07-24 | lic:none | ECMAScript proposal: Generator Arrow Functions
+sebmarkbage/ecmascript-generator-expression | ★98 | upd:2017-11-28 | lic:none | Proposal for do Generator Expressions in ECMAScript. Work in progress. Edit Add topics
+jbwang1997/AOPG | ★66 | upd:2021-10-30 | lic:Apache-2.0 | Anchor-free Oriented Proposal Generator for Object Detection
+justinlietz93/breakthrough_generator | ★64 | upd:2025-09-30 | lic:none | Generates breakthrough ideas from a single prompt through an 8 stage walkthrough, with optional research proposal paper.
+THESIS-AGENT/generate-adademic-report | ★57 | upd:2025-08-28 | lic:none | 🤖 AI-powered academic proposal & experiment design generator | 基于人工智能的学术开题报告与实验设计生成工具 - Support multi-AI models, research gap discovery, and academic integrity
+tc39/proposal-function.sent | ★41 | upd:2021-04-22 | lic:MIT | Generator function.sent Meta Property
+lewissbaker/generator | ★37 | upd:2025-01-31 | lic:BSL-1.0 | Reference implementation of std::generator proposal
+dashpay/proposal-generator | ★23 | upd:2022-09-18 | lic:none | Dash Client-Side Governance Proposal Generator
+jhusain/pushgenerator | ★18 | upd:2015-04-08 | lic:none | Proposal for the addition of a push generator to JavaScript
+tolga-b/BINGpp | ★16 | upd:2016-05-18 | lic:GPL-3.0 | BING++: A Fast High Quality Object Proposal Generator at 100fps
+yoligehude14753/docforge | ★12 | upd:2026-03-25 | lic:MIT | AI-powered bid and proposal document generator. Upload requirements, generate professional Word docs with OpenAI / DeepSeek / Claude / Ollama.
+dashaworks/report-skills | ★12 | upd:2026-08-06 | lic:MIT | AI report generator skills for Claude Code & Codex — publish agent-made research, client reports, tracked proposals, and slide decks as beautiful live pages via the ReportRoom MCP. A DocSend alternative for AI agents, with view analytics reported back to the agent.
+Getting-Automated/proposal-website-generator | ★10 | upd:2025-02-10 | lic:MIT | 
+Gurkha-Technology-Open-Source/client-proposal-generator-tool | ★10 | upd:2025-12-03 | lic:MIT | The Client Proposal Generator Tool is a web application designed to streamline the proposal creation process for prospective clients. This tool enables users to input their project details (e.g., budget, scope, goals) and automatically generates a professional, branded proposal using the agency's predefined templates. 

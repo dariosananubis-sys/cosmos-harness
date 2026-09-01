@@ -1,0 +1,38 @@
+=== semantic code search engine codebase ===
+   694★ probelabs/probe                               lic=Apache-2.0 push=2026-08-31 | AI-friendly semantic code search engine for large codebases. Combines ripgrep speed with t
+    88★ CodeAlive-AI/codealive-mcp                    lic=MIT push=2026-08-16 | Context engine for large codebases, exposed through MCP. Gives AI coding agents precise re
+    73★ krokozyab/Agent-Fusion                        lic=MIT push=2026-06-20 |  Agent Fusion is a local RAG semantic search engine that gives AI agents instant access to
+    34★ xdotech/goatlas                               lic=MIT push=2026-03-20 | GoAtlas: The AI-Powered Code Intelligence Engine — A server-side MCP platform that deeply 
+    19★ kraklabs/cie                                  lic=AGPL-3.0 push=2026-02-14 | Code Intelligence Engine — indexes your codebase and gives AI assistants deep understandin
+     5★ user120309/kontext-engine                     lic=Apache-2.0 push=2026-08-30 | Empower AI coding agents to understand any codebase with `ctx`, a command-line tool that i
+     4★ ace-Shelby/Semantic-Code-Search-Engine        lic=None push=2026-06-27 | An AI-powered Semantic Code Search Engine that lets you query codebases using natural lang
+     4★ Garvittt-API/CodeNexus                        lic=MIT push=2026-07-18 | CodeNexus - Semantic Code Search Engine — Ask natural language questions about any codebas
+     3★ supercodingninja/codeRefactored               lic=None push=2020-11-21 | I am learning that some of the more difficult and common tasks for both, front-end and jun
+     1★ PranayMahendrakar/ai-codebase-search-engine   lic=None push=2026-03-06 | AI-powered semantic codebase search engine using loal open-source embedding models (no API
+     1★ pintarkristian/semantic-code-search-engine    lic=MIT push=2026-08-31 | Semantic code search engine that lets developers query a codebase by intent instead of key
+     1★ sakshamkamra33/vortex-codebase-intelligence   lic=None push=2026-06-11 | An enterprise-grade Codebase Intelligence & GraphRAG engine powered by a stateful LangGrap
+     1★ dan-fernan/codeburrow                         lic=None push=2026-08-02 | A local-first semantic code search engine. Allows enables `grep` on natural language, allo
+     1★ 4hmad69/ai-engineering-copilot                lic=None push=2026-07-10 | Production-grade agentic RAG workspace for codebase Q&A, semantic search, code review, fea
+     1★ ArnabKarmakar1108/CodeCompass                 lic=MIT push=2026-08-16 | CodeCompass answers natural-language questions about large C++ codebases using hybrid retr
+=== codebase understanding repo map LLM ===
+     3★ bettyabay/Codebase-Understanding-Agent        lic=None push=2026-03-14 | Multi-agent codebase intelligence system for rapid onboarding to brownfield data engineeri
+=== flamegraph profiler ===
+  7727★ gaogaotiantian/viztracer                      lic=Apache-2.0 push=2026-08-18 | A debugging and profiling tool that can trace and visualize python code execution
+  6737★ jlfwong/speedscope                            lic=MIT push=2026-05-15 | 🔬 A fast, interactive web-based viewer for performance profiles.
+  3548★ davidmarkclements/0x                          lic=MIT push=2025-09-30 | 🔥 single-command flamegraph profiling 🔥
+  3417★ yandex/perforator                             lic=NOASSERTION push=2026-09-01 | Perforator is a cluster-wide continuous profiling tool designed for large data centers
+  2630★ NoiseByNorthwest/php-spx                      lic=GPL-3.0 push=2026-08-19 | A simple & straight-to-the-point PHP profiling extension with its built-in web UI
+  1735★ EmbarkStudios/puffin                          lic=Apache-2.0 push=2026-08-21 | 🐦 Friendly little instrumentation profiler for Rust 🦀
+  1118★ jhawthorn/vernier                             lic=MIT push=2026-08-28 | 📏 next generation CRuby profiler
+   730★ llogiq/flame                                  lic=Apache-2.0 push=2024-02-25 | An intrusive flamegraph profiling tool for rust.
+   400★ evanhempel/python-flamegraph                  lic=Unlicense push=2020-02-11 | Statistical profiler which outputs in format suitable for FlameGraph (http://www.brendangr
+   385★ SamSaffron/flamegraph                         lic=MIT push=2021-03-30 | Flamegraph profiling support for Ruby 2.0
+   319★ gungraun/gungraun                             lic=Apache-2.0 push=2026-08-30 | High-precision, one-shot and consistent benchmarking framework/harness for Rust. All Valgr
+   193★ jkool702/timep                                lic=MIT push=2026-06-27 | `timep` is an efficient and accurate state-of-the-art trap-based profiler and flamegraph g
+   187★ cunctator/traceshark                          lic=GPL-3.0 push=2026-07-07 | This is a tool for Linux kernel ftrace and perf events visualization
+   155★ Stratus3D/eflambe                             lic=Apache-2.0 push=2025-09-27 | A tool for rapid profiling of Erlang and Elixir applications
+   124★ javierhonduco/rbperf                          lic=MIT push=2024-04-21 | Low-overhead sampling profiler and tracer for Ruby for Linux
+=== large-scale refactoring codemod ===
+     2★ developer-bandi/codemod-kit                   lic=None push=2025-06-01 | A tool that makes large-scale refactoring easier and safer.
+     0★ pbambusek/talk-codemods                       lic=None push=2023-05-23 | Accompanying code to my talk about large-scale refactoring with codemods
+     0★ patricktree/presentation-large-scale-code-refactorings-using-codemods-and-asts lic=None push=2024-11-07 | 

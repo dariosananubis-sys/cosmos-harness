@@ -33,8 +33,11 @@ Lo que cuesta dinero, dicho claro y separado en dos:
   suscripcion. Para publicar de vez en cuando llega; para un ritmo alto, no. Alternativa a coste
   cero: `npx expo run:ios` / `run:android` compilan en tu maquina, que es gratis pero exige Xcode y
   el SDK de Android instalados.
-- **De las tiendas, que no es de Expo**: cuota anual de desarrollador en Apple y alta unica en
-  Google. Sin eso no se publica, con Expo o sin el.
+- **De las tiendas, que no es de Expo**: 99 USD por ano de miembro en Apple y 25 USD de alta unica
+  en Google (comprobado el 2026-09-01). Sin eso no se publica, con Expo o sin el — y el alta no es
+  solo dinero: para una cuenta de empresa Apple pide un numero D-U-N-S y Google somete a las cuentas
+  personales nuevas a un periodo de pruebas obligatorio. El detalle del calendario esta en
+  `fastlane`, que es quien hace el alta y la subida.
 
 Y lo que no hace bien: la actualizacion por radio solo alcanza al JavaScript y a los activos. Si el
 cambio toca codigo nativo —una biblioteca nueva, un permiso, la version del SDK— hay que compilar y

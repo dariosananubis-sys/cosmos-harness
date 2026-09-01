@@ -86,6 +86,7 @@ class Configuracion:
     resumen: int = 120
     oceanos: int = 7
     galaxia_lineas: int = 40
+    umbral_solapamiento: float = 0.25
     arbol: Path = Path(".")
     indice: Path = Path("COSMOS.md")
     encontrada: bool = False
@@ -277,17 +278,28 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
             "oceanos": presupuesto["oceanos"],
             "galaxia_lineas": presupuesto["galaxia_lineas"],
         }
+        guardarrailes = datos.get("guardarrailes", {})
+        if not isinstance(guardarrailes, dict):
+            raise ErrorConfiguracion("guardarrailes debe ser una tabla TOML")
+        umbral_solapamiento = guardarrailes.get("umbral_solapamiento", 0.25)
         arbol_rel = raiz["arbol"]
         indice_rel = raiz["indice"]
     except (KeyError, TypeError) as exc:
         raise ErrorConfiguracion(f"falta un umbral o ruta obligatoria en {ruta_path}: {exc}") from exc
-    if any(not isinstance(valor, int) or valor < 0 for valor in valores.values()):
+    if any(not isinstance(valor, int) or isinstance(valor, bool) or valor < 0 for valor in valores.values()):
         raise ErrorConfiguracion("los umbrales deben ser enteros no negativos")
+    if (
+        not isinstance(umbral_solapamiento, (int, float))
+        or isinstance(umbral_solapamiento, bool)
+        or not 0 <= float(umbral_solapamiento) <= 1
+    ):
+        raise ErrorConfiguracion("guardarrailes.umbral_solapamiento debe estar entre 0 y 1")
     if not isinstance(arbol_rel, str) or not isinstance(indice_rel, str):
         raise ErrorConfiguracion("raiz.arbol y raiz.indice deben ser texto")
     base = ruta_path.parent
     return Configuracion(
         **valores,
+        umbral_solapamiento=float(umbral_solapamiento),
         arbol=(base / arbol_rel).resolve(),
         indice=(base / indice_rel).resolve(),
         encontrada=True,

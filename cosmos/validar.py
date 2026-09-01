@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 from .compilar import errores_vista
 from .generar import generar_indice
-from .medir import contexto_inicial, medir_casos
+from .medir import medir_casos
 from .modelo import (
     NIVELES_ADJUNTOS,
     NIVELES_AGUA,
@@ -27,13 +27,58 @@ from .modelo import (
 )
 
 
-PALABRAS_VACIAS_E08 = {"la", "de", "skill", "para", "sistema"}
-PALABRAS_VACIAS_E17 = {
-    "a", "al", "algo", "and", "ante", "con", "como", "cuando", "de", "del",
-    "el", "en", "es", "esta", "este", "for", "in", "la", "las", "lo", "los",
-    "of", "on", "o", "para", "por", "que", "se", "si", "sin", "su", "the",
-    "to", "un", "una", "y",
+PALABRAS_GRAMATICALES = {
+    "a", "al", "algo", "and", "ante", "aunque", "con", "como", "cuando", "cuyo",
+    "de", "del", "donde", "e", "el", "en", "era", "eran", "es", "esa", "esas",
+    "ese", "eso", "esos", "esta", "estas", "este", "esto", "estos", "for", "fue",
+    "ha", "han", "hasta", "in", "la", "las", "le", "les", "lo", "los", "mientras",
+    "ni", "no", "o", "of", "on", "para", "pero", "por", "porque", "que", "se",
+    "sea", "si", "sin", "son", "su", "sus", "the", "to", "u", "un", "una", "y",
+    "ya",
 }
+# Nombrar el nivel al que el nodo ya pertenece no informa de nada.
+PALABRAS_TAXONOMIA = {
+    "casa", "casas", "ciudad", "ciudades", "continente", "continentes", "cosmos",
+    "estrella", "estrellas", "galaxia", "lago", "lagos", "lluvia", "luna", "lunas",
+    "mar", "mares", "nivel", "niveles", "nodo", "nodos", "oceano", "pais", "paises",
+    "planeta", "planetas", "provincia", "provincias", "pueblo", "pueblos", "rio",
+    "rios", "sistema", "sistemas", "skill", "skills", "solar",
+}
+# Comodines que caben en cualquier ficha, y por eso no distinguen ninguna.
+PALABRAS_RELLENO = {
+    "ademas", "alguna", "algunas", "alguno", "algunos", "alli", "aqui", "bien",
+    "cada", "cosa", "cosas", "cualquier", "cualquiera", "forma", "formas", "general",
+    "generales", "generico", "genericos", "hacer", "hay", "mal", "mas", "menos",
+    "misma", "mismas", "mismo", "mismos", "modo", "modos", "muy", "nueva", "nuevas",
+    "nuevo", "nuevos", "otra", "otras", "otro", "otros", "propia", "propio", "ser",
+    "tambien", "tener", "tiene", "tipo", "tipos", "toda", "todas", "todo", "todos",
+    "varias", "varios",
+}
+PALABRAS_VACIAS_E08 = PALABRAS_GRAMATICALES | PALABRAS_TAXONOMIA | PALABRAS_RELLENO
+PALABRAS_VACIAS_E17 = PALABRAS_GRAMATICALES
+
+# Corpus normativo de sondas de E11 (NUCLEO §9). Ninguna familia de ficheros sin
+# representar: con extensión y sin ella, en raíz y anidadas, ocultas y visibles.
+SONDAS_E11 = (
+    "main.py",
+    "src/app/main.py",
+    "tests/test_x.py",
+    "web/index.html",
+    "docs/guia.md",
+    "Makefile",
+    "src/Makefile",
+    "LICENSE",
+    "x",
+    ".gitignore",
+    "a/b/c/d/e.txt",
+    "deep/nested/very/long/path/file.min.js",
+)
+# E17: niveles que pueden estar en contexto a la vez sin que nadie los invoque.
+NIVELES_CO_CARGABLES = frozenset({"oceano", "mar", "lago", "estrella"})
+MINIMO_PALABRAS_AFIRMACION = 4
+MINIMO_PALABRAS_COMPARTIDAS = 3
+MARCAS_MARKDOWN = re.compile(r"[`*_>#|\[\]]")
+CORTES_DE_FRASE = re.compile(r"[.;:\n]+")
 CAMPOS_COMUNES = {"cosmos", "nombre", "resumen"}
 CAMPOS_POR_NIVEL = {
     **{nivel: {"padre"} for nivel in NIVELES_SOLIDOS if nivel != "galaxia"},
@@ -167,36 +212,19 @@ def _comprobar_e03(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
     return errores
 
 
-def _comprobar_e04(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
-    por_referencia: dict[str, list[Nodo]] = defaultdict(list)
-    for nodo in arbol.nodos:
-        por_referencia[nodo.referencia].append(nodo)
-    estado: dict[str, int] = {}
-    pila: list[Nodo] = []
-    errores: list[ErrorValidacion] = []
-
-    def visitar(nodo: Nodo) -> None:
-        clave = nodo.ruta_relativa
-        estado[clave] = 1
-        pila.append(nodo)
-        padre_ref = nodo.datos.get("padre")
-        if isinstance(padre_ref, str):
-            for padre in por_referencia.get(padre_ref, []):
-                estado_padre = estado.get(padre.ruta_relativa, 0)
-                if estado_padre == 0:
-                    visitar(padre)
-                elif estado_padre == 1:
-                    inicio = next(i for i, item in enumerate(pila) if item.ruta_relativa == padre.ruta_relativa)
-                    ciclo = pila[inicio:] + [padre]
-                    errores.append(_error("E04", nodo, "ciclo: " + " -> ".join(item.referencia for item in ciclo), "Rompe el ciclo haciendo que cada hijo apunte a un rango superior.", campo="padre"))
-                break
-        pila.pop()
-        estado[clave] = 2
-
-    for nodo in arbol.nodos:
-        if nodo.cosmos in NIVELES_SOLIDOS and estado.get(nodo.ruta_relativa, 0) == 0:
-            visitar(nodo)
-    return errores
+# E04 («ciclo») está RETIRADA a propósito; su hueco no se reutiliza (NUCLEO §1).
+#
+# Ningún árbol legal puede producir un ciclo: para todo sólido distinto de la galaxia
+# `ruta(n) = ruta(padre(n)) + "/" + nombre(n)` con `nombre` de longitud >= 1, luego la
+# ruta crece estrictamente al subir y un ciclo se contradice a sí mismo. Si el padre no
+# resuelve, salta E02 antes. La comprobación que había aquí no la podía disparar ningún
+# árbol y su test la fingía subclasando `Nodo` para cambiar la identidad — un efecto
+# provocado por un atajo, que no es un efecto reproducible.
+#
+# En su lugar se vigila la PREMISA del teorema, que sí es falsable:
+# `test_canario_la_identidad_es_la_ruta_completa` mide que la ruta crece, y
+# `test_meta_el_canario_de_aciclicidad_salta_si_la_identidad_cambia` sustituye la
+# identidad y exige que el canario se ponga rojo.
 
 
 def _comprobar_e05(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
@@ -234,14 +262,24 @@ def _comprobar_e07(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
 def _comprobar_e08(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
     errores = []
     for nodo in arbol.nodos:
-        palabras_nombre = set(_normalizar(nodo.nombre.replace("-", " ")).split())
-        palabras_resumen = set(_normalizar(nodo.resumen).split())
-        no_informa = bool(nodo.resumen) and (
-            _normalizar(nodo.resumen).replace(" ", "") == _normalizar(nodo.nombre).replace(" ", "")
-            or bool(palabras_resumen) and palabras_resumen <= palabras_nombre | PALABRAS_VACIAS_E08
-        )
-        if no_informa:
-            errores.append(_error("E08", nodo, "el resumen repite el nombre o solo añade palabras vacías", "Explica el propósito del nodo en una línea concreta.", campo="resumen"))
+        if not nodo.resumen:
+            continue  # el resumen ausente lo dice E07; aquí solo se juzga el que hay
+        del_nombre = set(_normalizar(nodo.nombre.replace("-", " ")).split())
+        contenido = {
+            palabra
+            for palabra in _normalizar(nodo.resumen).split()
+            if palabra not in PALABRAS_VACIAS_E08 and palabra not in del_nombre
+        }
+        if not contenido:
+            errores.append(
+                _error(
+                    "E08",
+                    nodo,
+                    "el resumen no aporta ninguna palabra con contenido fuera del nombre",
+                    "Di qué hace el nodo con palabras que no valdrían para cualquier otro.",
+                    campo="resumen",
+                )
+            )
     return errores
 
 
@@ -269,12 +307,64 @@ def _comprobar_e10(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
     return errores
 
 
+def _glob_a_regex(patron: str) -> re.Pattern[str]:
+    """Traduce un glob de 'moja' a expresión regular. Semántica normativa: NUCLEO §9."""
+
+    patron = patron[2:] if patron.startswith("./") else patron
+    partes: list[str] = []
+    indice = 0
+    while indice < len(patron):
+        if patron.startswith("**/", indice):
+            partes.append("(?:[^/]+/)*")  # cero o más directorios completos
+            indice += 3
+        elif patron.startswith("**", indice):
+            partes.append(".*")
+            indice += 2
+        elif patron[indice] == "*":
+            partes.append("[^/]*")  # nunca cruza un separador
+            indice += 1
+        elif patron[indice] == "?":
+            partes.append("[^/]")
+            indice += 1
+        else:
+            partes.append(re.escape(patron[indice]))
+            indice += 1
+    return re.compile("".join(partes) + r"\Z")
+
+
+def _sin_anclaje(patron: str) -> bool:
+    """Un patrón sin un solo carácter alfanumérico no nombra ninguna región."""
+
+    return not any(caracter.isalnum() for caracter in patron)
+
+
+def cobertura_total(patrones: list[str]) -> bool:
+    """¿El conjunto de globs casa con TODAS las sondas del corpus normativo?"""
+
+    expresiones = [_glob_a_regex(patron) for patron in patrones]
+    if not expresiones:
+        return False
+    return all(any(expresion.match(sonda) for expresion in expresiones) for sonda in SONDAS_E11)
+
+
 def _comprobar_e11(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
-    return [
-        _error("E11", nodo, "océano encubierto: solo 'oceano' puede usar moja: ['**']", "Acota el glob o declara un océano y asume su coste.", campo="moja")
-        for nodo in arbol.nodos
-        if nodo.cosmos in NIVELES_AGUA and nodo.cosmos != "oceano" and nodo.datos.get("moja") == ["**"]
-    ]
+    accion = "Acota el glob nombrando la región, o declara un océano y asume su coste."
+    errores = []
+    for nodo in arbol.nodos:
+        if nodo.cosmos not in NIVELES_AGUA or nodo.cosmos == "oceano":
+            continue
+        moja = nodo.datos.get("moja")
+        if not isinstance(moja, list) or not all(isinstance(patron, str) and patron for patron in moja):
+            continue  # el alcance mal formado lo dice E10
+        sin_anclaje = [patron for patron in moja if _sin_anclaje(patron)]
+        if sin_anclaje:
+            mensaje = f"océano encubierto: {sin_anclaje[0]!r} no nombra ninguna región (ni una letra ni un dígito)"
+        elif cobertura_total(moja):
+            mensaje = f"océano encubierto: {moja} cubre las {len(SONDAS_E11)} sondas del corpus normativo"
+        else:
+            continue
+        errores.append(_error("E11", nodo, mensaje, accion, campo="moja"))
+    return errores
 
 
 def _comprobar_e12(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
@@ -330,42 +420,88 @@ def _comprobar_e15(arbol: Arbol, _: Configuracion, indice: Path) -> list[ErrorVa
 def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorValidacion]:
     casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
     medicion = casos.peor
-    if medicion.entrada <= config.entrada:
+    # NUCLEO §3: se compara lo que se paga sin invocar nada, y el agua que entra
+    # por `paths:` se paga sin invocarla. Comparar solo `entrada` dejaba fuera del
+    # presupuesto todo el coste de los mares (H14).
+    if medicion.entrada_con_agua <= config.entrada:
         return []
-    caros = ", ".join(f"{parte.nombre} ({parte.tokens})" for parte in medicion.detalle_entrada[:3])
-    excede = medicion.entrada - config.entrada
+    partes = list(medicion.detalle_entrada) + list(medicion.detalle_agua)
+    caros = ", ".join(
+        f"{parte.nombre} ({parte.tokens})"
+        for parte in sorted(partes, key=lambda parte: parte.tokens, reverse=True)[:3]
+    )
+    excede = medicion.entrada_con_agua - config.entrada
     culpable = casos.peor_nicho or "sin nichos"
-    return [_error("E16", None, f"peor nicho {culpable}: contexto de entrada {medicion.entrada} tokens > {config.entrada}; excede en {excede} tokens; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras del nicho culpable.", ruta="presupuesto")]
+    return [_error("E16", None, f"peor nicho {culpable}: entrada {medicion.entrada} + agua condicional {medicion.agua} = {medicion.entrada_con_agua} tokens > {config.entrada}; excede en {excede} tokens; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras del nicho culpable o el cuerpo de los mares.", ruta="presupuesto")]
 
 
-def _shingles(nodo: Nodo) -> set[tuple[str, str, str, str]]:
-    palabras = [palabra for palabra in _normalizar(cuerpo(nodo)).split() if palabra not in PALABRAS_VACIAS_E17]
-    return {tuple(palabras[indice:indice + 4]) for indice in range(max(0, len(palabras) - 3))}
+def _afirmaciones(nodo: Nodo) -> list[tuple[frozenset[str], str]]:
+    """Las frases del cuerpo con al menos cuatro palabras con contenido (NUCLEO §10)."""
+
+    texto = MARCAS_MARKDOWN.sub(" ", cuerpo(nodo))
+    afirmaciones: list[tuple[frozenset[str], str]] = []
+    for frase in CORTES_DE_FRASE.split(texto):
+        palabras = frozenset(
+            palabra for palabra in _normalizar(frase).split() if palabra not in PALABRAS_VACIAS_E17
+        )
+        if len(palabras) >= MINIMO_PALABRAS_AFIRMACION:
+            afirmaciones.append((palabras, " ".join(frase.split())))
+    return afirmaciones
 
 
-def _siempre_cargados(arbol: Arbol, nichos: tuple[str, ...] | None) -> list[Nodo]:
-    contexto = contexto_inicial(arbol, nichos)
-    return [
-        nodo
-        for nodo in arbol.nodos
-        if nodo.cosmos == "oceano" and cuerpo(nodo) and cuerpo(nodo) in contexto
-    ]
+def _co_cargables(arbol: Arbol) -> list[Nodo]:
+    """Los nodos que se pagan a la vez sin que nadie los invoque (NUCLEO §10).
+
+    Océanos siempre; mares y lagos en cuanto su `moja` casa con un fichero que se
+    toca; estrellas al descender a su sólido. Ciudades y pueblos se invocan y se
+    pagan una vez: su duplicación la vigila E18, no esta.
+    """
+
+    return sorted(
+        (nodo for nodo in arbol.nodos if nodo.cosmos in NIVELES_CO_CARGABLES and cuerpo(nodo)),
+        key=lambda nodo: nodo.ruta_relativa,
+    )
+
+
+def solape_de_afirmaciones(primero: Nodo, segundo: Nodo) -> tuple[float, str, str]:
+    """La afirmación más repetida entre dos nodos, y las dos frases concretas.
+
+    Se mide afirmación a afirmación, no documento a documento: la duplicación que
+    engorda un prólogo es la misma política dicha dos veces con otras palabras, y a
+    escala de documento se diluye hasta cero. Solo cuentan los pares que comparten al
+    menos tres palabras con contenido; por debajo de eso es coincidencia de
+    vocabulario, no política duplicada.
+    """
+
+    mejor = (0.0, "", "")
+    afirmaciones_segundo = _afirmaciones(segundo)
+    for palabras_a, texto_a in _afirmaciones(primero):
+        for palabras_b, texto_b in afirmaciones_segundo:
+            comunes = palabras_a & palabras_b
+            if len(comunes) < MINIMO_PALABRAS_COMPARTIDAS:
+                continue
+            similitud = len(comunes) / len(palabras_a | palabras_b)
+            if similitud > mejor[0]:
+                mejor = (similitud, texto_a, texto_b)
+    return mejor
 
 
 def _comprobar_e17(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
-    nodos = sorted(_siempre_cargados(arbol, config.nichos), key=lambda nodo: nodo.ruta_relativa)
+    nodos = _co_cargables(arbol)
     errores = []
     for indice, primero in enumerate(nodos):
-        a = _shingles(primero)
-        if not a:
-            continue
         for segundo in nodos[indice + 1:]:
-            b = _shingles(segundo)
-            union = a | b
-            similitud = len(a & b) / len(union) if union else 0.0
+            similitud, frase_a, frase_b = solape_de_afirmaciones(primero, segundo)
             if similitud > config.umbral_solapamiento:
-                frases = [" ".join(shingle) for shingle in sorted(a & b)[:3]]
-                errores.append(_error("E17", segundo, f"solapamiento {similitud:.1%} entre {primero.ruta_relativa} y {segundo.ruta_relativa}; tramos: " + "; ".join(frases), "Consolida la política en un solo nodo siempre cargado o separa sus responsabilidades."))
+                errores.append(
+                    _error(
+                        "E17",
+                        segundo,
+                        f"solapamiento {similitud:.1%} entre {primero.referencia} y {segundo.referencia}; "
+                        f"«{frase_a}» ≈ «{frase_b}»",
+                        "Deja la política en un solo nodo co-cargable y que el otro la referencie.",
+                    )
+                )
     return errores
 
 
@@ -405,7 +541,7 @@ def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
 
 Comprobacion = Callable[[Arbol, Configuracion, Path], list[ErrorValidacion]]
 COMPROBACIONES: tuple[Comprobacion, ...] = (
-    _comprobar_e00, _comprobar_e01, _comprobar_e02, _comprobar_e03, _comprobar_e04,
+    _comprobar_e00, _comprobar_e01, _comprobar_e02, _comprobar_e03,
     _comprobar_e05, _comprobar_e06, _comprobar_e07, _comprobar_e08, _comprobar_e09,
     _comprobar_e10, _comprobar_e11, _comprobar_e12, _comprobar_e13, _comprobar_e14,
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,

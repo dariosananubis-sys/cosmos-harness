@@ -88,6 +88,46 @@ class PruebasMedidor(unittest.TestCase):
         self.assertIn('"fuera_cosmos": "no_medido"', serializado)
         self.assertNotIn('"fuera_cosmos": 0', serializado)
 
+    def test_el_agua_condicional_no_entra_en_la_entrada_pero_si_en_el_presupuesto(self) -> None:
+        """H14: el mar se carga por `paths:` y no aparecía en ningún número.
+
+        `entrada` no lo cuenta —es correcto, no está en `contexto_inicial`— pero
+        `entrada_con_agua` sí, porque se paga igual sin que nadie lo invoque
+        (NUCLEO §3). Y como el agua ya vive dentro de `resto`, no se puede colar
+        dos veces: `entrada_con_agua` nunca pasa de `universo`.
+        """
+
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            (raiz / "galaxia.md").write_text(
+                "---\ncosmos: galaxia\nnombre: prueba\nresumen: Galaxia de prueba.\n---\n",
+                encoding="utf-8",
+            )
+            (raiz / "oceano.md").write_text(
+                '---\ncosmos: oceano\nnombre: seguridad\nmoja: ["**"]\nresumen: Regla global de prueba.\n---\nRegla global corta.\n',
+                encoding="utf-8",
+            )
+            (raiz / "rio.md").write_text(
+                '---\ncosmos: rio\nnombre: comprobar\nmoja: []\ninvoca: comprobar\nresumen: Comando de prueba invocado a mano.\n---\nCuerpo del comando que solo se paga al invocarlo.\n',
+                encoding="utf-8",
+            )
+            sin_mar = medir.medir_arbol(cargar_arbol(raiz), metodo="aprox")
+            (raiz / "mar.md").write_text(
+                '---\ncosmos: mar\nnombre: criterio\nmoja: ["**/*.py"]\nresumen: Regla regional de prueba.\n---\n'
+                + " ".join(f"palabra{numero}" for numero in range(30))
+                + "\n",
+                encoding="utf-8",
+            )
+            con_mar = medir.medir_arbol(cargar_arbol(raiz), metodo="aprox")
+
+        self.assertEqual(0, sin_mar.agua)
+        self.assertEqual(sin_mar.entrada, con_mar.entrada, "el mar no está en contexto_inicial")
+        self.assertGreater(con_mar.agua, 0, "el mar se carga por paths: y tiene que contarse")
+        self.assertEqual(con_mar.entrada + con_mar.agua, con_mar.entrada_con_agua)
+        self.assertLessEqual(con_mar.entrada_con_agua, con_mar.universo, "el agua no se puede contar dos veces")
+        self.assertEqual(["mar/criterio"], [parte.nombre for parte in con_mar.detalle_agua], "el río se invoca: no es agua condicional")
+        self.assertIn('"agua"', medir.medicion_json(con_mar))
+
     def test_arbol_vacio_no_publica_descarga_perfecta(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:
             resultado = medir.medir_arbol(Arbol(Path(temporal)), metodo="aprox", indice="")

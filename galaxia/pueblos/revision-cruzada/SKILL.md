@@ -5,15 +5,27 @@ padre: agentes-ia/evaluacion
 resumen: Tres familias de modelos revisan el mismo cambio a la vez; el codigo de salida sale del acuerdo, no de una opinion.
 ---
 
-`cosecha/multi-review.py` — manda el mismo cambio a tres familias de modelos distintas en paralelo y
-sintetiza un veredicto. Lo que lo hace util no es la revision, que cualquiera hace: es que **el
-desacuerdo es la senal**. Sale con cero si las tres coinciden en que se puede integrar, con uno si
-discrepan y con dos si alguna encuentra algo critico, asi que se puede colgar de un enganche y
-parar de verdad.
+`cosecha/multi-review.py` — herramienta propia, no de GitHub. Habla con tres familias de modelos por
+OpenRouter, en su capa gratuita.
+
+```bash
+export OPENROUTER_API_KEY="<clave-de-capa-gratuita>"
+python3 cosecha/multi-review.py                       # revisa `git diff HEAD`
+python3 cosecha/multi-review.py --last-commit
+python3 cosecha/multi-review.py --diff-file parche.diff --context "refactor de autenticacion"
+echo $?    # 0 acuerdo -> integrable | 1 discrepancia | 2 crítico | 3 error de configuración
+```
+
+Lo útil no es la revisión, que cualquiera hace: es que **el desacuerdo es la señal**. Al devolver un
+código de salida por consenso se puede colgar de un enganche y parar de verdad, en vez de producir
+otro informe que nadie lee.
 
 Familias distintas y no tres pasadas del mismo modelo, porque un modelo se equivoca de forma
-consistente consigo mismo: repetirlo confirma el error en vez de encontrarlo.
+consistente consigo mismo: repetirlo confirma el error en vez de encontrarlo. Es lo mismo que exige la
+regla del revisor adversarial de esta casa — encadenar revisores con ángulos distintos, nunca clonar
+uno.
 
-Corre sobre modelos de capa gratuita, sin tarjeta. Los identificadores concretos que trae escritos
-envejecen rapido y hay que actualizarlos; lo que no envejece es la regla de elegir tres proveedores
-que no compartan entrenamiento.
+Ojo: los identificadores de modelo que trae escritos **envejecen en semanas** y una capa gratuita que
+desaparece se ve igual que un fallo de red (sale 3, no 1). Lo que no envejece es la regla: tres
+proveedores que no compartan entrenamiento. Y si la clave no está puesta, sale 3 — un 3 nunca es un
+visto bueno.

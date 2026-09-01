@@ -5,16 +5,25 @@ padre: agentes-ia/construccion
 resumen: Audita el plan antes de creerselo: campos, tipos, dependencias que existen y rastro de lo que dice estar hecho.
 ---
 
-`cosecha/audit-harness.sh` — recorre la lista de tareas de cada proyecto y la valida como un
-contrato: campos obligatorios presentes, tipos correctos, estado dentro de los permitidos, criterios
-de aceptacion con su prefijo numerado, y **dependencias que apuntan a identificadores que existen de
-verdad**. Ese ultimo es el que se cuela siempre: un plan con una dependencia fantasma parece
-completo y bloquea en silencio.
+`cosecha/audit-harness.sh` — herramienta propia, no de GitHub. Solo lectura.
+
+```bash
+chmod +x cosecha/audit-harness.sh
+cosecha/audit-harness.sh                      # audita los proyectos del repo actual
+cosecha/audit-harness.sh ruta/al/proyecto     # solo uno
+```
+
+Valida `feature_list.json` como un contrato: campos obligatorios, tipos, estado dentro de los
+permitidos, criterios de aceptación con su prefijo `R<n>:` y —el que se cuela siempre— que cada
+`depends_on` apunte a un identificador que **existe de verdad**. Un plan con una dependencia fantasma
+parece completo y bloquea en silencio.
 
 La segunda mitad separa lo declarado de lo demostrado: si una tarea dice estar terminada, exige su
-registro con la linea que lo acredita; si dice llevar diseno previo, exige el documento. Un estado
-terminado sin rastro es la forma mas comun de mentira en un plan, y casi nunca es deliberada.
+línea en el LEDGER; si dice llevar diseño previo, exige el `design.md`.
 
-Funciona con o sin analizador de JSON instalado: si no lo hay, usa un lector propio en vez de
-saltarse la comprobacion. Una validacion que se desactiva sola cuando falta una dependencia es peor
-que no tenerla, porque pasa en verde.
+Gana a `jq` a mano en un punto concreto: si `jq` no está instalado, en vez de saltarse la comprobación
+usa un lector propio. Una validación que se desactiva sola cuando falta una dependencia es peor que no
+tenerla, porque **pasa en verde**.
+
+Ojo: valida el esquema y el rastro, no la calidad del plan. Una feature con criterios de aceptación
+bien formados y vacíos de contenido pasa el auditor sin una queja.

@@ -239,10 +239,74 @@ def _es_expresion(valor: bytes) -> bool:
 def _permitida(etiqueta: str, coincidencia: re.Match[bytes]) -> bool:
     if etiqueta == "correo electrónico":
         dominio = coincidencia.group(0).rsplit(b"@", 1)[-1].lower()
-        return any(dominio.endswith(ejemplo) for ejemplo in DOMINIOS_DE_EJEMPLO)
+        return any(dominio.endswith(ejemplo) for ejemplo in DOMINIOS_DE_EJEMPLO) or (
+            coincidencia.group(0).lower() in CORREOS_DE_EJEMPLO
+        )
     if etiqueta == SECRETO_ASIGNADO:
         return _es_expresion(coincidencia.group("valor"))
+    if etiqueta in ETIQUETAS_CON_VALOR_FICTICIO:
+        return _es_valor_de_ejemplo(coincidencia.group(0))
     return False
+
+
+def _es_valor_de_ejemplo(valor: bytes) -> bool:
+    """Reconoce el dato de relleno que todo el mundo escribe en una cadena de ayuda.
+
+    Sin esto, la cadena `--nif 12345678Z --telefono 600000000` de un `--help` obliga
+    a poner el fichero en una lista de excepciones. Y una lista de excepciones que
+    crece acaba tapando el hallazgo de verdad: la respuesta a un falso positivo es
+    enseñar al escáner, no callarlo.
+
+    Solo pasa lo que es reconociblemente ficticio: una secuencia trivial, un mismo
+    dígito repetido, o un valor de la lista corta de convenciones.
+    """
+
+    # El patrón captura el prefijo (`nif = 12345678Z`, `--telefono 600000000`):
+    # el valor es la cola, tras el último separador o espacio.
+    cola = re.split(rb"[:=\s]", valor)[-1]
+    if _es_contador(valor):
+        return True
+    limpio = re.sub(rb"[^A-Za-z0-9]", b"", cola).upper()
+    if limpio in VALORES_DE_EJEMPLO:
+        return True
+    digitos = re.sub(rb"[^0-9]", b"", limpio)
+    if len(digitos) < 6:
+        return False
+    if len(set(digitos)) == 1:                       # 000000000, 666666666
+        return True
+    primero = digitos[0] - 48                        # byte ASCII -> dígito
+    ascendente = bytes(48 + (primero + i) % 10 for i in range(len(digitos)))
+    return digitos == ascendente                      # 12345678, 0123456789
+
+
+def _es_contador(valor: bytes) -> bool:
+    """Una lista de enteros crecientes es un bucle, no un teléfono.
+
+    Caso real que lo motivó: `for i in 1 2 3 4 5 6 7 8 9 10 11 ...` disparaba el
+    patrón de teléfono. Un falso positivo así es peor que perder un hallazgo, porque
+    empuja a poner el fichero en una lista de excepciones — y una lista que crece
+    acaba tapando el dato real.
+    """
+
+    piezas = valor.split()
+    if len(piezas) < 4 or not all(p.isdigit() for p in piezas):
+        return False
+    numeros = [int(p) for p in piezas]
+    return all(b == a + 1 for a, b in zip(numeros, numeros[1:]))
+
+
+# Convenciones de relleno: lo que aparece en un `--help`, nunca en un dato real.
+VALORES_DE_EJEMPLO = frozenset({
+    b"12345678Z", b"00000000T", b"11111111H", b"X1234567L",
+    b"600000000", b"666666666", b"900000000", b"555555555",
+})
+CORREOS_DE_EJEMPLO = frozenset({
+    b"correo@dominio.com", b"email@dominio.com", b"tu@dominio.com",
+    b"ejemplo@dominio.com", b"usuario@ejemplo.com", b"nombre@empresa.com",
+})
+ETIQUETAS_CON_VALOR_FICTICIO = frozenset({
+    "identificador fiscal asignado", "teléfono",
+})
 
 
 def _primera_sensible(

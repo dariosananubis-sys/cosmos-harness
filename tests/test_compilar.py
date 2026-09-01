@@ -213,6 +213,15 @@ manifiesto = ".cosmos/compilado.json"
         self.assertNotIn('"saas-only"', manifiesto)
         self.assertEqual((1, 1), (resultado.eliminadas, resultado.preservadas))
 
+        codigo, salida = self.cli("validar", "--nicho", "web")
+        self.assertEqual(0, codigo, salida)
+        codigo, salida = self.cli("validar")
+        self.assertEqual(1, codigo)
+        self.assertIn("E19", salida, "la vista acotada no puede validarse como si fuera completa")
+        codigo, salida = self.cli("compilar", "--nicho", "web")
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("iguales 1", salida)
+
     def test_compilar_repara_e19_sin_interbloqueo(self) -> None:
         self.compilar()
         (self.destino / "revisar" / "SKILL.md").write_text("desincronizado\n", encoding="utf-8")

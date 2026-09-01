@@ -86,11 +86,12 @@ El mensaje de `E18` nombra **las dos rutas en conflicto**, no solo el nombre rep
 ## Comportamiento
 
 ```
-cosmos compilar [--modo symlink|copia] [--destino <ruta>] [--seco]
+cosmos compilar [--nicho <n>] [--modo symlink|copia] [--destino <ruta>] [--seco]
 ```
 
 | Flag | Qué hace |
 |---|---|
+| `--nicho` | Aplana solo las ciudades y pueblos contenidos por ese sistema solar |
 | `--modo` | `symlink` (por defecto) o `copia` |
 | `--destino` | Dónde se escribe la vista plana. Por defecto, lo que diga `cosmos.toml` |
 | `--seco` | Dice qué haría y no toca nada |
@@ -107,6 +108,14 @@ Reglas de la compilación:
 4. **Dice exactamente qué hizo**: cuántas entradas creó, actualizó, dejó igual y cuántas ajenas
    respetó.
 
+La selección forma parte del artefacto: el manifiesto guarda el nicho activo y E19 compara contra
+esa misma selección. Al pasar de `web` a `saas`, las entradas que el manifiesto atribuía a `web`
+son obsoletas: se borran solo si conservan el hash registrado; si alguien las modificó se preservan,
+se avisa y salen del manifiesto. Una entrada nunca registrada sigue siendo ajena y no se toca.
+
+Sin `--nicho` se conserva la compilación completa anterior por compatibilidad. Esa forma sirve para
+migración e inspección; la vista que consume un runtime con carga acotada se genera con `--nicho`.
+
 ## Verificación exigida
 
 1. Un test de que un árbol con dos pueblos homónimos en provincias distintas da `E18`, **y que el
@@ -118,3 +127,5 @@ Reglas de la compilación:
 6. Un test de `--seco`: no escribe nada, y lo que dice que haría coincide con lo que hace luego sin
    el flag.
 7. Un test en `--modo copia` de que no queda ningún symlink en el destino.
+8. Un test de que `--nicho web` solo aplana `web`, elimina por hash las entradas intactas de otros
+   nichos y preserva las modificadas.

@@ -60,8 +60,10 @@ de que el índice pueda estar permanentemente en contexto sin que nadie tenga qu
 
 ### Sobre `E16`, que es el punto entero del proyecto
 
-`cosmos medir` (ver `MEDIDOR.md`) calcula los tokens del contexto de entrada. El validador falla si
-supera `presupuesto_entrada` de `cosmos.toml`. **No es un aviso, es un rojo.**
+`cosmos medir` (ver `MEDIDOR.md`) calcula la entrada base y cada nicho por separado. El validador
+falla si el **peor nicho individual** supera `presupuesto_entrada` de `cosmos.toml`, aunque el caso
+base quepa. El error nombra el nicho culpable y los tokens exactos que excede. **No es un aviso, es
+un rojo.**
 
 Un aviso se ignora. La razón por la que los harness se degradan hasta 27.000 tokens de prólogo no
 es que nadie lo supiera: es que el que lo sabía tenía otra cosa que hacer y el aviso no le paraba.

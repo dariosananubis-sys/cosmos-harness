@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .modelo import Arbol, Nodo
+from .modelo import Arbol, Nodo, nicho_de_nodo, normalizar_nichos
 
 
 NIVELES_APLANADOS = frozenset({"ciudad", "pueblo"})
@@ -45,11 +45,13 @@ def rutas_compilacion(arbol: Arbol, destino: Path, manifiesto: Path, config_path
     return _resueltos(config_path, arbol, destino), _resueltos(config_path, arbol, manifiesto)
 
 
-def _skills(arbol: Arbol) -> dict[str, Nodo]:
+def _skills(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> dict[str, Nodo]:
+    seleccion = normalizar_nichos(arbol, nichos)
     return {
         nodo.nombre: nodo
         for nodo in sorted(arbol.nodos, key=lambda item: (item.nombre, item.ruta_cosmos, item.ruta_relativa))
         if nodo.cosmos in NIVELES_APLANADOS
+        and (seleccion is None or nicho_de_nodo(arbol, nodo) in seleccion)
     }
 
 
@@ -140,11 +142,17 @@ def _destino_declarado(manifiesto: Path, valor: str) -> Path:
     return ruta.resolve() if ruta.is_absolute() else (manifiesto.parent / ruta).resolve()
 
 
-def _serializar_manifiesto(destino: Path, manifiesto: Path, entradas: dict[str, dict[str, str]]) -> str:
+def _serializar_manifiesto(
+    destino: Path,
+    manifiesto: Path,
+    entradas: dict[str, dict[str, str]],
+    nichos: tuple[str, ...] | None,
+) -> str:
     return json.dumps(
         {
             "destino": os.path.relpath(destino, start=manifiesto.parent),
             "entradas": entradas,
+            "nichos": list(nichos) if nichos is not None else None,
             "version": VERSION_MANIFIESTO,
         },
         ensure_ascii=False,
@@ -202,9 +210,18 @@ def _crear_entrada(origen: Path, entrada: Path, modo: str) -> None:
             shutil.rmtree(temporal_raiz)
 
 
-def errores_vista(arbol: Arbol, destino: Path, manifiesto: Path, modo: str, *, config_path: Path | None = None) -> list[str]:
+def errores_vista(
+    arbol: Arbol,
+    destino: Path,
+    manifiesto: Path,
+    modo: str,
+    *,
+    nichos: list[str] | tuple[str, ...] | None = None,
+    config_path: Path | None = None,
+) -> list[str]:
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
-    esperadas = _skills(arbol)
+    seleccion = normalizar_nichos(arbol, nichos)
+    esperadas = _skills(arbol, seleccion)
     try:
         datos = _leer_manifiesto(manifiesto)
     except ErrorCompilacion as exc:
@@ -213,6 +230,9 @@ def errores_vista(arbol: Arbol, destino: Path, manifiesto: Path, modo: str, *, c
         return [f"falta el manifiesto {manifiesto}"] if esperadas else []
     if _destino_declarado(manifiesto, datos["destino"]) != destino:
         return [f"el manifiesto apunta a {datos['destino']} y no a {destino}"]
+    nichos_declarados = list(seleccion) if seleccion is not None else None
+    if datos.get("nichos") != nichos_declarados:
+        return [f"el manifiesto declara nichos {datos.get('nichos')!r} y se validan {nichos_declarados!r}"]
     entradas = datos["entradas"]
     errores: list[str] = []
     for nombre, nodo in esperadas.items():
@@ -242,12 +262,14 @@ def compilar_arbol(
     manifiesto: Path,
     modo: str = "symlink",
     seco: bool = False,
+    nichos: list[str] | tuple[str, ...] | None = None,
     config_path: Path | None = None,
     _bloqueado: bool = False,
 ) -> ResultadoCompilacion:
     if modo not in {"symlink", "copia"}:
         raise ErrorCompilacion("modo debe ser 'symlink' o 'copia'")
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
+    seleccion = normalizar_nichos(arbol, nichos)
     if not seco and not _bloqueado:
         manifiesto.parent.mkdir(parents=True, exist_ok=True)
         lock = manifiesto.parent / "compilar.lock"
@@ -264,6 +286,7 @@ def compilar_arbol(
                 manifiesto=manifiesto,
                 modo=modo,
                 seco=False,
+                nichos=seleccion,
                 _bloqueado=True,
             )
         finally:
@@ -272,7 +295,7 @@ def compilar_arbol(
     if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")
     antiguas: dict[str, dict[str, str]] = datos["entradas"] if datos else {}
-    esperadas = _skills(arbol)
+    esperadas = _skills(arbol, seleccion)
     existentes = {ruta.name for ruta in destino.iterdir()} if destino.is_dir() else set()
     ajenas_nombres = existentes - set(antiguas)
     acciones: list[str] = []
@@ -346,7 +369,7 @@ def compilar_arbol(
         entrada = destino / nombre
         if _hash_actual(entrada, str(registro.get("modo", ""))) == registro.get("hash"):
             _borrar_entrada(entrada)
-    contenido = _serializar_manifiesto(destino, manifiesto, nuevas)
+    contenido = _serializar_manifiesto(destino, manifiesto, nuevas, seleccion)
     actual_manifest = manifiesto.read_text(encoding="utf-8") if manifiesto.exists() else None
     if actual_manifest != contenido:
         _escribir_atomico(manifiesto, contenido)

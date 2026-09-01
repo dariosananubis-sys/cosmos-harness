@@ -178,6 +178,41 @@ manifiesto = ".cosmos/compilado.json"
         self.assertTrue((copia / "manual.txt").exists())
         self.assertNotIn('"revisar"', self.manifiesto.read_text(encoding="utf-8"))
 
+    def test_compilar_nicho_aplana_solo_web_y_aplica_hash_a_otros_nichos(self) -> None:
+        web = self.arbol_dir / "skills" / "web-only"
+        saas = self.arbol_dir / "skills" / "saas-only"
+        archivos = {
+            self.arbol_dir / "web.md": documento("sistema-solar", "web", "Agrupa capacidades web sintéticas.", padre=""),
+            self.arbol_dir / "saas.md": documento("sistema-solar", "saas", "Agrupa capacidades SaaS sintéticas.", padre=""),
+            self.arbol_dir / "web-provincia.md": documento("provincia", "calidad-web", "Agrupa una capacidad web invocable.", padre="web"),
+            self.arbol_dir / "saas-provincia.md": documento("provincia", "calidad-saas", "Agrupa una capacidad SaaS invocable.", padre="saas"),
+            web / "SKILL.md": documento("pueblo", "web-only", "Comprueba una interfaz web sintética.", padre="web/calidad-web"),
+            saas / "SKILL.md": documento("pueblo", "saas-only", "Comprueba un servicio SaaS sintético.", padre="saas/calidad-saas"),
+        }
+        for ruta, contenido in archivos.items():
+            ruta.parent.mkdir(parents=True, exist_ok=True)
+            ruta.write_text(contenido, encoding="utf-8")
+        self.sincronizar_indice()
+        self.compilar()
+        (self.destino / "saas-only" / "manual.txt").write_text("trabajo ajeno\n", encoding="utf-8")
+
+        resultado = compilar_arbol(
+            self.arbol(),
+            destino=self.destino,
+            manifiesto=self.manifiesto,
+            modo="copia",
+            nichos=["web"],
+            config_path=self.config_path,
+        )
+
+        self.assertTrue((self.destino / "web-only" / "SKILL.md").is_file())
+        self.assertFalse((self.destino / "revisar").exists(), "la entrada intacta de otro nicho era obsoleta propia")
+        self.assertTrue((self.destino / "saas-only" / "manual.txt").is_file(), "la entrada modificada de otro nicho es trabajo ajeno")
+        manifiesto = self.manifiesto.read_text(encoding="utf-8")
+        self.assertIn('"web-only"', manifiesto)
+        self.assertNotIn('"saas-only"', manifiesto)
+        self.assertEqual((1, 1), (resultado.eliminadas, resultado.preservadas))
+
     def test_compilar_repara_e19_sin_interbloqueo(self) -> None:
         self.compilar()
         (self.destino / "revisar" / "SKILL.md").write_text("desincronizado\n", encoding="utf-8")

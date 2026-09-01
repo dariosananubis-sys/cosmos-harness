@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tree-sitter
-padre: sistemas
+padre: extraccion/parseo
 resumen: Analiza sintaxis de forma incremental y tolerante a errores mientras se edita.
 ---
 

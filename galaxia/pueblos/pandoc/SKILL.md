@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: pandoc
-padre: medios/publicacion
+padre: documentos/conversion
 resumen: Traduce entre decenas de formatos de documento conservando notas, citas y referencias cruzadas.
 ---
 

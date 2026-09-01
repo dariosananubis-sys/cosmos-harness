@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: weasyprint
-padre: medios/publicacion
+padre: documentos/generacion
 resumen: Compone PDF a partir de HTML y CSS, asi que la plantilla se edita como una pagina cualquiera.
 ---
 

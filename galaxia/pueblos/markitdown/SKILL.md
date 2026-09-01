@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: markitdown
-padre: medios/publicacion
+padre: documentos/conversion
 resumen: Deja en Markdown lo que entre, sea ofimatica, PDF, audio o web, para darselo a un modelo.
 ---
 

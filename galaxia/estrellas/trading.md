@@ -1,7 +1,7 @@
 ---
 cosmos: estrella
-nombre: mercados
-ilumina: mercados
+nombre: trading
+ilumina: trading
 resumen: Lo que es cierto en todo lo que mueve dinero real.
 ---
 

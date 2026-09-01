@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sentence-transformers
-padre: agentes/recuperacion
+padre: modelos-locales/recuperacion
 resumen: Genera los vectores del texto con modelos pequenos que caben y corren en la propia maquina.
 ---
 

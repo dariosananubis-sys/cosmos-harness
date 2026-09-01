@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: rr
-padre: sistemas
+padre: rendimiento/depuracion
 resumen: Graba una ejecucion entera y la repite igual, hacia delante y hacia atras: la carrera se caza.
 ---
 

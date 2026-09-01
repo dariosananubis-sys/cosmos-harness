@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: agent-browser
-padre: agentes/runtime
+padre: agentes-ia/herramientas
 resumen: Navegador real por protocolo de depuracion desde consola: navega, rellena, captura y verifica barato.
 ---
 

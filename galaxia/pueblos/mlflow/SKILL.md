@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mlflow
-padre: agentes
+padre: agentes-ia/evaluacion
 resumen: Registra ejecuciones, trazas y evaluaciones de un agente en un servidor propio y gratuito.
 ---
 

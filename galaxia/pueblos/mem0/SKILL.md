@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mem0
-padre: agentes/memoria
+padre: agentes-ia/memoria
 resumen: Capa de recuerdos con extraccion y busqueda, servible desde cualquier tiempo de ejecucion de agente.
 ---
 

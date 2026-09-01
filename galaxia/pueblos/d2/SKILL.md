@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: d2
-padre: conocimiento
+padre: documentos/diagramas
 resumen: Para el diagrama de arquitectura que se mantiene aparte: mejor colocacion y sintaxis.
 ---
 

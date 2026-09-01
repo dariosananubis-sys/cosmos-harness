@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ollama
-padre: agentes/modelos-locales
+padre: modelos-locales/servir
 resumen: Gestor que descarga, versiona y sirve modelos con API compatible, sin compilar nada a mano.
 ---
 

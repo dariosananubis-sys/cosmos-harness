@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mermaid
-padre: conocimiento
+padre: documentos/diagramas
 resumen: El diagrama vive dentro del propio Markdown y lo pintan las plataformas sin biblioteca.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ort
-padre: legal
+padre: cumplimiento/licencias
 resumen: Pasa las dependencias por una politica de licencias y emite inventario y avisos en la tuberia.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: duckdb
-padre: datos/motor-analitico
+padre: ingenieria-datos/motor
 resumen: Consulta SQL sobre CSV y Parquet dentro del proceso, derramando a disco cuando no cabe en memoria.
 ---
 

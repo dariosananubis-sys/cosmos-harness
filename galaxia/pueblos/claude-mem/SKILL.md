@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: claude-mem
-padre: agentes/memoria
+padre: agentes-ia/memoria
 resumen: Comprime y recupera lo hablado en sesiones anteriores del propio asistente de consola.
 ---
 

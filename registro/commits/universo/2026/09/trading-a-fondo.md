@@ -279,7 +279,7 @@ y aquí el modo de fallo es de dinero, no de consistencia. Está en §7 como dec
 $ python3 -m cosmos generar galaxia --config galaxia.toml
 COSMOS  generar  verde
 
-Índice escrito en /Users/<usuario>/cosmos/galaxia/COSMOS.md
+Índice escrito en <repo>/galaxia/COSMOS.md
 ```
 
 ```

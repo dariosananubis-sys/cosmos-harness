@@ -9,4 +9,4 @@ Contraseñas, tokens, claves y cookies se leen en tiempo de ejecución de su alm
 variable de entorno el tiempo justo. En el código y en los informes van por referencia, nunca por
 valor — tampoco "de ejemplo".
 
-Datos personales: lo mínimo, y nunca fuera de donde ya estaban.
+Los datos de personas no son esto y tienen su propia agua: el mar `custodia`.

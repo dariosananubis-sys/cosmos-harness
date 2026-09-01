@@ -173,21 +173,21 @@ sube sola. La métrica que sí manda hoy —la entrada— está en verde.
 ```
 COSMOS  rojo  68 errores
 
-E19  /Users/<usuario>/cosmos/.claude/skills
+E19  <repo>/.claude/skills
      vista plana desincronizada: a11y-auditoria-wcag: no figura en el manifiesto
      Ejecuta 'cosmos compilar'; no edites la vista plana a mano.
 
-E19  /Users/<usuario>/cosmos/.claude/skills
+E19  <repo>/.claude/skills
      vista plana desincronizada: advertools: no figura en el manifiesto
      Ejecuta 'cosmos compilar'; no edites la vista plana a mano.
 
 [... 64 líneas más de la misma forma, una por pueblo ...]
 
-E19  /Users/<usuario>/cosmos/.claude/skills
+E19  <repo>/.claude/skills
      vista plana desincronizada: probar-salida: entrada obsoleta en el manifiesto
      Ejecuta 'cosmos compilar'; no edites la vista plana a mano.
 
-E19  /Users/<usuario>/cosmos/.claude/skills
+E19  <repo>/.claude/skills
      vista plana desincronizada: revisar-formato: entrada obsoleta en el manifiesto
      Ejecuta 'cosmos compilar'; no edites la vista plana a mano.
 ```

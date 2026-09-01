@@ -1,7 +1,7 @@
 ---
 cosmos: provincia
 nombre: calidad
-padre: planeta/taller-herramientas
+padre: construccion/taller-herramientas
 resumen: Agrupa comprobaciones hermanas sobre artefactos locales.
 ---
 

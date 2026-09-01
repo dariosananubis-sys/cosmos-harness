@@ -1,0 +1,10 @@
+JustCabaret/AIReceiptParser | ★47 | upd:2026-03-12 | lic:MIT | An AI-powered application that uses OCR (Optical Character Recognition) and GPT-4 to extract, process, and organize data from receipt images into stru
+shubham99bisht/Expense-Tracker | ★18 | upd:2021-10-12 | lic:none | Key Information Extraction from Scanned Receipts: The aim of this project is to extract texts of a number of key fields from given receipts, and save 
+alphaparkinc/genpark-invoice-receipt-ocr-expense-matcher-skill | ★9 | upd:2026-07-28 | lic:none | Invoice receipt OCR parsing and corporate card expense matcher
+Kalpan2007/Expense_Mang... | ★8 | upd:2025-11-03 | lic:MIT | 💰 A full-stack Expense Management System built with Node.js, React, and Supabase, designed to simplify expense tracking, approvals, and analytics for 
+yelinaung/expense-bot | ★7 | upd:2026-09-01 | lic:MIT | A Telegram bot for tracking personal expenses with multi-currency support, AI-powered receipt OCR, automatic categorization using Google Gemini AI, an
+kshah21/ReadReceipts | ★4 | upd:2017-12-30 | lic:Apache-2.0 | Expense Manager Android App Utilizing OCR
+jcp-tech/Spendify | ★3 | upd:2026-01-30 | lic:none | AI-powered expense optimization platform (AIG200 - Capstone Project) integrating Discord uploads, Vertex AI OCR, and a multi-agent ADK pipeline for au
+panpiii/MyReceiptKeeperApp | ★3 | upd:2023-12-08 | lic:none | An intuitive iOS app for efficient receipt management and expense tracking. Built with Swift, leveraging Core Data and the Vision Framework for OCR ca
+ivdimova/personal-finance-tracker | ★3 | upd:2026-08-17 | lic:none | A comprehensive web application for managing personal finances with CSV import, receipt processing with OCR, and expense categorization including comm
+SanchikaRao/FinTrack-AI | ★3 | upd:2026-08-11 | lic:none | n intelligent full-stack MERN expense tracking web app with automated Tesseract.js OCR receipt scanning, interactive analytics charts, and a modern mo

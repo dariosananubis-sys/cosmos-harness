@@ -1,0 +1,15 @@
+democratize-technology/vikunja-mcp | ★108 | upd:2026-02-15 | lic:MIT | Model Context Protocol server for Vikunja task management. Enables AI assistants to interact with Vikunja instances via MCP.
+rendyhd/Vicu-Android | ★25 | upd:2026-09-01 | lic:none | Native Android task management app powered by Vikunja — Kotlin + Jetpack Compose + Material 3
+0xK3vin/vikunja-mcp | ★14 | upd:2026-05-09 | lic:MIT | MCP server for Vikunja task management
+democratize-technology/node-vikunja | ★8 | upd:2025-05-27 | lic:MIT | A comprehensive TypeScript wrapper for the Vikunja API. Full type definitions, support for Node.js and Deno, and complete endpoint coverage for the ta
+Plong-Wasin/vikunja-enhancements | ★8 | upd:2025-10-09 | lic:MIT | Enhance Vikunja task tables with inline editing, bulk actions, drag & drop reordering, improved date, priority, assignee, and label management—making 
+aimbitgmbh/vikunja-mcp | ★6 | upd:2026-01-08 | lic:MIT | MCP server for Vikunja task management
+PonyLianna/vikunja-task-management | ★3 | upd:2024-11-03 | lic:none | Vikunja docker-compose with automation based on n8n 
+shrishailrana-maker/Vikunja-fastmcp | ★3 | upd:2026-08-25 | lic:MIT | Model Context Protocol server for Vikunja task management. Enables AI assistants to interact with Vikunja instances via MCP.
+kzssc/alfred-vikunja | ★2 | upd:2026-08-20 | lic:MIT | Alfred workflow for Vikunja task management
+tednv/vikunja-task-hub | ★2 | upd:2026-08-18 | lic:AGPL-3.0 | A polished Vikunja project and task management experience for Home Assistant dashboards.
+tim-toothed/vikunja-task-management | ★1 | upd:2026-08-19 | lic:none | Portable Hermes skill for Vikunja task management via API.
+emadomedher/matrix-appservice-vikunja | ★1 | upd:2026-03-11 | lic:MIT | A Matrix Application Service bridge for Vikunja task management
+shriram-m/taskflow-ai | ★1 | upd:2025-12-01 | lic:MIT | Multi-agent system for intelligent task management across text, email, and voice in Vikunja
+rzippert/vik-mcp | ★1 | upd:2026-07-08 | lic:none | An MCP (Model Context Protocol) server that provides an LLM-friendly, scientifically optimized interface to Vikunja task management.
+EduardoDeLaCruzChavez/Homelab | ★1 | upd:2026-09-01 | lic:Apache-2.0 | Self-hosted homelab stack built with Docker. Features central SSO, task management, developer time-tracking, personal finance, system monitoring, and 

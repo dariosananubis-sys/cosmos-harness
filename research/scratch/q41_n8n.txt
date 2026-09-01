@@ -1,0 +1,3 @@
+n8n-io/n8n | ★203001 | upd:2026-09-01 | lic:NOASSERTION | Fair-code workflow automation platform with native AI capabilities. Combine visual building with custom code, self-host or cloud, 400+ integrations.
+enescingoz/awesome-n8n-templates | ★25066 | upd:2026-08-25 | lic:NOASSERTION | 280+ free n8n automation templates — ready-to-use workflows for Gmail, Telegram, Slack, Discord, WhatsApp, Google Drive, Notion, OpenAI, and more. AI 
+nanobrowser/nanobrowser | ★13707 | upd:2026-08-18 | lic:Apache-2.0 | Open-Source Chrome extension for AI-powered web automation. Run multi-agent workflows using your own LLM API key. Alternative to OpenAI Operator.

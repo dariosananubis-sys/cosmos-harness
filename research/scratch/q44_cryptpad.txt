@@ -1,0 +1,7 @@
+cryptpad/cryptpad | ★7875 | upd:2026-08-28 | lic:AGPL-3.0 | Collaborative office suite, end-to-end encrypted and open-source.
+cryptpad/chainpad | ★409 | upd:2026-02-20 | lic:LGPL-2.1 | Realtime Collaborative Editor Algorithm
+mikifus/padland | ★94 | upd:2026-05-15 | lic:Apache-2.0 | Padland is a tool for Android to manage collaborative documents based on the Etherpad or CryptPad technology.
+cryptpad/onlyoffice-builds | ★3 | upd:2024-07-23 | lic:none | Build version of the OnlyOffice frontend
+cryptpad/chainpad-listmap | ★2 | upd:2025-07-30 | lic:AGPL-3.0 | Collaborative lists and maps in the browser
+ObunagaLabs/cryptpad-local | ★0 | upd:2026-07-28 | lic:AGPL-3.0 | [collab] - CryptPad local-first collaborative editing suite
+DorianGallo/cryptpad-local | ★0 | upd:2026-05-16 | lic:AGPL-3.0 | [privacy & security] Collaborative office suite, end-to-end encrypted and open-source.

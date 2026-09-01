@@ -1,0 +1,32 @@
+=== awesome claude code ===
+ 53316★ hesreallyhim/awesome-claude-code              lic=NOASSERTION push=2026-09-01 | A hand-picked collection of the finest of resources for the most awesome of agents, Claude
+ 33517★ VoltAgent/awesome-agent-skills                lic=MIT push=2026-09-01 | A curated collection of 1000+ agent skills from official dev teams and the community, comp
+ 24773★ VoltAgent/awesome-claude-code-subagents       lic=MIT push=2026-09-01 | A collection of 100+ specialized Claude Code subagents covering a wide range of developmen
+ 14918★ travisvn/awesome-claude-skills                lic=None push=2026-04-28 | A curated list of awesome Claude Skills, resources, and tools for customizing Claude AI wo
+  6190★ dontriskit/awesome-ai-system-prompts          lic=MIT push=2026-02-20 | 🧠 Curated collection of system prompts for top AI tools. Perfect for AI agent builders and
+  4387★ vijaythecoder/awesome-claude-agents           lic=MIT push=2025-10-30 | An orchestrated sub agent dev team powered by claude code
+  3223★ taishi-i/awesome-ChatGPT-repositories         lic=CC0-1.0 push=2026-08-31 | A curated list of open source GitHub repositories related to ChatGPT, the OpenAI API, and 
+  2709★ wesammustafa/Claude-Code-Everything-You-Need-to-Know lic=MIT push=2026-07-28 | A practical Claude Code guide with clear mental models and copy-paste examples — setup, pr
+  2628★ open-free-llm-api/awesome-freellm-apis        lic=MIT push=2026-09-01 | 134+ free LLM APIs & AI API keys from 40+ providers. Google Gemini, NVIDIA NIM, Groq, Open
+  2578★ rohitg00/awesome-claude-code-toolkit          lic=Apache-2.0 push=2026-05-12 | The most comprehensive toolkit for Claude Code -- 135 agents, 35 curated skills, 42 comman
+  1916★ composio-community/awesome-claude-plugins     lic=None push=2026-07-26 | A curated list of Plugins that let you extend Claude Code with custom commands, agents, ho
+  1706★ Prat011/awesome-llm-skills                    lic=None push=2026-07-14 | A curated list of awesome LLM and AI Agent Skills, resources and tools for customising AI 
+  1258★ quemsah/awesome-claude-plugins                lic=None push=2026-09-01 | Automated collection of Claude Code plugin adoption metrics across GitHub repositories usi
+  1127★ bradAGI/awesome-cli-coding-agents             lic=None push=2026-08-31 | Curated directory of terminal-native AI coding agents and the harnesses that orchestrate t
+  1050★ brycewang-stanford/Awesome-Journal-Skills     lic=MIT push=2026-08-26 | Journal-specific Claude Code/Codex skill packs covering mainstream journals — AER, QJE, Na
+=== claude code skills ===
+245461★ affaan-m/ECC                                  lic=MIT push=2026-08-31 | The agent harness performance optimization system. Skills, instincts, memory, security, an
+209225★ multica-ai/andrej-karpathy-skills             lic=None push=2026-04-20 | A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's ob
+130489★ farion1231/cc-switch                          lic=MIT push=2026-09-01 | A cross-platform desktop All-in-One assistant for Claude Code, Codex, OpenCode, OpenClaw, 
+113156★ Graphify-Labs/graphify                        lic=Apache-2.0 push=2026-08-30 | Turn any codebase, with its docs, SQL schemas, configs, and PDFs, into a queryable knowled
+102121★ JuliusBrussee/caveman                         lic=NOASSERTION push=2026-08-29 | 🪨 why use many token when few token do trick — Claude Code skill that cuts 65% of tokens b
+ 70063★ ruvnet/ruflo                                  lic=MIT push=2026-09-01 | 🌊 The original agent meta-harness. Deploy intelligent multi-player swarms, coordinate auto
+ 55183★ calesthio/OpenMontage                         lic=AGPL-3.0 push=2026-08-22 | World's first open-source, agentic video production system. 12 production pipelines, 100+ 
+ 53316★ hesreallyhim/awesome-claude-code              lic=NOASSERTION push=2026-09-01 | A hand-picked collection of the finest of resources for the most awesome of agents, Claude
+ 46384★ coreyhaines31/marketingskills                 lic=MIT push=2026-08-28 | Marketing skills for Claude Code and AI agents. CRO, copywriting, SEO, analytics, and grow
+ 44503★ Imbad0202/academic-research-skills            lic=NOASSERTION push=2026-08-30 | Academic Research Skills for Claude Code: research → write → review → revise → finalize
+ 42677★ danny-avila/LibreChat                         lic=MIT push=2026-09-01 | Enhanced ChatGPT Clone: Features Agents, MCP, Skills, DeepSeek, Anthropic, AWS, OpenAI, Re
+ 41155★ K-Dense-AI/scientific-agent-skills            lic=MIT push=2026-08-31 | Turn any AI agent into an AI Scientist. The #1 Agent Skills library for science, used by 1
+ 35769★ anthropics/claude-plugins-official            lic=Apache-2.0 push=2026-09-01 | Official, Anthropic-managed directory of high quality Claude Code Plugins.
+ 33566★ zhaoxuya520/reverse-skill                     lic=MIT push=2026-08-31 | Reverse Engineering / Authorized Penetration Testing / Security Research Skill Router Pack
+ 33534★ JCodesMore/ai-website-cloner-template         lic=MIT push=2026-08-14 | Clone any website with one command using AI coding agents

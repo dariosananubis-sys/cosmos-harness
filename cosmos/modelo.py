@@ -256,16 +256,25 @@ def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict
     return datos, numeros
 
 
-def cargar_arbol(raiz: str | Path, *, excluir: str | Path | None = None) -> Arbol:
+def cargar_arbol(
+    raiz: str | Path,
+    *,
+    excluir: str | Path | None = None,
+    excluir_directorios: tuple[str | Path, ...] = (),
+) -> Arbol:
     raiz_path = Path(raiz).resolve()
     arbol = Arbol(raiz=raiz_path)
     excluir_path = Path(excluir).resolve() if excluir is not None else None
+    directorios_excluidos = tuple(Path(ruta).resolve() for ruta in excluir_directorios)
     if not raiz_path.exists():
         arbol.errores.append(ErrorCarga(str(raiz_path), None, "la raíz del árbol no existe"))
         return arbol
 
     for ruta in sorted(raiz_path.rglob("*.md")):
         if excluir_path is not None and ruta.resolve() == excluir_path:
+            continue
+        ruta_resuelta = ruta.resolve()
+        if any(ruta_resuelta == directorio or directorio in ruta_resuelta.parents for directorio in directorios_excluidos):
             continue
         try:
             contenido = ruta.read_text(encoding="utf-8")
@@ -292,7 +301,13 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
     ruta_path = Path(ruta or "cosmos.toml").resolve()
     if not ruta_path.exists():
         base = ruta_path.parent
-        return Configuracion(arbol=base, indice=base / "COSMOS.md", ruta=ruta_path)
+        return Configuracion(
+            arbol=base,
+            indice=base / "COSMOS.md",
+            destino_compilacion=base / ".claude/skills",
+            manifiesto_compilacion=base / ".cosmos/compilado.json",
+            ruta=ruta_path,
+        )
     try:
         datos = tomllib.loads(ruta_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:

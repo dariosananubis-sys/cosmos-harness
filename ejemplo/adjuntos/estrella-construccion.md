@@ -1,7 +1,7 @@
 ---
 cosmos: estrella
 nombre: guia-construccion
-ilumina: sistema-solar/construccion
+ilumina: construccion
 resumen: Fija criterios compartidos al fabricar artefactos de muestra.
 ---
 

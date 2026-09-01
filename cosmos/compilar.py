@@ -135,9 +135,18 @@ def _leer_manifiesto(ruta: Path) -> dict[str, Any] | None:
     return datos
 
 
-def _serializar_manifiesto(destino: Path, entradas: dict[str, dict[str, str]]) -> str:
+def _destino_declarado(manifiesto: Path, valor: str) -> Path:
+    ruta = Path(valor)
+    return ruta.resolve() if ruta.is_absolute() else (manifiesto.parent / ruta).resolve()
+
+
+def _serializar_manifiesto(destino: Path, manifiesto: Path, entradas: dict[str, dict[str, str]]) -> str:
     return json.dumps(
-        {"destino": str(destino), "entradas": entradas, "version": VERSION_MANIFIESTO},
+        {
+            "destino": os.path.relpath(destino, start=manifiesto.parent),
+            "entradas": entradas,
+            "version": VERSION_MANIFIESTO,
+        },
         ensure_ascii=False,
         indent=2,
         sort_keys=True,
@@ -173,11 +182,15 @@ def _ignorar_copia(_: str, nombres: list[str]) -> set[str]:
 def _crear_entrada(origen: Path, entrada: Path, modo: str) -> None:
     entrada.parent.mkdir(parents=True, exist_ok=True)
     if modo == "symlink":
-        temporal = entrada.parent / f".{entrada.name}.cosmos-temporal"
-        if temporal.exists() or temporal.is_symlink():
-            _borrar_entrada(temporal)
-        temporal.symlink_to(_objetivo_relativo(origen, entrada), target_is_directory=True)
-        os.replace(temporal, entrada)
+        descriptor, nombre_temporal = tempfile.mkstemp(prefix=f".{entrada.name}.", dir=entrada.parent)
+        os.close(descriptor)
+        temporal = Path(nombre_temporal)
+        temporal.unlink()
+        try:
+            temporal.symlink_to(_objetivo_relativo(origen, entrada), target_is_directory=True)
+            os.replace(temporal, entrada)
+        finally:
+            temporal.unlink(missing_ok=True)
         return
     temporal_raiz = Path(tempfile.mkdtemp(prefix=f".{entrada.name}.", dir=entrada.parent))
     temporal = temporal_raiz / entrada.name
@@ -198,7 +211,7 @@ def errores_vista(arbol: Arbol, destino: Path, manifiesto: Path, modo: str, *, c
         return [str(exc)]
     if datos is None:
         return [f"falta el manifiesto {manifiesto}"] if esperadas else []
-    if Path(datos["destino"]).resolve() != destino:
+    if _destino_declarado(manifiesto, datos["destino"]) != destino:
         return [f"el manifiesto apunta a {datos['destino']} y no a {destino}"]
     entradas = datos["entradas"]
     errores: list[str] = []
@@ -227,12 +240,33 @@ def compilar_arbol(
     modo: str = "symlink",
     seco: bool = False,
     config_path: Path | None = None,
+    _bloqueado: bool = False,
 ) -> ResultadoCompilacion:
     if modo not in {"symlink", "copia"}:
         raise ErrorCompilacion("modo debe ser 'symlink' o 'copia'")
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
+    if not seco and not _bloqueado:
+        manifiesto.parent.mkdir(parents=True, exist_ok=True)
+        lock = manifiesto.parent / "compilar.lock"
+        try:
+            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError as exc:
+            raise ErrorCompilacion(f"otra compilación está en curso: {lock}") from exc
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
+                fichero.write(f"{os.getpid()}\n")
+            return compilar_arbol(
+                arbol,
+                destino=destino,
+                manifiesto=manifiesto,
+                modo=modo,
+                seco=False,
+                _bloqueado=True,
+            )
+        finally:
+            lock.unlink(missing_ok=True)
     datos = _leer_manifiesto(manifiesto)
-    if datos is not None and Path(datos["destino"]).resolve() != destino:
+    if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")
     antiguas: dict[str, dict[str, str]] = datos["entradas"] if datos else {}
     esperadas = _skills(arbol)
@@ -261,9 +295,6 @@ def compilar_arbol(
             else:
                 actualizadas += 1
                 acciones.append(f"ACTUALIZAR {entrada}")
-            if not seco:
-                _borrar_entrada(entrada)
-                _crear_entrada(origen, entrada, modo)
         nuevas[nombre] = {
             "hash": hash_esperado,
             "modo": modo,
@@ -278,8 +309,6 @@ def compilar_arbol(
         if actual == registro.get("hash"):
             eliminadas += 1
             acciones.append(f"ELIMINAR {entrada}")
-            if not seco:
-                _borrar_entrada(entrada)
         else:
             preservadas += 1
             ajenas_nombres.add(nombre)
@@ -298,39 +327,26 @@ def compilar_arbol(
     if seco:
         return resultado
 
-    manifiesto.parent.mkdir(parents=True, exist_ok=True)
-    lock = manifiesto.parent / "compilar.lock"
-    try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-    except FileExistsError as exc:
-        raise ErrorCompilacion(f"otra compilación está en curso: {lock}") from exc
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
-            fichero.write(f"{os.getpid()}\n")
-        destino.mkdir(parents=True, exist_ok=True)
-        # Las mutaciones anteriores se calculan de nuevo bajo el lock para no abrir
-        # una ventana entre el plan y la escritura.
-        for nombre, nodo in esperadas.items():
-            entrada = destino / nombre
-            registro = antiguas.get(nombre)
-            if registro is None and (entrada.exists() or entrada.is_symlink()):
-                continue
-            esperado = _hash_esperado(nodo.ruta.parent.resolve(), entrada, modo)
-            if _hash_actual(entrada, modo) != esperado or not isinstance(registro, dict) or registro.get("modo") != modo:
-                _borrar_entrada(entrada)
-                _crear_entrada(nodo.ruta.parent.resolve(), entrada, modo)
-        for nombre, registro in sorted(antiguas.items()):
-            if nombre in esperadas:
-                continue
-            entrada = destino / nombre
-            if _hash_actual(entrada, str(registro.get("modo", ""))) == registro.get("hash"):
-                _borrar_entrada(entrada)
-        contenido = _serializar_manifiesto(destino, nuevas)
-        actual_manifest = manifiesto.read_text(encoding="utf-8") if manifiesto.exists() else None
-        if actual_manifest != contenido:
-            _escribir_atomico(manifiesto, contenido)
-    finally:
-        lock.unlink(missing_ok=True)
+    destino.mkdir(parents=True, exist_ok=True)
+    for nombre, nodo in esperadas.items():
+        entrada = destino / nombre
+        registro = antiguas.get(nombre)
+        if registro is None and (entrada.exists() or entrada.is_symlink()):
+            continue
+        esperado = _hash_esperado(nodo.ruta.parent.resolve(), entrada, modo)
+        if _hash_actual(entrada, modo) != esperado or not isinstance(registro, dict) or registro.get("modo") != modo:
+            _borrar_entrada(entrada)
+            _crear_entrada(nodo.ruta.parent.resolve(), entrada, modo)
+    for nombre, registro in sorted(antiguas.items()):
+        if nombre in esperadas:
+            continue
+        entrada = destino / nombre
+        if _hash_actual(entrada, str(registro.get("modo", ""))) == registro.get("hash"):
+            _borrar_entrada(entrada)
+    contenido = _serializar_manifiesto(destino, manifiesto, nuevas)
+    actual_manifest = manifiesto.read_text(encoding="utf-8") if manifiesto.exists() else None
+    if actual_manifest != contenido:
+        _escribir_atomico(manifiesto, contenido)
     return resultado
 
 

@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from cosmos import medir
-from cosmos.modelo import Arbol, Nodo
+from cosmos.modelo import Arbol, Nodo, cargar_arbol, cuerpo
 
 
 class PruebasMedidor(unittest.TestCase):
@@ -13,8 +13,39 @@ class PruebasMedidor(unittest.TestCase):
         nodo = Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "explica"}, {}, "alpha beta")
         resultado = medir.medir_arbol(Arbol(Path("."), [nodo]), metodo="aprox", indice="uno dos")
         self.assertEqual(2, resultado.entrada)
-        self.assertEqual(2, resultado.arbol)
-        self.assertEqual(0.0, resultado.descarga)
+        self.assertEqual(4, resultado.universo)
+        self.assertEqual(2, resultado.resto)
+        self.assertEqual(0.5, resultado.descarga)
+
+    def test_regresion_descarga_nunca_sale_de_cero_uno(self) -> None:
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            (raiz / "galaxia.md").write_text(
+                "---\ncosmos: galaxia\nnombre: prueba\nresumen: Galaxia de prueba.\n---\n",
+                encoding="utf-8",
+            )
+            (raiz / "oceano.md").write_text(
+                '---\ncosmos: oceano\nnombre: seguridad\nmoja: ["**"]\nresumen: No borrar nada sin permiso.\n---\nRegla corta.\n',
+                encoding="utf-8",
+            )
+            resultado = medir.medir_arbol(cargar_arbol(raiz), metodo="aprox")
+        self.assertLessEqual(resultado.entrada, resultado.universo)
+        self.assertIsInstance(resultado.descarga, float)
+        self.assertGreaterEqual(float(resultado.descarga), 0.0)
+        self.assertLessEqual(float(resultado.descarga), 1.0)
+
+    def test_contexto_y_medidor_usan_el_cuerpo_sin_frontmatter(self) -> None:
+        nodo = Nodo(
+            Path("oceano.md"),
+            "oceano.md",
+            {"cosmos": "oceano", "nombre": "global", "resumen": "Protege el ejemplo.", "moja": ["**"]},
+            {},
+            '---\ncosmos: oceano\nnombre: global\nresumen: Protege el ejemplo.\nmoja: ["**"]\n---\n\n  Solo este cuerpo.  \n',
+        )
+        arbol = Arbol(Path("."), [nodo])
+        self.assertEqual("Solo este cuerpo.", cuerpo(nodo))
+        self.assertEqual("Solo este cuerpo.", medir.contexto_inicial(arbol, indice=""))
+        self.assertEqual(medir.contar_aprox("Solo este cuerpo."), medir.medir_arbol(arbol, metodo="aprox", indice="").entrada)
 
     def test_aproximado_y_exacto_respetan_margen_publicado(self) -> None:
         exacto = medir._contador_exacto()

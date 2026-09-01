@@ -1,0 +1,15 @@
+knadh/listmonk | ★23203 | upd:2026-08-25 | lic:AGPL-3.0 | High performance, self-hosted, newsletter and mailing list manager with a modern dashboard. Single binary app.
+mikeckennedy/listmonk | ★65 | upd:2026-07-31 | lic:MIT | Listmonk Email App API Client for Python #pypackage
+rhnvrm/listmonk-mcp | ★37 | upd:2026-01-13 | lic:MIT | MCP (Model Context Protocol) server for Listmonk newsletter management
+ping13/listmonk-rss | ★35 | upd:2025-08-01 | lic:none | Provide an RSS integration for listmonk, a self-hosted newsletter and mailing list manager
+post-duif/integration-listmonk-wordpress-plugin | ★31 | upd:2025-06-09 | lic:GPL-3.0 | This WordPress plugin integrates listmonk with your WordPress / WooCommerce website. You can use it to (1) let people subscribe to your newsletter fro
+knadh/listmonk-heroku-deploy | ★26 | upd:2022-02-07 | lic:none | Official listmonk install button for Heroku.
+chaddyc/auto-newsletter-listmonk | ★26 | upd:2025-04-23 | lic:MIT | Autonomous newsletter builder tool for Listmonk and Ghost Blog CMS. This GoLang App compiles a newsletter from an RSS feed and posts it to Listmonk vi
+Pro-WebTech/list-monk3 | ★15 | upd:2021-10-19 | lic:AGPL-3.0 | listmonk is a standalone, self-hosted, newsletter and mailing list manager. It is fast, feature-rich, and packed into a single binary. It uses a Postg
+bumi/listmonk-heroku | ★9 | upd:2021-08-22 | lic:AGPL-3.0 | Heroku deploy button for listmonk
+iloveitaly/listmonk-newsletter | ★9 | upd:2026-08-31 | lic:none | Generate a newsletter digest from an rss feed and send it to a listmonk instance
+tuist/newsletter | ★6 | upd:2024-12-03 | lic:MIT | ✉️ The Listmonk deployment setup and a directory of ideas for future newsletters
+ppschweiz/listmonk-templates | ★3 | upd:2026-01-10 | lic:none | Templates for Listmonk newsletter tool
+meysam81/listmonk-exporter | ★3 | upd:2026-08-03 | lic:Apache-2.0 | Prometheus exporter for Listmonk to monitor newsletter campaigns, subscribers, bounce rates, and email marketing metrics
+sspaeti/listmonk-curl | ★2 | upd:2026-07-07 | lic:none | Curl-friendly newsletter signup shim in front of Listmonk
+redzumi/listmonk-chart | ★2 | upd:2026-02-04 | lic:NOASSERTION | Helm chart for Listmonk — self-hosted newsletter and mailing list manager. PS: AI Generated

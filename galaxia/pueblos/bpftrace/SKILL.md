@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: bpftrace
-padre: rendimiento/perfilado
+padre: rendimiento/velocidad/perfilado
 resumen: Pregunta al nucleo que esta pasando ahora mismo con una linea, sin escribir ni compilar un programa aparte.
 ---
 

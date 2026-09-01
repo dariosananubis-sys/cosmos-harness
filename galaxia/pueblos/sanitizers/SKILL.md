@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sanitizers
-padre: rendimiento/depuracion
+padre: rendimiento/velocidad/depuracion
 resumen: Detectan en ejecucion el desbordamiento, el uso despues de liberar y la carrera que ningun test ve.
 ---
 
@@ -12,7 +12,7 @@ compilador, en `compiler-rt` de https://github.com/llvm/llvm-project (40.038★,
 comprobado 2026-09-01). Por eso no hay nada que instalar: se activan con una bandera.
 
 ```bash
-# memoria: desbordamiento, uso despues de liberar, fuga
+# memoria: desbordamiento, uso despues de liberar, fuga (la fuga NO, en macOS: ver abajo)
 clang -fsanitize=address -fno-omit-frame-pointer -g -O1 prog.c -o prog && ./prog
 
 # concurrencia: carrera de datos entre hilos
@@ -36,3 +36,27 @@ incompatibles en la misma compilación, hay que pasar la suite dos veces—; **e
 tubería, no en cada compilación de desarrollo; y **solo ven lo que el código ejecuta**. Una suite con
 poca cobertura pasa en verde con los mismos fallos dentro: verde aquí no es «no hay errores de
 memoria», es «no los hubo en estos caminos».
+
+Y el falso verde de esta casa, **medido en este Mac** (arm64, Apple clang 21, 2026-09-01): de las
+tres cosas que promete el desinfectante de direcciones, **la fuga es la que calla en macOS**. El
+programa que pierde memoria sale con 0 y sin una línea; forzar el detector lo confiesa; y pedirlo
+suelto ni siquiera compila.
+
+```bash
+printf '#include <stdlib.h>\nint main(void){char*p=malloc(1234);p[0]=1;return 0;}\n' > fuga.c
+
+clang -fsanitize=address -g -O1 fuga.c -o fuga && ./fuga; echo "EXIT=$?"
+#   EXIT=0                    <- ni una palabra sobre los 1234 bytes perdidos
+
+ASAN_OPTIONS=detect_leaks=1 ./fuga
+#   ==NNNNN==AddressSanitizer: detect_leaks is not supported on this platform.   (aborta, 134)
+
+clang -fsanitize=leak -g fuga.c -o fuga
+#   clang: error: unsupported option '-fsanitize=leak' for target 'arm64-apple-darwin23.2.0'
+```
+
+Consecuencia práctica: en un portátil de esta familia, «pasé la suite con `-fsanitize=address` y no
+hay fugas» es una frase vacía — no es que no las haya, es que nadie las buscó. Las fugas se cazan en
+Linux (contenedor o máquina virtual), o con `leaks` de macOS contra el proceso vivo. Lo que sí
+funciona aquí, comprobado con una carrera de dos hilos sobre la misma variable, es
+`-fsanitize=thread`: la reporta en la primera ejecución, con el fichero y la línea.

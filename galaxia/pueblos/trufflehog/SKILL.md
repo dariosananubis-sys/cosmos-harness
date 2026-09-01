@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: trufflehog
-padre: ciberseguridad
+padre: ciberseguridad/analisis/vulnerabilidades
 resumen: Encuentra credenciales en el historico y ademas intenta usarlas para saber si siguen vivas.
 ---
 

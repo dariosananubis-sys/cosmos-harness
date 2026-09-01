@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Abre Claude Code con la cuenta ELEGIDA. Compañero de claude-cuenta.py (gestor de
-# sesiones aisladas por cuenta) — este script solo hace el arranque.
+# Abre Claude Code con la cuenta ELEGIDA (una carpeta de config aislada por cuenta).
 #
 # Por qué existe: cada proceso de Claude Code gasta la cuota de la credencial que
 # tenga cargada. Arrancando siempre por aquí, todas las ventanas gastan la misma
@@ -8,9 +7,11 @@
 # con gasto cero. Además no se toca el Keychain compartido, que es lo que puede
 # revocar sesiones cuando dos ventanas rotan token a la vez.
 #
-# Requiere: un directorio de "sesiones" (uno por cuenta, cada uno con su propio
-# .claude.json / .credentials.json) gestionado por claude-cuenta.py. Configúralo
-# con la variable de entorno CLAUDE_ACCOUNTS_DIR (por defecto ~/.claude-accounts).
+# Requiere: un directorio de "sesiones" con una subcarpeta por cuenta, cada una con
+# su propio .claude.json / .credentials.json (créala iniciando sesión una vez con
+# CLAUDE_CONFIG_DIR=<esa carpeta> claude). Configúralo con la variable de entorno
+# CLAUDE_ACCOUNTS_DIR (por defecto ~/.claude-accounts). Guarda la cuenta por defecto
+# escribiendo su alias en "$CLAUDE_ACCOUNTS_DIR/elegida".
 #
 # Uso:
 #   ./claude-cuenta.sh                # abre la cuenta elegida
@@ -21,20 +22,23 @@
 
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STORE="${CLAUDE_ACCOUNTS_DIR:-$HOME/.claude-accounts}"
 SESSIONS="$STORE/sessions"
 
+listar_cuentas() {
+  [ -d "$SESSIONS" ] && find "$SESSIONS" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null
+}
+
 alias_pedido="${1:-}"
-if [ -n "$alias_pedido" ] && [ -f "$STORE/$alias_pedido.json" ]; then
+if [ -n "$alias_pedido" ] && [ -d "$SESSIONS/$alias_pedido" ]; then
   shift
 elif [ -n "$alias_pedido" ] && [ "${alias_pedido#-}" = "$alias_pedido" ]; then
-  # Primer argumento que no empieza por "-" y no es una cuenta: es un alias mal
-  # escrito. Cortar aquí es la diferencia entre avisar y abrir en silencio OTRA
+  # Primer argumento que no empieza por "-" y no es una cuenta conocida: es un alias
+  # mal escrito. Cortar aquí es la diferencia entre avisar y abrir en silencio OTRA
   # cuenta — justo lo que este script existe para evitar.
   echo "No hay ninguna cuenta guardada como '$alias_pedido'." >&2
   echo "Guardadas:" >&2
-  python3 "$REPO/claude-cuenta.py" lista >&2
+  listar_cuentas >&2
   exit 1
 else
   alias_pedido=""
@@ -48,16 +52,18 @@ fi
 
 if [ -z "$alias_pedido" ]; then
   echo "No hay cuenta elegida todavía. Elige una:" >&2
-  python3 "$REPO/claude-cuenta.py" lista >&2
+  listar_cuentas >&2
   echo >&2
-  echo "  python3 claude-cuenta.py elegir <alias>" >&2
+  echo "  echo <alias> > \"$STORE/elegida\"" >&2
   exit 1
 fi
 
-# Regenera el directorio aislado por si faltan enlaces (no pisa credenciales vivas).
-python3 "$REPO/claude-cuenta.py" lanzar "$alias_pedido" >/dev/null
-
 DEST="$SESSIONS/$alias_pedido"
+if [ ! -d "$DEST" ]; then
+  echo "No existe la carpeta de sesión '$DEST'." >&2
+  echo "Créala iniciando sesión una vez: CLAUDE_CONFIG_DIR=\"$DEST\" claude" >&2
+  exit 1
+fi
 
 # Una sesión está lista de dos maneras: sembrada desde el almacén
 # (.credentials.json) o con login propio, que NO deja fichero — Claude Code guarda
@@ -79,7 +85,7 @@ fi
 
 if [ "$lista" = "0" ]; then
   echo "La cuenta '$alias_pedido' no tiene sesión iniciada." >&2
-  echo "Prepárala con:  python3 claude-cuenta.py relogin $alias_pedido" >&2
+  echo "Prepárala con:  CLAUDE_CONFIG_DIR=\"$DEST\" claude   (y haz login)" >&2
   exit 1
 fi
 

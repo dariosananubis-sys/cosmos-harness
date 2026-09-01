@@ -1,1 +1,0 @@
-baserow/baserow | ★5759 | upd:2026-09-01 | lic:NOASSERTION | Build databases, automations, apps & agents with AI — no code.  Open source platform available on cloud and self-hosted. GDPR, HIPAA, SOC 2 compliant. Best Airtable alternative.

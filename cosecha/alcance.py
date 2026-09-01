@@ -2,7 +2,7 @@
 """Declara que webs se pueden tocar en la tarea de ahora. Lo demas queda bloqueado.
 
 Por que existe, con nombre y fecha: el 2026-08-03 el encargo hablaba de UNA web y
-el arreglo del footer acabo aplicado a las 18 webs de HORUS. Tres se tocaron sin
+el arreglo del footer acabo aplicado a las 18 webs de <panel interno>. Tres se tocaron sin
 punto de restauracion, asi que ya no se pueden revertir. No fue mala fe: cuando el
 comando barre una lista de slugs, nada dice "oye, esta no entraba".
 

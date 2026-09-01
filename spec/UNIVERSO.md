@@ -1,4 +1,4 @@
-# El universo — 20 oficios
+# El universo — 21 oficios
 
 Encargo de Darío, en tres correcciones sucesivas que llevan al mismo sitio:
 
@@ -18,7 +18,7 @@ La versión anterior de este documento fallaba esa prueba en cinco casos: `datos
 `medios`, `sistemas` y `conocimiento` eran **categorías temáticas**, no oficios. Se han partido en
 los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 
-## Los 20
+## Los 21
 
 | # | Nicho | El trabajo por el que te contratan |
 |---|---|---|
@@ -35,13 +35,14 @@ los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 | 11 | `extraccion` | Sacar datos de la web y de documentos, legal y sin fallar en silencio |
 | 12 | `infraestructura` | Que corra 24/7: despliegue, copias restaurables, monitorización |
 | 13 | `visibilidad` | Que te encuentren, en buscadores clásicos y en los de IA |
-| 14 | `video` | Producción audiovisual por lotes, no pieza a pieza |
-| 15 | `voz` | Transcribir, doblar y sintetizar a escala |
+| 14 | `audiovisual` | Vídeo y voz a escala: cortar, subtitular, transcribir, doblar y sintetizar |
+| 15 | `documentos` | Informes, manuales y diagramas que se generan solos desde la fuente |
 | 16 | `automatizacion` | Que lo repetitivo se haga solo, y se entere si falla |
 | 17 | `blockchain` | Contratos inteligentes y **su auditoría**, que es donde está el valor |
 | 18 | `embebidos` | Hardware que habla: firmware, sensores, protocolos de dispositivo |
 | 19 | `cientifico` | Cálculo y simulación **reproducibles**: si no se repite, no es resultado |
 | 20 | `cumplimiento` | RGPD, accesibilidad legal, licencias: lo que evita la multa |
+| 21 | `rendimiento` | Entrar en código ajeno y dejarlo mejor: perfilado, calidad, deuda |
 
 ### Qué salió, y por qué
 
@@ -49,15 +50,15 @@ los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 |---|---|---|
 | `datos` | Categoría, no oficio | Partido en `ingenieria-datos` y `analitica` |
 | `agentes` | Categoría | Partido en `agentes-ia` y `modelos-locales` |
-| `medios` | Categoría | Partido en `video` y `voz` |
-| `sistemas` | No se contrata «bajo nivel» | País dentro de quien lo necesite; el perfilado, en el mar `criterio` |
+| `medios` | Categoría | Partido en `audiovisual` (vídeo y voz) y `documentos` |
+| `sistemas` | No se contrata «bajo nivel» | Renacido como `rendimiento`, que sí se contrata: «esto va lento» |
 | `conocimiento` | Documentar no es un encargo en sí | Provincia dentro de cada nicho |
 | `negocio` | Es trabajo interno, no se vende | Sus herramientas, dentro de `saas` y `automatizacion` |
 | `legal` | Muy amplio | Estrechado a `cumplimiento`, que es lo accionable |
 
 ## Los mares — lo transversal, que no es un nicho
 
-Cinco aguas que mojan los 20 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
+Cinco aguas que mojan los 21 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
 terreno.
 
 | Mar | Qué impone |
@@ -115,15 +116,25 @@ catálogo, porque el catálogo se paga en todas las sesiones.
 
 ## El límite que hace que esto no se descontrole
 
-Medido el 2026-09-01 con 66 herramientas montadas: entrada **2.572 tokens de 4.000**, y **1.713 de
-esos 2.572 son el catálogo** — el 67%. Cada herramienta añade su línea, y esa línea se paga en cada
-sesión y en cada subagente, para siempre.
+El catálogo ya no se paga entero: desde el **catálogo por nicho**, en el contexto de entrada solo
+aparecen las herramientas del oficio en el que se está trabajando. Medido con 209 herramientas
+montadas:
 
-Traducido: hay sitio para **unas 5 o 6 herramientas por nicho**, no cincuenta. Por eso el criterio 2
-es eliminatorio y por eso pasarse de presupuesto pone el validador en **rojo**, no en aviso.
+```
+Entrada base .... 1.128 tokens   (índice + océanos, sin ninguna herramienta)
+Peor nicho ...... 1.771 tokens   (ciberseguridad, 26 herramientas)
+Presupuesto ..... 4.000          quedan 2.229 en el peor caso
+```
+
+Eso cambia el límite de sitio: **ya no lo marca el total, lo marca el nicho más grande**. Añadir
+cinco herramientas a `juegos` no le cuesta nada a quien trabaja en `web`. El techo práctico está en
+unas 25 por nicho, que es donde vive hoy el mayor.
+
+Lo que no cambia: el criterio 2 sigue siendo eliminatorio. El presupuesto impide que un nicho
+engorde sin freno, pero **no impide meter basura repartida** — eso solo lo impide elegir bien.
 
 Esta es la restricción que convierte «lo mejor del mundo» en una decisión y no en una acumulación.
-Sin ella, «llenar 20 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
+Sin ella, «llenar 21 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
 que COSMOS existe para resolver.
 
 ## Ciberseguridad: el límite que no se cruza

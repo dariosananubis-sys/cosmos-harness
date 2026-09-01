@@ -2,5 +2,5 @@
 cosmos: sistema-solar
 nombre: negocio
 padre: ""
-resumen: La maquinaria administrativa: presupuestos, facturas, contratos, seguimiento y automatizacion.
+resumen: La administracion: presupuestos, facturas, contratos y seguimiento.
 ---

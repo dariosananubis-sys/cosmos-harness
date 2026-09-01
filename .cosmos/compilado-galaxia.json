@@ -1,0 +1,336 @@
+{
+  "destino": "vista-galaxia",
+  "entradas": {
+    "a11y-auditoria-wcag": {
+      "hash": "77deb526f33d6bd4692eeabe958ba0408acbe431b98a55aeccbaa206e65c3a6d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/a11y-auditoria-wcag"
+    },
+    "advertools": {
+      "hash": "2aa7cfe642b9c6a61f7812dd168f5a0eb7f4a317b6c7bbb92fa61b75b4f98f85",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/advertools"
+    },
+    "agent-browser": {
+      "hash": "bdfd48bbb62f6632e5c36cbee182ebe81a6fffe4bf7fe7d9b868b64729e17b42",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/agent-browser"
+    },
+    "axe-core": {
+      "hash": "cebbffbf72a6cbbedffb61415617028943857aa628c327dffe25667e523bc6fa",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/axe-core"
+    },
+    "bearer": {
+      "hash": "4d0c1d06f71c6fe1cb4e4d2a272367f35755652b226ee59a6df139d91f9842eb",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/bearer"
+    },
+    "caddy": {
+      "hash": "852963afb92ce49d548b6885efbef1ab6ce8548544a3f96713c2e1048304cb5a",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/caddy"
+    },
+    "ccxt": {
+      "hash": "3558e12fd2e846be6d5dfa5773a1a70f7f1e0921c899439f7037837454809e28",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ccxt"
+    },
+    "claude-agent-sdk": {
+      "hash": "731c3f7af4e4b057f968ea15b049c9da89c70a343a5aacf0cf53f3684004e773",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/claude-agent-sdk"
+    },
+    "claude-mem": {
+      "hash": "6242622334b3257ae022d8183ba04ec19f77e3e752448fc7cb30a9b1e6600c55",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/claude-mem"
+    },
+    "claude-seo-ai": {
+      "hash": "e96228be5420c28d8b563f36d19e21851f74e7dd4be548c03a4083cc398b0d26",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/claude-seo-ai"
+    },
+    "context7": {
+      "hash": "5452454587b5393131bd5f569cafcada4fc3fea7a3d967641cc85c6bbfaa9ee2",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/context7"
+    },
+    "dbt-core": {
+      "hash": "7b418631d66d83ef56f95e6ec374281b280bc77b6ba42ce79a4ebe93e6fe3858",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/dbt-core"
+    },
+    "docling": {
+      "hash": "4e74432a876b4c65a2dddd61cca4c44c290dbe8aa5c8ae2fa91ca55a92bfed44",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/docling"
+    },
+    "duckdb": {
+      "hash": "37e3de8ec06885d989165de12178fdd168952a9edb96d9c2d5d7b431315b9650",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/duckdb"
+    },
+    "evidence": {
+      "hash": "8b90515ae2f0169cc0c27b864fd5f2c1df0ee3b4b346287af2b12702e09ee723",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/evidence"
+    },
+    "ffmpeg": {
+      "hash": "be357b4dc2e7602401903ed9e071846aa0e2bb996e6c4ade6897d88dc4b1cdd7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ffmpeg"
+    },
+    "freqtrade": {
+      "hash": "3bd6317adf9e36e7b498033a30945e997af03cc6f20021669b35f5ea46f02d2d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/freqtrade"
+    },
+    "geo-optimizer": {
+      "hash": "f29789bd6f93ed775917bc54a5222055d4da0970ad1b8a9d5cb32d6217ee4f79",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/geo-optimizer"
+    },
+    "gitea": {
+      "hash": "8432e421674edd2b0d2f76e98090ae27c9ae96f9c21accee31009277981db13a",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/gitea"
+    },
+    "gspread": {
+      "hash": "1d291772b17f0d0ebe9653f87f855a4df0d4b813acc897bcd3b559286b3b8d51",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/gspread"
+    },
+    "hftbacktest": {
+      "hash": "e278338298675ba557da03617aefd47237f2d6f58e181b3f5756389a1f68a94c",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/hftbacktest"
+    },
+    "ib-async": {
+      "hash": "f5026120da2563a17509f84d20b31ebbc8f52cf07e693b6ab493a8622e6044a6",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ib-async"
+    },
+    "kokoro": {
+      "hash": "669ca8f4e61b823e6bb8011be4b7314b21cf1baa984596c9da9268dd7f3eaf42",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/kokoro"
+    },
+    "lago": {
+      "hash": "6aa616ab9026fd4b382940684bdea98421da6dbbfff10c13fce6c48e6fbba28d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/lago"
+    },
+    "lancedb": {
+      "hash": "001a649c38766b159e33272cb1965c40a4cd5905de1ed4c9ffe51f8d719d89e8",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/lancedb"
+    },
+    "lighthouse": {
+      "hash": "372e539627b92e7189286e2fb13e91b3b36e31c0f79c479118de90f9b3687049",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/lighthouse"
+    },
+    "markitdown": {
+      "hash": "aeeb13eda9d02e049271ff7a1b1e4318c05f46f17e8d3de54ab6ce5de6581c01",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/markitdown"
+    },
+    "mem0": {
+      "hash": "a48805485ae346f4bcc9fe7ea14b6b148008dc3b75b934e653862dc064136108",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/mem0"
+    },
+    "mlflow": {
+      "hash": "8cc9374c1553308a5fe05a506c260343d8b3cba4918a3288ff2dc955b4eda76e",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/mlflow"
+    },
+    "mlx-lm": {
+      "hash": "c1ec81e64fa52e5f4b3245379998bfb9653c3ba821f913b5bbe82a548a75ff41",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/mlx-lm"
+    },
+    "nautilus-trader": {
+      "hash": "8b2fe2e45e18ed6e2811f78344c7fdb271b798a59649e9489e0be0f5da5a0d85",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/nautilus-trader"
+    },
+    "ntfy": {
+      "hash": "58def42d521ab61d1b913c88161d957cddf33590261c15a1046878485f4c44c2",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ntfy"
+    },
+    "ocrmypdf": {
+      "hash": "0a80d746528df0d5527ee3244c847c1a3ecc94519614578bc13e875405b7af8d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ocrmypdf"
+    },
+    "ollama": {
+      "hash": "ef32cd22b25a94b2e263835a08f6bcec4d9c1bc551b3b0089d42f4e9b19afd32",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/ollama"
+    },
+    "openclaw": {
+      "hash": "ca1c5010ad7b6ea71edd62c2ade1b5cea6f1547bd04e89548835786264a97968",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/openclaw"
+    },
+    "osv-scanner": {
+      "hash": "42279f768336dc765d29305874c6670b1430c5dae801136f5d81b6b3c4a11c02",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/osv-scanner"
+    },
+    "pandera": {
+      "hash": "5716069561b9e8aaf00a696c87ae57520ffd5a78f2a9c1f541c9494a574cf729",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/pandera"
+    },
+    "pandoc": {
+      "hash": "a76d3d4e4fd412ae163f5605c90b5ffe92fa3781a6fa597f79a3213ea10ba4ad",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/pandoc"
+    },
+    "playwright": {
+      "hash": "c24070340dde4564e1f17e4fb7a85dd386ec8c993b343a04ea819726d7aa7545",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/playwright"
+    },
+    "polars": {
+      "hash": "868b10fcd467f0e9d70686da9c8c9be456f7ebb9753aa2a285b91928bfaeb477",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/polars"
+    },
+    "presidio": {
+      "hash": "bfdd2c07b1989785d16c079ffde386a863351c2ff8e46980a9bbabf9f06ea631",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/presidio"
+    },
+    "rapidfuzz": {
+      "hash": "d8337bc3d5d4801111281f3c461b87024a7e97f4fa918e2f4f61f474bdd58a32",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/rapidfuzz"
+    },
+    "rembg": {
+      "hash": "8f6e0e50b47f3c35f85660ee24d37555d34b7f2877f9bc5650369a9192e89511",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/rembg"
+    },
+    "restic": {
+      "hash": "d43e636cb8ef5e0096967bce75d9505752b8d61fd869aa8d74ba6b145c46cbf2",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/restic"
+    },
+    "scorecard": {
+      "hash": "d1c4b6ea3959a33cbff202b6eed06643873557d3c1d45e8b747ac45f9aae5241",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/scorecard"
+    },
+    "scrapy": {
+      "hash": "64bbcfaefe7719ba9810ec5d0adb23c605f026bf94d09f51234734174c924d18",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/scrapy"
+    },
+    "semgrep": {
+      "hash": "55b7c1508cc158995a0eefde77ad0540eb09853aa7f663f1c261b7fa7ca24b7d",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/semgrep"
+    },
+    "sentence-transformers": {
+      "hash": "256eb1ab40eee7d1876ce8b4fe0a4d851cf399092c9445e16851c27358ddc241",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/sentence-transformers"
+    },
+    "serpbear": {
+      "hash": "91363d50e29b2ea7dc4b4b740c056f7f4edca5c4ee0324ad88c6b4b5445423fd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/serpbear"
+    },
+    "sharp": {
+      "hash": "8e6e156ea30e8c9201d5d7b93aa68c07ae9809a481f6596a29dca95d9143e295",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/sharp"
+    },
+    "shopify-toolkit": {
+      "hash": "4bc5c5e7b5471e689181ae318eebbedac1830faedb578e86c9fbc01a61fd90f7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/shopify-toolkit"
+    },
+    "sops": {
+      "hash": "5e7e11919d711572516815c40226542256485aaba0d481dbca07c301ebac4c28",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/sops"
+    },
+    "statsforecast": {
+      "hash": "66caf41b6c7615b0c83efc88549268caf694bfa3078e5a33e3ef3c4dbcce549b",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/statsforecast"
+    },
+    "streamlit": {
+      "hash": "8dbcaccb1761b59194efbd1b70d8fe64976c8519d2fa84b0d5aebe909544073e",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/streamlit"
+    },
+    "stripe-agent-toolkit": {
+      "hash": "c1b3d9146b974f009e3f18737c9168d6cd41380c9726e196b8620fef69867cfd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/stripe-agent-toolkit"
+    },
+    "trafilatura": {
+      "hash": "b3333242c7bbe7f03716b5f31502c8cc6bda2290b3ffe7ac30014ba9913ef371",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/trafilatura"
+    },
+    "trivy": {
+      "hash": "3ba0345856f8b10e917c2279fdabe5dd04f2e59e686e8a2e104636deb4b19dda",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/trivy"
+    },
+    "trufflehog": {
+      "hash": "473515522fc6fb9862bddc026779ebd7e1bba5cfd7cb684b424f5c51028540d7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/trufflehog"
+    },
+    "unlighthouse": {
+      "hash": "525faec01a20c6d56d865c64cf7e442e8aa26043efc64f9feb4d51f84e8bf8b7",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/unlighthouse"
+    },
+    "uptime-kuma": {
+      "hash": "af8610c29bbfbebdd15e7b21a007d1349071332c5d218c414b8e970250a17ad5",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/uptime-kuma"
+    },
+    "victoriametrics": {
+      "hash": "4ef8cd24497f3a228c5e2a0738415c3162a6ebbc343360cf4a14ca7eb0f4f1fd",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/victoriametrics"
+    },
+    "weasyprint": {
+      "hash": "bcd4f717858cb024588ba8a185d571e7c2042d2cab47c94606c3e0a05529a746",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/weasyprint"
+    },
+    "web-fidelidad-elementor": {
+      "hash": "18e2924c0d65d82c6ad2c7751f69d2460173cdb381622e5e204309d555566fed",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/web-fidelidad-elementor"
+    },
+    "whisper-cpp": {
+      "hash": "159c3636617f0feb16b932f3c466518642e2ad9d774b4421dd83b6ea71cbc504",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/whisper-cpp"
+    },
+    "woocommerce-skills": {
+      "hash": "ebaa2cc6f8ea9a5574d2d6d20726153328f652c2c57257e48e3afa2bcea52404",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/woocommerce-skills"
+    },
+    "wordpress-skills": {
+      "hash": "151ab5d89d78484416221cb94de851511358769d0aead06faa1249ab9578f558",
+      "modo": "symlink",
+      "origen": "../galaxia/pueblos/wordpress-skills"
+    }
+  },
+  "version": 1
+}

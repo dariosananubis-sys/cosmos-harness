@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: semgrep
-padre: ciberseguridad/analisis-de-codigo
+padre: ciberseguridad/analisis/vulnerabilidades
 resumen: Busca patrones por sintaxis real en treinta lenguajes, con reglas legibles y ampliables.
 ---
 

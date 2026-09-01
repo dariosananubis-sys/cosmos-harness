@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: bearer
-padre: ciberseguridad/analisis-de-codigo
+padre: ciberseguridad/analisis/vulnerabilidades
 resumen: Sigue el flujo de datos y dice por donde viaja lo sensible, no solo donde se declara.
 ---
 

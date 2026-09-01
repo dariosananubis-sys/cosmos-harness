@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: scorecard
-padre: ciberseguridad/cadena-de-suministro
+padre: ciberseguridad/analisis/cadena-de-suministro
 resumen: No busca fallos: puntua la higiene del repositorio, que es lo que deja entrar a los fallos.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: trivy
-padre: ciberseguridad/cadena-de-suministro
+padre: ciberseguridad/analisis/cadena-de-suministro
 resumen: Un solo binario para dependencias, imagenes, configuracion de nube y secretos, tambien sin conexion.
 ---
 

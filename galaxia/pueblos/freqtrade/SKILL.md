@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: freqtrade
-padre: mercados/motores
+padre: trading/motores
 resumen: Bot completo de cripto con protecciones integradas que cortan solas tras una racha mala.
 ---
 

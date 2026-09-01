@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: streamlit
-padre: datos/cuadros-de-mando
+padre: analitica/cuadros-de-mando
 resumen: Convierte un guion en una aplicacion web con controles, sin escribir nada de interfaz.
 ---
 

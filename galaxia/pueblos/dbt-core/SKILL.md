@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: dbt-core
-padre: datos/calidad-y-transformacion
+padre: ingenieria-datos/transformacion
 resumen: Encadena modelos SQL en control de versiones con pruebas declarativas y documentacion generada.
 ---
 

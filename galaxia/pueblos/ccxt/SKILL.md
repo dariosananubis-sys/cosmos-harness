@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ccxt
-padre: mercados/conectividad
+padre: trading/conectividad
 resumen: Una sola interfaz para mas de cien mercados de cripto, con peticiones y flujo continuo incluidos.
 ---
 

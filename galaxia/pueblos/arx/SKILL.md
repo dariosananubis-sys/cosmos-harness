@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: arx
-padre: legal
+padre: cumplimiento/datos-personales
 resumen: Anonimiza con k-anonimato y mide el riesgo de reidentificacion que queda.
 ---
 

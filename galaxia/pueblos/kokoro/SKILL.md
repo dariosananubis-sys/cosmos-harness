@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: kokoro
-padre: medios/audiovisual
+padre: audiovisual/voz
 resumen: Voz sintetica de calidad con un modelo de ochenta y dos millones de parametros que cabe en todo.
 ---
 

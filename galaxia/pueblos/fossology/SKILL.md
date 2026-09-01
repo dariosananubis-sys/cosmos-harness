@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: fossology
-padre: legal
+padre: cumplimiento/licencias
 resumen: El mismo cumplimiento con base de datos e interfaz para la revision humana del abogado.
 ---
 

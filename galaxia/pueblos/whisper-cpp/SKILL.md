@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: whisper-cpp
-padre: medios/audiovisual
+padre: audiovisual/voz
 resumen: Transcribe audio a texto en la propia maquina, aprovechando la grafica integrada del portatil.
 ---
 

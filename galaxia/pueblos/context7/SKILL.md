@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: context7
-padre: conocimiento
+padre: documentos/referencia
 resumen: Trae la documentacion vigente de una biblioteca en vez de fiarse de lo que el modelo recuerda.
 ---
 

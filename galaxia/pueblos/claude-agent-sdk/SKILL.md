@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: claude-agent-sdk
-padre: agentes/runtime
+padre: agentes-ia/construccion
 resumen: SDK oficial para montar agentes propios con herramientas, permisos y bucle de ejecucion completo.
 ---
 

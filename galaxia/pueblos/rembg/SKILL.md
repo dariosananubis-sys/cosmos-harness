@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: rembg
-padre: medios/imagen
+padre: web/imagenes
 resumen: Quita el fondo de cientos de fotos de una pasada y deja el recorte con transparencia.
 ---
 

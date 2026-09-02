@@ -24,6 +24,7 @@ HEURISTICA = "heurística v3"
 # Medido el 2026-09-02 contra tiktoken/cl100k_base. Ver docs/CALIBRACION.md.
 FACTOR_CALIBRACION = 1.204          # prosa: specs, fichas, código, agua
 FACTOR_GENERADO = 1.381             # índice y catálogo: densos en símbolos
+FACTOR_ESTRUCTURA = 1.314           # agua, estrellas y ríos: prosa española densa
 MARGEN_ERROR: float | None = 0.052
 PATRON_TOKEN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
 
@@ -126,6 +127,26 @@ def contar_generado(texto: str) -> int:
     """
 
     return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_GENERADO)
+
+
+def contar_estructura(texto: str) -> int:
+    """Cuenta el agua, las estrellas y los ríos, que van un 9 % por encima de una ficha.
+
+    Tercera clase de contenido y tercer factor, por la misma razón que hubo un segundo:
+    **una calibración solo vale para el corpus con el que se hizo**. `FACTOR_CALIBRACION`
+    salió de un corpus donde 264 de 312 muestras son fichas de herramienta, y las fichas
+    tokenizan bien —llevan URLs, nombres propios e inglés, que es lo que `cl100k_base`
+    conoce—. Los mares son prosa española densa y sin nada de eso:
+
+        ficha            n=264   media 1.015x    <- manda en la media global
+        agua/estructura  n= 48   media 1.091x    <- y es lo que se paga SIEMPRE
+
+    El global decía 1.026x mientras el bloque caro iba a 1.091x, y por eso el árbol daba
+    verde con el contador aproximado y rojo con el tokenizador real. La media de un corpus
+    desequilibrado es la media de su clase mayoritaria con otro nombre.
+    """
+
+    return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_ESTRUCTURA)
 
 
 def _contador_exacto() -> tuple[Callable[[str], int], str] | None:
@@ -344,12 +365,19 @@ def medir_arbol(
     seleccion = normalizar_nichos(arbol, nichos)
     partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion)
 
-    # El índice y el catálogo se cuentan con su propio factor: son listas densas en
-    # símbolos, no prosa, y tokenizan un 15 % peor (fallo F01). Con `exacto` no hay
-    # dos factores que valgan — el tokenizador ya cuenta lo que hay.
+    # Tres clases de contenido, tres factores. El índice y el catálogo son listas densas
+    # en símbolos y tokenizan un 15 % peor que una ficha (fallo F01); el agua y los
+    # océanos son prosa española densa y van un 9 % por encima. Usar el de las fichas
+    # para todo era lo que ponía verde un árbol que estaba en rojo — dos veces, y la
+    # segunda con el arreglo de la primera ya puesto. Con `exacto` no hay factor que
+    # valga: el tokenizador ya cuenta lo que hay.
     def _cuenta(nombre: str, texto: str) -> int:
-        if metodo_real == "aprox" and ("índice" in nombre or "catálogo" in nombre):
+        if metodo_real != "aprox":
+            return contador(texto)
+        if "índice" in nombre or "catálogo" in nombre:
             return contar_generado(texto)
+        if nombre.startswith(("oceano/", "mar/", "lago/", "estrella/", "rio/")):
+            return contar_estructura(texto)
         return contador(texto)
 
     detalle_entrada = [ParteMedida(nombre, _cuenta(nombre, texto)) for nombre, texto in partes_entrada]
@@ -371,7 +399,8 @@ def medir_arbol(
     resto = sum(parte.tokens for parte in detalle_arbol)
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
-    detalle_agua = _detalle_agua(arbol, contador)
+    contador_agua = contar_estructura if metodo_real == "aprox" else contador
+    detalle_agua = _detalle_agua(arbol, contador_agua)
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,

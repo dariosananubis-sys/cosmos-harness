@@ -56,3 +56,12 @@ jobs:
       # es el fallo que este proyecto documentó al auditar otro harness.
       - name: El gate se puede instalar y pasa
         run: python3 -m puente.gate --sin-pruebas
+
+      # El cuarto enganche: los guardarraíles de sesión. Aquí no hay sesión de
+      # agente, así que se comprueba lo comprobable — que el manejador responde
+      # al evento con la decisión esperada. Que bloquee de verdad lo exigen las
+      # 45 pruebas de puente/tests/test_sesion.py.
+      - name: Los guardarraíles de sesión responden
+        run: |
+          echo '{"hook_event_name":"SessionStart","session_id":"ci","cwd":"'"$PWD"'"}' \
+            | python3 -m puente.sesion | grep -q 'tokens'

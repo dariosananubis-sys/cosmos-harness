@@ -132,5 +132,69 @@ class LaSalidaTienePrecio(unittest.TestCase):
             self.assertIn("lunes", linea["motivo"])
 
 
+
+class LasDosPuertasDelPresupuestoAbrenIgual(unittest.TestCase):
+    """La misma válvula, abierta en un comando y cerrada en el otro.
+
+    Lo midió el agente que cerró la cola de las revisiones: con un salto E16 vivo,
+    `cosmos validar` salía 0 diciendo «verde (1 salto activo)» y `cosmos medir` salía 1
+    sobre el mismo árbol y el mismo presupuesto. `medir` cobra código de salida —lo usa
+    el CI— así que es una puerta, y una puerta sin salida acotada se rodea.
+
+    Es el mismo defecto que E20 y que el hook del `--force`, en su tercera forma: la
+    salida existe, pero no en todos los sitios donde la puerta cierra.
+    """
+
+    def _con_presupuesto_imposible(self, tmp: Path) -> Path:
+        # El config va DENTRO del repo a propósito: `_base_repositorio` lo usa para
+        # localizar el registro de saltos, así que uno en /tmp busca la válvula en /tmp
+        # y no la encuentra nunca. Es el mismo efecto que el informe anotó como B10.
+        del tmp
+        config = RAIZ / ".estrecho-de-prueba.toml"
+        config.write_text(
+            (RAIZ / "cosmos.toml").read_text(encoding="utf-8")
+            .replace("entrada = 4000", "entrada = 10")
+            .replace('arbol = "galaxia"', f'arbol = "{RAIZ}/galaxia"')
+            .replace('indice = "galaxia/COSMOS.md"', f'indice = "{RAIZ}/galaxia/COSMOS.md"')
+            .replace('registro = "registro"', f'registro = "{RAIZ}/registro"'),
+            encoding="utf-8")
+        return config
+
+    def _medir(self, config: Path) -> subprocess.CompletedProcess[str]:
+        return subprocess.run([sys.executable, "-m", "cosmos", "medir", "--config", str(config)],
+                              capture_output=True, text=True, cwd=RAIZ)
+
+    def tearDown(self) -> None:
+        (RAIZ / ".estrecho-de-prueba.toml").unlink(missing_ok=True)
+
+    def test_sin_salto_el_presupuesto_para(self) -> None:
+        r = self._medir(self._con_presupuesto_imposible(Path(".")))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("ROJO", r.stdout)
+
+    def test_con_el_salto_abierto_no_para_y_lo_dice(self) -> None:
+        from cosmos.guardarrailes import ruta_saltos
+        from cosmos.validar import INVARIANTE_PRESUPUESTO
+
+        registro = ruta_saltos(RAIZ)
+        antes = registro.read_text(encoding="utf-8") if registro.is_file() else None
+        try:
+            registrar_salto(registro, INVARIANTE_PRESUPUESTO,
+                            "prueba: la puerta del presupuesto tiene que abrir",
+                            timedelta(minutes=1))
+            r = self._medir(self._con_presupuesto_imposible(Path(".")))
+            self.assertEqual(r.returncode, 0, "la válvula de E16 no abre en `medir`")
+            self.assertIn("Salto activo", r.stdout,
+                          "abrió en silencio: un salto vivo se dice siempre")
+        finally:
+            if antes is None:
+                registro.unlink(missing_ok=True)
+            else:
+                registro.write_text(antes, encoding="utf-8")
+
+    def test_cerrada_la_valvula_vuelve_a_parar(self) -> None:
+        r = self._medir(self._con_presupuesto_imposible(Path(".")))
+        self.assertEqual(r.returncode, 1, "el presupuesto dejó de proteger tras cerrar el salto")
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,15 @@
+Mares por coste real (tiktoken/cl100k_base):
+  criterio          481 tok   304 palabras   27 lineas
+  pruebas           378 tok   232 palabras   22 lineas
+  revision          267 tok   175 palabras   15 lineas
+  resistencia       183 tok   116 palabras   10 lineas
+  custodia          119 tok    77 palabras    6 lineas
+  accesibilidad     117 tok    73 palabras    6 lineas
+  TOTAL 1545
+
+Oceanos (entrada base, se pagan siempre):
+  descender         155 tok
+  irreversible       93 tok
+  verificar          87 tok
+  secretos           79 tok
+  precedencia        74 tok

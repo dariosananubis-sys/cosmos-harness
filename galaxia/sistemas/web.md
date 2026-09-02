@@ -8,4 +8,5 @@ usa:
   - visibilidad
   - cumplimiento
   - rendimiento
+  - moviles
 ---

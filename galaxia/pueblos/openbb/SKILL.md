@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openbb
-padre: trading/datos-de-mercado
+padre: trading/mercado/datos-de-mercado
 resumen: Decenas de proveedores conectables detras de una interfaz: cambiar de fuente sin tocar el codigo.
 ---
 
@@ -31,4 +31,4 @@ Ojo, aviso de coste: **varios de sus proveedores son gratis y otros exigen clave
 interfaz única **esconde cuál está detrás** — hay que mirar el proveedor concreto antes de prometerle
 un dato a un cliente, porque `provider="fmp"` puede estar facturando sin que se note en el código. Y
 la licencia es **AGPL-3.0**, igual que `backtesting-py`: uso propio sí, servicio a terceros obliga a
-liberar. Para el histórico de cripto que de verdad se ejecutó, `trading/conectividad/ccxt`, no esto.
+liberar. Para el histórico de cripto que de verdad se ejecutó, `trading/ejecucion/conectividad/ccxt`, no esto.

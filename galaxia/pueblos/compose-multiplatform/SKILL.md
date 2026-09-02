@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: compose-multiplatform
-padre: moviles
+padre: moviles/marcos
 resumen: Comparte logica y pantallas en Kotlin sin renunciar a llamar a la API nativa cuando toca.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: claude-seo-ai
-padre: visibilidad
+padre: visibilidad/auditoria
 resumen: Auditor tecnico sin dependencias ni claves: HTML renderizado, indexabilidad, metas y datos marcados.
 ---
 

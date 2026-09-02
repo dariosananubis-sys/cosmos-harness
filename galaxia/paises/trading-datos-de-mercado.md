@@ -1,7 +1,7 @@
 ---
 cosmos: pais
 nombre: datos-de-mercado
-padre: trading
+padre: trading/mercado
 resumen: De donde salen los precios cuando el mercado no es cripto, y a que se renuncia por no pagarlos.
 ---
 

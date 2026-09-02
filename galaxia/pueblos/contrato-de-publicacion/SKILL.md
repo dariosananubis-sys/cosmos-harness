@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: contrato-de-publicacion
-padre: infraestructura
+padre: infraestructura/despliegue
 resumen: Ocho puertas y un permiso que caduca deciden si se publica; sin copia ni vuelta atras verificadas, no sale.
 ---
 

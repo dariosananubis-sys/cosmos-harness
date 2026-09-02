@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: micropython
-padre: embebidos
+padre: embebidos/firmware
 resumen: Consola interactiva dentro del microcontrolador: se prueba un sensor sin recompilar ni volver a grabar.
 ---
 

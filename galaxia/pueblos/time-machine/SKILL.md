@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: time-machine
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: Fija el reloj del proceso en el test, para probar cierres de vela y esperas sin esperarlas.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: advertools
-padre: visibilidad
+padre: visibilidad/auditoria
 resumen: Biblioteca que rastrea, lee mapas del sitio y ficheros de robots y devuelve tablas para analizar.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pais
 nombre: codigo-de-bot
-padre: trading
+padre: trading/bots
 resumen: Escribir el bot: aqui un fallo no lanza una excepcion, deja una posicion abierta y una perdida.
 ---
 

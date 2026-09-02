@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openfga
-padre: saas
+padre: saas/identidad
 resumen: Decide quien puede ver que en un producto multiinquilino, y trae pruebas que lo demuestran.
 ---
 

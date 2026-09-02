@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hummingbot
-padre: trading/motores
+padre: trading/bots/motores
 resumen: Creacion de mercado con cuenta de papel contra el libro real, sin claves de ningun mercado.
 ---
 

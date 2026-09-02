@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ib-async
-padre: trading/conectividad
+padre: trading/ejecucion/conectividad
 resumen: Cliente asincrono mantenido para la pasarela del broker que da acceso a mercados clasicos.
 ---
 

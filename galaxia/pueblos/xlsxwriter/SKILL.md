@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: xlsxwriter
-padre: analitica
+padre: analitica/hojas
 resumen: Genera la hoja de calculo que el cliente abrira, con formulas vivas, formatos y graficos nativos.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ponder
-padre: blockchain
+padre: blockchain/cadena
 resumen: Indexa los eventos de un contrato en un solo proceso, sin montar tres servicios para responder una consulta.
 ---
 

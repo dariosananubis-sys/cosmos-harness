@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: dlt
-padre: ingenieria-datos
+padre: ingenieria-datos/orquestacion
 resumen: Carga de origen a destino con contrato de esquema: si la fuente cambia de forma, falla o aparta.
 ---
 

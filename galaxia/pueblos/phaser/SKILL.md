@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: phaser
-padre: juegos
+padre: juegos/motores
 resumen: Motor 2D que corre en el navegador al abrir un HTML, sin instalar ni pisar una tienda.
 ---
 

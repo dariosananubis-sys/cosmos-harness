@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mobsf
-padre: moviles
+padre: moviles/publicacion
 resumen: Analiza el paquete ya compilado y dice que permisos, claves y trafico lleva dentro de verdad.
 ---
 

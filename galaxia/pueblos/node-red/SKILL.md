@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: node-red
-padre: automatizacion
+padre: automatizacion/flujos
 resumen: Flujos por nodos para hardware y protocolo: puerto serie, mensajeria de dispositivo y miles de nodos de la comunidad.
 ---
 

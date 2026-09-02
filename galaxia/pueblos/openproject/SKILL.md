@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openproject
-padre: automatizacion
+padre: automatizacion/gestion
 resumen: Proyectos, hitos y horas imputadas con API completa y sin partes de pago.
 ---
 

@@ -9,15 +9,15 @@ https://github.com/msrbuilds/elementor-mcp (plugin **EMCP Tools**) · GPL-2.0 ·
 2026-08-30 (comprobado 2026-09-01). Requiere WordPress 6.9+ y **PHP 8.1+**. Expone **más de 200
 herramientas MCP**.
 
-Del lado de esta casa, dos guiones propios: `cosecha/wp-mcp-sync.py` y `cosecha/wp-mcp-stdio-bridge.sh`.
+Del lado de esta casa, dos guiones propios: `scripts/wp-mcp-sync.py` y `scripts/wp-mcp-stdio-bridge.sh`.
 
 ```bash
 curl -s https://example.com/wp-json/ | grep -c emcp-tools-server   # ¿carga el plugin?
-python3 cosecha/wp-mcp-sync.py                 # lista lo que registraría, sin tocar nada
-python3 cosecha/wp-mcp-sync.py --aplicar --solo <id-de-sitio>
+python3 scripts/wp-mcp-sync.py                 # lista lo que registraría, sin tocar nada
+python3 scripts/wp-mcp-sync.py --aplicar --solo <id-de-sitio>
 # si el vhost va por debajo de PHP 8.1:
 WP_SSH_HOST=<host> WP_SSH_USER=<usuario> WP_SSH_PASS=<clave> WP_DOCROOT=/ruta/al/wordpress \
-  cosecha/wp-mcp-stdio-bridge.sh 1
+  scripts/wp-mcp-stdio-bridge.sh 1
 ```
 
 Por qué esto y no hablar con la base de datos: con el plugin el maquetado se hace con **los controles

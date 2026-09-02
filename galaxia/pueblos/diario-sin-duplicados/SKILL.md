@@ -5,11 +5,11 @@ padre: agentes-ia/memoria
 resumen: Quita los bloques que un enganche roto repitio, y prueba antes de escribir que lo escrito a mano sigue intacto.
 ---
 
-`cosecha/dedupe-daily-autocapture.py` — herramienta propia, no de GitHub. Por defecto **no escribe**.
+`scripts/dedupe-daily-autocapture.py` — herramienta propia, no de GitHub. Por defecto **no escribe**.
 
 ```bash
-python3 cosecha/dedupe-daily-autocapture.py notes/daily/2026-09-01.md        # dry-run
-python3 cosecha/dedupe-daily-autocapture.py --apply notes/daily/2026-09-01.md
+python3 scripts/dedupe-daily-autocapture.py notes/daily/2026-09-01.md        # dry-run
+python3 scripts/dedupe-daily-autocapture.py --apply notes/daily/2026-09-01.md
 ```
 
 Cuando un enganche de captura automática deja de reconocer su propio marcador, en vez de actualizar su

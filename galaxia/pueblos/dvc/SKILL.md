@@ -5,7 +5,7 @@ padre: cientifico
 resumen: Versiona datos y pesos fuera del repositorio y reejecuta solo la etapa que cambio.
 ---
 
-https://github.com/treeverse/dvc - Apache-2.0 - 15.855 estrellas - ultimo push 2026-08-31
+https://github.com/treeverse/dvc · Apache-2.0 · 15.855★ · último push 2026-08-31 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). El repositorio cambio de organizacion: el antiguo
 `iterative/dvc` redirige aqui.
 

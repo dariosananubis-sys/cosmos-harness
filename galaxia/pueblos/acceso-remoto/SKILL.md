@@ -5,11 +5,11 @@ padre: infraestructura/servidores
 resumen: Vigila y vuelve a levantar el acceso remoto de la maquina, porque la que se queda sin el no puede pedir ayuda.
 ---
 
-`cosecha/acceso-remoto-watchdog.sh` — herramienta propia, no hay repositorio público. La ruta ES la
+`scripts/acceso-remoto-watchdog.sh` — herramienta propia, no hay repositorio público. La ruta ES la
 referencia.
 
 ```bash
-sudo install -m 755 cosecha/acceso-remoto-watchdog.sh /usr/local/sbin/
+sudo install -m 755 scripts/acceso-remoto-watchdog.sh /usr/local/sbin/
 sudo /usr/local/sbin/acceso-remoto-watchdog.sh          # una pasada, a mano
 sudo tail -f /var/log/acceso-remoto-watchdog.log
 

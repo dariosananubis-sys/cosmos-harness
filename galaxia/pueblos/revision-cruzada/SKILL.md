@@ -5,14 +5,14 @@ padre: agentes-ia/evaluacion
 resumen: Tres familias de modelos revisan el mismo cambio a la vez; el codigo de salida sale del acuerdo, no de una opinion.
 ---
 
-`cosecha/multi-review.py` — herramienta propia, no de GitHub. Habla con tres familias de modelos por
+`scripts/multi-review.py` — herramienta propia, no de GitHub. Habla con tres familias de modelos por
 OpenRouter, en su capa gratuita.
 
 ```bash
 export OPENROUTER_API_KEY="<clave-de-capa-gratuita>"
-python3 cosecha/multi-review.py                       # revisa `git diff HEAD`
-python3 cosecha/multi-review.py --last-commit
-python3 cosecha/multi-review.py --diff-file parche.diff --context "refactor de autenticacion"
+python3 scripts/multi-review.py                       # revisa `git diff HEAD`
+python3 scripts/multi-review.py --last-commit
+python3 scripts/multi-review.py --diff-file parche.diff --context "refactor de autenticacion"
 echo $?    # 0 acuerdo -> integrable | 1 discrepancia | 2 crítico | 3 error de configuración
 ```
 

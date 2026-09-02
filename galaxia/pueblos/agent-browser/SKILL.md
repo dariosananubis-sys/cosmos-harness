@@ -22,9 +22,9 @@ cuesta **cero herramientas permanentes**. Gana a `browser-use/browser-use` (111.
 coste por tarea: aquel conduce la página con un modelo, es más autónomo y mucho más caro; se reserva
 para lo que no se puede describir con selectores.
 
-De la cosecha propia compiten dos y pierden las dos, pero dejan su lección: `cosecha/navegador_seguro.py`
+De la cosecha propia compiten dos y pierden las dos, pero dejan su lección: `scripts/navegador_seguro.py`
 (nunca reutiliza sesión ajena y comprueba dirección y ancho antes de fiarse de una medición) es
-**política de uso de esta herramienta**, no otra herramienta; y `cosecha/cdp-client.py`, cliente del
+**política de uso de esta herramienta**, no otra herramienta; y `scripts/cdp-client.py`, cliente del
 mismo protocolo escrito a mano sin dependencias, sirve solo si algún día hay que hablar CDP sin esto.
 
 Ojo, dos falsos verdes: una sesión con nombre reutilizada por otro trabajo puede estar en otra URL, y

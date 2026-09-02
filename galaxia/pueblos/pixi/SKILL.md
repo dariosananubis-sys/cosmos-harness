@@ -5,7 +5,7 @@ padre: cientifico
 resumen: Entorno reproducible con fichero de bloqueo multiplataforma de serie, en un solo binario.
 ---
 
-https://github.com/prefix-dev/pixi - BSD-3-Clause - 7.666 estrellas - ultimo push 2026-09-01
+https://github.com/prefix-dev/pixi · BSD-3-Clause · 7.666★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

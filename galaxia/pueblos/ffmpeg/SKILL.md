@@ -5,10 +5,7 @@ padre: audiovisual/video
 resumen: Convierte, corta, escala y mezcla cualquier formato desde un solo comando reproducible.
 ---
 
-https://github.com/FFmpeg/FFmpeg - licencia mixta LGPL-2.1+ o GPL-2+ **segun como se compile** (la
-API de GitHub devuelve `NOASSERTION`; ver abajo) - 63.851 estrellas - ultimo push 2026-09-01
-(comprobado por API de GitHub el 2026-09-01). Espejo oficial del repositorio canonico,
-`git.ffmpeg.org`.
+https://github.com/FFmpeg/FFmpeg · licencia mixta LGPL-2.1+ o GPL-2+ **segun como se compile** (la API de GitHub devuelve `NOASSERTION`; ver abajo) · 63.851★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01). Espejo oficial del repositorio canonico, `git.ffmpeg.org`.
 
 ```bash
 brew install ffmpeg

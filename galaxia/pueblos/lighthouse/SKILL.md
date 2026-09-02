@@ -18,7 +18,7 @@ debajo de casi todo lo demás del nicho, incluida su propia parte de accesibilid
 
 Gana a `addyosmani/web-quality-skills` (2.730★), la colección que lo envuelve: aquella aporta listas de
 causas y arreglos por framework, que es exactamente el tipo de consejo que un modelo bueno ya trae. El
-motor sí aporta; la envoltura no. También queda fuera `cosecha/pagespeed-accessibility.py`, envoltura
+motor sí aporta; la envoltura no. También queda fuera `scripts/pagespeed-accessibility.py`, envoltura
 del servicio alojado: ese servicio **es este mismo motor corriendo en casa ajena**, con cuota y sin
 control de versión. Se usa esto en local; aquello solo cuando hace falta la medición de campo del
 buscador.

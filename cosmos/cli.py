@@ -48,7 +48,11 @@ def _parser() -> argparse.ArgumentParser:
 
     abrir_cmd = base("abrir", "carga un nodo: su cuerpo, su estrella y por dónde seguir")
     abrir_cmd.add_argument("ruta", help="ruta cosmográfica o nombre, p.ej. 'trading/backtesting'")
-    abrir_cmd.add_argument("--con-agua", action="store_true", help="incluye el agua que moja ese trabajo")
+    abrir_cmd.add_argument(
+        "--tocando",
+        metavar="FICHERO",
+        help="ruta del fichero que se va a tocar: lista el agua que lo moja de verdad",
+    )
     abrir_cmd.add_argument("--json", action="store_true", help="emite JSON")
 
     acertar_cmd = base("acertar", "¿el catálogo lleva a la herramienta correcta? La contra-métrica")
@@ -401,7 +405,7 @@ def ejecutar(argv: list[str] | None = None) -> int:
             sys.stdout.write(generar_mapa(arbol))
             return 0
         if args.comando == "abrir":
-            ap = abrir(arbol, args.ruta, con_agua=args.con_agua)
+            ap = abrir(arbol, args.ruta, tocando=args.tocando)
             sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
             return 0
         if args.comando == "acertar":

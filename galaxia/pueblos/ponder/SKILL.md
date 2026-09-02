@@ -5,8 +5,7 @@ padre: blockchain
 resumen: Indexa los eventos de un contrato en un solo proceso, sin montar tres servicios para responder una consulta.
 ---
 
-https://github.com/ponder-sh/ponder - MIT - 1.123 estrellas - ultimo push 2026-08-24 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/ponder-sh/ponder · MIT · 1.123★ · último push 2026-08-24 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 npm create ponder@latest -- --dir mi-indice

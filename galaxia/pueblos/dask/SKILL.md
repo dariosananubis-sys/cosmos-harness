@@ -5,8 +5,7 @@ padre: cientifico
 resumen: Paraleliza con la interfaz de siempre y no reserva memoria por adelantado al arrancar.
 ---
 
-https://github.com/dask/dask - BSD-3-Clause - 13.910 estrellas - ultimo push 2026-08-24 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/dask/dask · BSD-3-Clause · 13.910★ · último push 2026-08-24 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pip install "dask[complete]"

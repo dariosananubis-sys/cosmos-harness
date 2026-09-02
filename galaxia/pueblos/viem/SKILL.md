@@ -5,10 +5,7 @@ padre: blockchain
 resumen: Cliente de nodo en TypeScript con tipos estrictos y sin el peso de la biblioteca de la generacion anterior.
 ---
 
-https://github.com/wevm/viem - MIT segun el `LICENSE` del repo (la API de GitHub la devuelve como
-`NOASSERTION`, sin verificar por que) - 3.544 estrellas - ultimo push 2026-09-01 (comprobado por API
-de GitHub el 2026-09-01). Los ganchos de React estan en el paquete hermano `wevm/wagmi` (6.743
-estrellas, MIT).
+https://github.com/wevm/viem · MIT segun el `LICENSE` del repo (la API de GitHub la devuelve como `NOASSERTION`, sin verificar por que) · 3.544★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01). Los ganchos de React estan en el paquete hermano `wevm/wagmi` (6.743★, MIT).
 
 ```bash
 npm install viem

@@ -19,7 +19,7 @@ confiable, ejecución no confiable, política determinista»— es la razón de 
 permisos vive **separada** de la ejecución de herramientas, así que un canal de mensajería no autoriza
 por sí mismo lo que el agente puede hacer.
 
-Gana a `cosecha/telegram-bridge.py`, el puente propio que reenvía a la consola del asistente y
+Gana a `scripts/telegram-bridge.py`, el puente propio que reenvía a la consola del asistente y
 devuelve la salida: aquello resuelve el mismo hueco para un solo canal, y esto atiende consola, chat y
 trabajos programados con la misma configuración.
 

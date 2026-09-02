@@ -58,7 +58,7 @@ los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 
 ## Los mares — lo transversal, que no es un nicho
 
-Cinco aguas que mojan los 21 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
+Seis aguas que mojan los 21 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
 terreno.
 
 | Mar | Qué impone |
@@ -68,6 +68,7 @@ terreno.
 | `resistencia` | Que falle de forma ruidosa: nunca un cero donde toca «no lo sé» |
 | `accesibilidad` | Que se pueda usar. Legal en Europa, además de correcto |
 | `custodia` | Secretos y datos personales: nunca en claro, nunca de más |
+| `revision` | Cómo se mira el trabajo ajeno —y el propio— dando por hecho que está mal |
 
 ## Los vecinos: cómo se cruzan los nichos
 

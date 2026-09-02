@@ -5,8 +5,7 @@ padre: embebidos
 resumen: Tiempo real con cientos de placas soportadas, arbol de dispositivo y arranque firmado.
 ---
 
-https://github.com/zephyrproject-rtos/zephyr - Apache-2.0 - 16.370 estrellas - ultimo push
-2026-09-01 (comprobado por API de GitHub el 2026-09-01). Proyecto de la Linux Foundation.
+https://github.com/zephyrproject-rtos/zephyr · Apache-2.0 · 16.370★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01). Proyecto de la Linux Foundation.
 
 ```bash
 brew install cmake ninja gperf python3 ccache qemu dtc libmagic

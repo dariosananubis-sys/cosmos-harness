@@ -5,15 +5,15 @@ padre: agentes-ia/coste
 resumen: Arranca cada tarea con el modelo mas barato que la resuelve y con el perfil minimo de servidores externos.
 ---
 
-`cosecha/claude-code/` (5 lanzadores + 2 perfiles MCP + README) y `cosecha/modelos-fijar.py` —
+`scripts/claude-code/` (5 lanzadores + 2 perfiles MCP + README) y `scripts/modelos-fijar.py` —
 herramientas propias, no de GitHub.
 
 ```bash
-chmod +x cosecha/claude-code/*.sh
-cosecha/claude-code/run-balanced.sh sonnet          # diario
-cosecha/claude-code/run-strict.sh --task "revisar el diff"   # coste mínimo, clasifica la tarea
+chmod +x scripts/claude-code/*.sh
+scripts/claude-code/run-balanced.sh sonnet          # diario
+scripts/claude-code/run-strict.sh --task "revisar el diff"   # coste mínimo, clasifica la tarea
 export SESIONES_GLOB="$HOME/.claude-accounts/sessions"       # si hay cuentas aisladas
-python3 cosecha/modelos-fijar.py                    # repone el menú de /model, idempotente
+python3 scripts/modelos-fijar.py                    # repone el menú de /model, idempotente
 ```
 
 Dos perfiles de servidores MCP, `mcp-servers.min.json` (memoria + ficheros) y `mcp-servers.full.json`

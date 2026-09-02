@@ -5,8 +5,7 @@ padre: moviles
 resumen: Automatiza firma, compilacion y subida a las tiendas sea cual sea el framework.
 ---
 
-https://github.com/fastlane/fastlane - MIT - 42.046 estrellas - ultimo push 2026-08-31 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/fastlane/fastlane · MIT · 42.046★ · último push 2026-08-31 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install fastlane

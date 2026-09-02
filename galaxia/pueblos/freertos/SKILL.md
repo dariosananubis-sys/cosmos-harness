@@ -5,9 +5,7 @@ padre: embebidos
 resumen: El nucleo mas pequeno y mas desplegado: planificador, colas y semaforos, y nada mas alrededor.
 ---
 
-https://github.com/FreeRTOS/FreeRTOS - MIT - 7.749 estrellas - ultimo push 2026-08-26 (comprobado
-por API de GitHub el 2026-09-01). El nucleo suelto, sin las demos, esta en
-https://github.com/FreeRTOS/FreeRTOS-Kernel.
+https://github.com/FreeRTOS/FreeRTOS · MIT · 7.749★ · último push 2026-08-26 (comprobado por API de GitHub el 2026-09-01). El nucleo suelto, sin las demos, esta en https://github.com/FreeRTOS/FreeRTOS-Kernel.
 
 ```bash
 git clone --recurse-submodules https://github.com/FreeRTOS/FreeRTOS-Kernel.git

@@ -9,7 +9,7 @@ https://github.com/thedotmack/claude-mem · Apache-2.0 · 92.812★ · último p
 
 ```bash
 npx claude-mem install          # registra los enganches y levanta el worker
-chmod +x cosecha/patch-claude-mem-hooks.sh && cosecha/patch-claude-mem-hooks.sh
+chmod +x scripts/patch-claude-mem-hooks.sh && scripts/patch-claude-mem-hooks.sh
 ```
 
 Comprime y recupera lo hablado en sesiones anteriores **del propio asistente de consola**, que es
@@ -21,7 +21,7 @@ Gana a `mem0ai/mem0` (64.500★) en este hueco concreto por estar atado a este a
 los enganches del propio CLI en vez de exigir que el agente llame a una API de memoria. `mem0` es el
 genérico, para agentes propios sobre el SDK.
 
-Se acompaña de `cosecha/patch-claude-mem-hooks.sh`, que corrige tres fallos documentados: los enganches
+Se acompaña de `scripts/patch-claude-mem-hooks.sh`, que corrige tres fallos documentados: los enganches
 de `SessionStart` que fallan con «Failed with non-blocking status code» cuando el worker tarda; el SDK
 embebido que emite `--setting-sources ""` sin valor y hace que `--permission-mode` se coma el
 siguiente argumento y rompa todo con «exited with code 1»; y el puerto del health-check desalineado

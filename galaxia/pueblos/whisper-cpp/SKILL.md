@@ -5,7 +5,7 @@ padre: audiovisual/voz
 resumen: Transcribe audio a texto en la propia maquina, aprovechando la grafica integrada del portatil.
 ---
 
-https://github.com/ggml-org/whisper.cpp - MIT - 53.345 estrellas - ultimo push 2026-08-31
+https://github.com/ggml-org/whisper.cpp · MIT · 53.345★ · último push 2026-08-31 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). Del mismo equipo que el motor de modelos locales, con
 el mismo formato de pesos.
 

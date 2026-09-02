@@ -5,8 +5,7 @@ padre: ingenieria-datos
 resumen: Declara tipo, rango y unicidad de cada columna y falla justo donde el dato se rompe.
 ---
 
-https://github.com/unionai-oss/pandera - MIT - 4.446 estrellas - ultimo push 2026-09-01 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/unionai-oss/pandera · MIT · 4.446★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pip install pandera

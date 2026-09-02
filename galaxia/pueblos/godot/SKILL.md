@@ -5,8 +5,7 @@ padre: juegos
 resumen: Motor 2D y 3D con editor visual, gratis sin regalias ni umbral de ingresos.
 ---
 
-https://github.com/godotengine/godot - MIT - 116.475 estrellas - ultimo push 2026-08-31 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/godotengine/godot · MIT · 116.475★ · último push 2026-08-31 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install --cask godot

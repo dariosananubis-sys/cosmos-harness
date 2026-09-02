@@ -5,21 +5,21 @@ padre: cumplimiento
 resumen: Crea y audita el aviso legal y la politica de cookies de una web publicada, y cambia su texto sin romperla.
 ---
 
-`cosecha/legales-crear-paginas.py`, `legales-lssi.py` y `legales-texto.py` — herramientas propias, no
+`scripts/legales-crear-paginas.py`, `legales-lssi.py` y `legales-texto.py` — herramientas propias, no
 hay repositorio público. Las rutas SON la referencia.
 
 ```bash
 # 1. auditar lo publicado (sin tocar nada). Sale 0 si pasa, 1 si falla algo
-python3 cosecha/legales-lssi.py https://<dominio-cliente>/ --razon-social "Ejemplo S.L." \
+python3 scripts/legales-lssi.py https://<dominio-cliente>/ --razon-social "Ejemplo S.L." \
   --json informe.json
 
 # 2. crear el aviso legal y la politica si no existen (sin --aplicar solo ensena que haria)
-python3 cosecha/legales-crear-paginas.py <slug> \
+python3 scripts/legales-crear-paginas.py <slug> \
   --titular "Nombre Apellidos" --nif <NIF> \
   --domicilio "Calle Ejemplo, 1, 00000 Ciudad" --email contacto@ejemplo.test --aplicar
 
 # 3. corregir un dato mal escrito, sustitucion literal e idempotente
-python3 cosecha/legales-texto.py <slug> --pagina aviso-legal \
+python3 scripts/legales-texto.py <slug> --pagina aviso-legal \
   --buscar "Identificador fiscal: ES <NIF>" --sustituir "NIF: <NIF>" --aplicar
 ```
 

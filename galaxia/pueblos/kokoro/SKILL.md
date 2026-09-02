@@ -10,7 +10,7 @@ El modelo: https://github.com/hexgrad/kokoro - Apache-2.0 - 8.648 estrellas - **
 
 Lo que se ejecuta de verdad: https://github.com/thewh1teagle/kokoro-onnx - MIT - 2.694 estrellas -
 ultimo push 2026-08-19 (misma comprobacion). Alternativa con servidor HTTP:
-https://github.com/remsky/Kokoro-FastAPI - Apache-2.0 - 5.392 estrellas - push 2026-09-01.
+https://github.com/remsky/Kokoro-FastAPI · Apache-2.0 · 5.392★ · push 2026-09-01. (comprobado 2026-09-01)
 
 ```bash
 pip install kokoro-onnx soundfile

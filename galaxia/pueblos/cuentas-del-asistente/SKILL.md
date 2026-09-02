@@ -5,15 +5,15 @@ padre: agentes-ia/coste
 resumen: Varias cuentas del mismo asistente vivas a la vez: cual gasta la cuota, que ninguna caduque, y matar las zombis.
 ---
 
-`cosecha/claude-cuenta.sh`, `cosecha/mantener-sesiones-claude.sh` y `cosecha/reap-claude-orphans.sh`
+`scripts/claude-cuenta.sh`, `scripts/mantener-sesiones-claude.sh` y `scripts/reap-claude-orphans.sh`
 — herramientas propias, no de GitHub.
 
 ```bash
-chmod +x cosecha/claude-cuenta.sh cosecha/mantener-sesiones-claude.sh cosecha/reap-claude-orphans.sh
+chmod +x scripts/claude-cuenta.sh scripts/mantener-sesiones-claude.sh scripts/reap-claude-orphans.sh
 export CLAUDE_ACCOUNTS_DIR="$HOME/.claude-accounts"     # una subcarpeta por cuenta
-cosecha/claude-cuenta.sh trabajo --model opus           # abre esa cuenta; el resto de flags pasan a claude
-cosecha/mantener-sesiones-claude.sh --dry-run           # a cuáles tocaría para que no caduquen
-cosecha/reap-claude-orphans.sh --dry                    # qué zombis mataría
+scripts/claude-cuenta.sh trabajo --model opus           # abre esa cuenta; el resto de flags pasan a claude
+scripts/mantener-sesiones-claude.sh --dry-run           # a cuáles tocaría para que no caduquen
+scripts/reap-claude-orphans.sh --dry                    # qué zombis mataría
 ```
 
 Cada proceso gasta la cuota de la credencial que tenga cargada, así que arrancar siempre por

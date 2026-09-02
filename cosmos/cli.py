@@ -29,7 +29,7 @@ from .guardarrailes import (
     sufijo_saltos,
 )
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
-from .acertar import (Contraste, cargar_encargos, formatear as formatear_acierto,
+from .acertar import (Contraste, ErrorEncargos, cargar_encargos, formatear as formatear_acierto,
                       formatear_contraste, puntuacion_json, puntuar)
 from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
@@ -398,6 +398,13 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "validar":
             return _validar(args, config, arbol)
         if args.comando == "medir":
+            # `--config` fuera del repo resuelve `arbol` contra el directorio del propio
+            # fichero: si el resultado no existe, medir cero nodos y publicar «OK, quedan
+            # 4.000» era el veredicto tranquilizador sobre un árbol que no está.
+            # `puente.sesion.decidir` ya rechazaba este caso; el comando, no.
+            if not config.arbol.is_dir():
+                print(f"COSMOS  medir  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
+                return 1
             nichos = normalizar_nichos(arbol, _nichos(_nichos_medicion(args), config))
             resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada, nichos=nichos)
             sys.stdout.write(casos_json(resultado_medicion) if args.json else formatear_casos(resultado_medicion, detalle=args.detalle))
@@ -405,7 +412,9 @@ def ejecutar(argv: list[str] | None = None) -> int:
             # Antes comparaba `entrada` mientras el texto declaraba rojo por
             # `entrada_con_agua`: imprimia «ROJO, excede en 283 tokens» y devolvia 0.
             # Un aviso que no para es lo que este proyecto existe para evitar (F05).
-            return 0 if veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe else 1
+            # `is True` porque el veredicto es trivalente: `None` («no había nada que
+            # medir») también sale 1 — un veredicto sobre nada no es un verde.
+            return 0 if veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe is True else 1
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])
@@ -503,6 +512,12 @@ def ejecutar(argv: list[str] | None = None) -> int:
     except NodoNoEncontrado as exc:
         print(f"COSMOS  abrir  rojo\n\n{exc}", file=sys.stderr)
         return 1
+    except ErrorEncargos as exc:
+        # El mismo código de salida que el examen ausente de `--minimo`: un fichero
+        # de encargos que no está o no cumple su esquema es un error de uso (2), no
+        # un rojo de la métrica (1) — y nunca un traceback.
+        print(f"COSMOS  acertar  rojo\n\n{exc}", file=sys.stderr)
+        return 2
     except (MetodoNoDisponible, ErrorCompilacion, ErrorNicho, ErrorSalto, ErrorEnganche) as exc:
         print(f"COSMOS  {args.comando}  rojo\n\n{exc}", file=sys.stderr)
         return 1

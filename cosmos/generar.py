@@ -34,12 +34,13 @@ def generar_indice(arbol: Arbol) -> str:
     else:
         lineas.append("- Ninguno")
 
-    oceanos = sorted((n for n in arbol.nodos if n.cosmos == "oceano"), key=_orden)
-    lineas.extend(["", "## Océanos", ""])
-    if oceanos:
-        lineas.extend(f"- `{n.nombre}` — {n.resumen}" for n in oceanos)
-    else:
-        lineas.append("- Ninguno")
+    # Los océanos NO se listan aquí. El índice los anunciaba con su resumen y a
+    # continuación se cargaba el cuerpo entero de los cinco: presentar algo que
+    # viene dos líneas después es coste sin función. Medido el 2026-09-02: 108
+    # tokens que se pagaban en cada sesión y en cada subagente, para siempre.
+    #
+    # No es lo mismo que ocultarlos: un océano se carga SIEMPRE y completo, así
+    # que quien lee el contexto los tiene delante. Lo que sobra es el índice.
     return "\n".join(lineas) + "\n"
 
 

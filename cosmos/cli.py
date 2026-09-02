@@ -371,7 +371,11 @@ def ejecutar(argv: list[str] | None = None) -> int:
             nichos = normalizar_nichos(arbol, _nichos(_nichos_medicion(args), config))
             resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada, nichos=nichos)
             sys.stdout.write(casos_json(resultado_medicion) if args.json else formatear_casos(resultado_medicion, detalle=args.detalle))
-            return 0 if resultado_medicion.evaluada.entrada <= config.entrada else 1
+            # El codigo de salida tiene que reflejar LO QUE LA SALIDA DECLARA en rojo.
+            # Antes comparaba `entrada` mientras el texto declaraba rojo por
+            # `entrada_con_agua`: imprimia «ROJO, excede en 283 tokens» y devolvia 0.
+            # Un aviso que no para es lo que este proyecto existe para evitar (F05).
+            return 0 if resultado_medicion.evaluada.entrada_con_agua <= config.entrada else 1
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])

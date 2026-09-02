@@ -306,7 +306,7 @@ manifiesto = ".cosmos/compilado.json"
 metodo = "aprox"                     # "aprox" | "exacto"
 
 [presupuesto]
-solapamiento = 0.25                  # umbral de E17 (Jaccard sobre n-gramas de 4)
+solapamiento = 0.25                  # umbral de E17 (Jaccard entre conjuntos de palabras, frase a frase)
 ```
 
 ## 9. Semántica de `moja`, y qué significa «lo moja todo» (E11)

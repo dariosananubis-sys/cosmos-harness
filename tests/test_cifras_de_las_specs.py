@@ -208,3 +208,53 @@ class TodaInvarianteVivaTieneValvula(unittest.TestCase):
                                capture_output=True, text=True, cwd=RAIZ).stdout
         self.assertIn(rango_comprobado(), ayuda,
                       "la ayuda de la válvula enseña un rango que no es el que se comprueba")
+
+
+class LasSpecsDescribenElMecanismoQueElCodigoUsa(unittest.TestCase):
+    """Dos specs describían algoritmos que el código no tiene, y sonaban plausibles.
+
+    `NUCLEO.md` decía que E17 hace «Jaccard sobre n-gramas de 4» y compara conjuntos de
+    palabras frase a frase. `FRONTMATTER.md` decía que E11 rechaza un océano encubierto
+    «por igualdad literal del patrón», cuando mide **cobertura** contra un corpus de
+    sondas — la diferencia importa: la igualdad literal la esquiva cualquiera escribiendo
+    `**/*` en vez de `**`.
+
+    Una spec que describe un mecanismo plausible pero falso es peor que una que calla:
+    quien la lee cree saber cómo esquivar la invariante, y a veces acierta.
+    """
+
+    def test_nucleo_no_describe_e17_con_n_gramas(self) -> None:
+        texto = (RAIZ / "spec/NUCLEO.md").read_text(encoding="utf-8")
+        self.assertNotIn("n-gramas", texto)
+        self.assertNotIn("shingles", texto)
+
+    def test_frontmatter_no_dice_que_e11_compare_patrones_literales(self) -> None:
+        texto = (RAIZ / "spec/FRONTMATTER.md").read_text(encoding="utf-8")
+        self.assertNotIn("igualdad literal", texto)
+
+    def test_e11_de_verdad_caza_un_oceano_encubierto_que_no_es_literal(self) -> None:
+        """Y se demuestra: un glob que no es `**` pero cubre lo mismo tiene que saltar."""
+
+        from cosmos.validar import cobertura_total
+
+        self.assertTrue(cobertura_total(["**"]))
+        self.assertTrue(cobertura_total(["**/*"]), "un océano encubierto no literal se escapa")
+        self.assertFalse(cobertura_total(["**/*.py"]))
+
+
+class ElReadmeNoOmiteElEngancheQueMasHace(unittest.TestCase):
+    def test_el_enganche_de_sesion_aparece_en_el_readme(self) -> None:
+        """Estaba entero fuera, y es el que vigila mientras el agente trabaja."""
+
+        texto = (RAIZ / "README.md").read_text(encoding="utf-8")
+        self.assertIn("--sesion", texto)
+        self.assertRegex(texto, r"\|\s*\*\*sesión\*\*\s*\|")
+
+    def test_los_enganches_del_readme_son_los_de_la_spec(self) -> None:
+        spec = (RAIZ / "spec/GUARDARRAILES.md").read_text(encoding="utf-8")
+        bloque = spec[spec.index("## Los tres enganches") :][:600]
+        de_la_spec = set(re.findall(r"^\| \*{0,2}([\w-]+)\*{0,2} \|", bloque, flags=re.M))
+        readme = (RAIZ / "README.md").read_text(encoding="utf-8")
+        for enganche in de_la_spec - {"Enganche"}:
+            with self.subTest(enganche):
+                self.assertIn(enganche, readme)

@@ -52,6 +52,32 @@ class LaCifraQueSePublica(unittest.TestCase):
         self.assertIsNone(c.como_dict()["cifra_honesta"])
 
 
+class UnHoldoutEsDeUnSoloUso(unittest.TestCase):
+    """Lo encontró el revisor adversarial, y tenía razón: el conjunto se quemó el mismo día.
+
+    Basta abrir su `--detalle` una vez y escribir hacia lo que falla. Medido después: de
+    las 37 palabras nuevas que entraron en los resúmenes, seis existen SOLO en el holdout
+    (`iphone`, `android`, `solidity`, `chatgpt`, `cookies`, `placas`). Son mejoras buenas
+    por sí mismas y aun así invalidan la cifra: mide un examen visto.
+    """
+
+    def test_un_conjunto_quemado_no_publica_cifra_honesta(self) -> None:
+        c = Contraste(
+            ajuste=_puntuacion(33, 50),
+            validacion=_puntuacion(15, 20),
+            quemado="2026-09-02 · se miró su detalle antes de reescribir los resúmenes",
+        )
+        self.assertIsNone(c.como_dict()["cifra_honesta"])
+        salida = formatear_contraste(c)
+        self.assertIn("DESCONOCIDA", salida)
+        self.assertNotIn("La cifra que vale es", salida)
+
+    def test_sin_quemar_sigue_publicandola(self) -> None:
+        c = Contraste(ajuste=_puntuacion(33, 50), validacion=_puntuacion(15, 20))
+        self.assertEqual(c.como_dict()["cifra_honesta"], 75.0)
+        self.assertIn("La cifra que vale es 75 %", formatear_contraste(c))
+
+
 class ElContrasteEnJson(unittest.TestCase):
     def test_publica_la_brecha_y_la_cifra_honesta(self) -> None:
         d = Contraste(ajuste=_puntuacion(33, 50), validacion=_puntuacion(10, 20)).como_dict()

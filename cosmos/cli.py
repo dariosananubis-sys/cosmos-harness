@@ -32,7 +32,8 @@ from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatea
 from .acertar import (Contraste, cargar_encargos, formatear as formatear_acierto,
                       formatear_contraste, puntuacion_json, puntuar)
 from .estado import estado_json, formatear as formatear_estado, inventariar
-from .medir import MetodoNoDisponible, casos_json, formatear_casos, medir_casos
+from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
+                    veredicto_de_presupuesto)
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
 from .validar import formatear_validacion, rango_comprobado, validacion_json, validar_arbol
 
@@ -401,7 +402,7 @@ def ejecutar(argv: list[str] | None = None) -> int:
             # Antes comparaba `entrada` mientras el texto declaraba rojo por
             # `entrada_con_agua`: imprimia «ROJO, excede en 283 tokens» y devolvia 0.
             # Un aviso que no para es lo que este proyecto existe para evitar (F05).
-            return 0 if resultado_medicion.evaluada.entrada_con_agua <= config.entrada else 1
+            return 0 if veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe else 1
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])

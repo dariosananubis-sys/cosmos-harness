@@ -317,13 +317,32 @@ manifiesto = ".cosmos/compilado.json"
         self.assertIn("E15", salida)
         self.assertEqual("# COSMOS — mentira\n", (self.arbol_dir / "COSMOS.md").read_text(encoding="utf-8"))
 
-    def test_lock_exclusivo_rechaza_segunda_compilacion(self) -> None:
+    def test_lock_de_un_proceso_vivo_rechaza_la_segunda_compilacion(self) -> None:
+        """El contrato cambió a propósito (F09), y esta prueba lo dice.
+
+        Antes bastaba con que el fichero existiera, con cualquier contenido. Eso
+        significaba que un proceso muerto sin llegar a su `finally` —`kill -9`, batería,
+        terminal cerrada— dejaba el repositorio sin poder compilar **para siempre**. Ahora
+        el cerrojo lleva dentro el PID y se pregunta: si su dueño vive, esto rechaza; si
+        no, se retoma. Un cerrojo del que no se puede salir no protege nada.
+        """
+
+        import os
+
         lock = self.manifiesto.parent / "compilar.lock"
         lock.parent.mkdir(parents=True)
-        lock.write_text("ocupado\n", encoding="utf-8")
-        with self.assertRaisesRegex(ErrorCompilacion, "otra compilación"):
+        lock.write_text(f"{os.getppid()}\n", encoding="utf-8")  # un PID que existe de verdad
+        with self.assertRaisesRegex(ErrorCompilacion, "en curso"):
             self.compilar()
         self.assertFalse(self.destino.exists())
+
+    def test_un_lock_rancio_no_deja_el_repositorio_inservible(self) -> None:
+        lock = self.manifiesto.parent / "compilar.lock"
+        lock.parent.mkdir(parents=True)
+        lock.write_text("999999\n", encoding="utf-8")  # PID que no existe
+        self.compilar()
+        self.assertTrue(self.destino.exists(), "un cerrojo rancio bloqueó una compilación válida")
+        self.assertFalse(lock.exists())
 
     def test_editar_por_symlink_edita_la_verdad_y_no_rompe_e19(self) -> None:
         self.compilar(modo="symlink")

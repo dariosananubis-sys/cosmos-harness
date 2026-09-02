@@ -35,7 +35,8 @@ from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
                     veredicto_de_presupuesto)
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
-from .validar import formatear_validacion, rango_comprobado, validacion_json, validar_arbol
+from .validar import (INVARIANTE_PRESUPUESTO, formatear_validacion, rango_comprobado,
+                      validacion_json, validar_arbol)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -414,7 +415,21 @@ def ejecutar(argv: list[str] | None = None) -> int:
             # Un aviso que no para es lo que este proyecto existe para evitar (F05).
             # `is True` porque el veredicto es trivalente: `None` («no había nada que
             # medir») también sale 1 — un veredicto sobre nada no es un verde.
-            return 0 if veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe is True else 1
+            # Y consulta la válvula, como hace `validar`. Sin esto, la misma puerta
+            # quedaba abierta en un comando y cerrada en el otro: con un salto E16 vivo,
+            # `cosmos validar` salía 0 diciendo «verde (1 salto activo)» y `cosmos medir`
+            # salía 1 sobre el mismo árbol. Un código de salida que ignora la salida
+            # acotada es una puerta sin salida, y de esas se sale rodeándolas.
+            cabe = veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe is True
+            if not cabe:
+                activos, _ = _saltos(config)
+                if any(salto.codigo == INVARIANTE_PRESUPUESTO for salto in activos):
+                    sys.stdout.write(
+                        f"\n  Salto activo sobre {INVARIANTE_PRESUPUESTO}: el presupuesto no para "
+                        f"esta ejecución. Caduca, y mientras tanto se dice aquí.\n"
+                    )
+                    return 0
+            return 0 if cabe else 1
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])

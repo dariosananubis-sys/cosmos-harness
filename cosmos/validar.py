@@ -447,6 +447,12 @@ def _comprobar_e15(arbol: Arbol, _: Configuracion, indice: Path) -> list[ErrorVa
     return [_error("E15", None, f"índice desincronizado: {indice}", "Ejecuta 'cosmos generar'; no edites el índice a mano.", ruta=str(indice))]
 
 
+# La invariante del presupuesto, nombrada donde se define: el CLI necesita saber
+# cuál es para consultar su válvula, y escribir "E16" en otro fichero es la clase
+# de número a mano que este repositorio persigue.
+INVARIANTE_PRESUPUESTO = "E16"
+
+
 def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorValidacion]:
     casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
     medicion = casos.peor

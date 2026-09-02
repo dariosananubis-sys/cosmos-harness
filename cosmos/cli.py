@@ -28,6 +28,7 @@ from .guardarrailes import (
     ruta_saltos,
     sufijo_saltos,
 )
+from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
 from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import MetodoNoDisponible, casos_json, formatear_casos, medir_casos
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
@@ -43,6 +44,11 @@ def _parser() -> argparse.ArgumentParser:
         sub.add_argument("raiz", nargs="?", type=Path, help="raíz del árbol; por defecto usa cosmos.toml")
         sub.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
         return sub
+
+    abrir_cmd = base("abrir", "carga un nodo: su cuerpo, su estrella y por dónde seguir")
+    abrir_cmd.add_argument("ruta", help="ruta cosmográfica o nombre, p.ej. 'trading/backtesting'")
+    abrir_cmd.add_argument("--con-agua", action="store_true", help="incluye el agua que moja ese trabajo")
+    abrir_cmd.add_argument("--json", action="store_true", help="emite JSON")
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
     estado.add_argument("--json", action="store_true", help="emite JSON")
@@ -383,6 +389,10 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "mapa":
             sys.stdout.write(generar_mapa(arbol))
             return 0
+        if args.comando == "abrir":
+            ap = abrir(arbol, args.ruta, con_agua=args.con_agua)
+            sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
+            return 0
         if args.comando == "estado":
             inv = inventariar(arbol)
             sys.stdout.write(estado_json(inv) if args.json else formatear_estado(inv))
@@ -390,6 +400,9 @@ def ejecutar(argv: list[str] | None = None) -> int:
     except ErrorConfiguracion as exc:
         print(f"COSMOS  error de configuración\n\nE00  {exc}", file=sys.stderr)
         return 2
+    except NodoNoEncontrado as exc:
+        print(f"COSMOS  abrir  rojo\n\n{exc}", file=sys.stderr)
+        return 1
     except (MetodoNoDisponible, ErrorCompilacion, ErrorNicho, ErrorSalto, ErrorEnganche) as exc:
         print(f"COSMOS  {args.comando}  rojo\n\n{exc}", file=sys.stderr)
         return 1

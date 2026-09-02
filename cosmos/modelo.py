@@ -508,27 +508,42 @@ def cerrojo(ruta: Path, *, que_hace: str = "escritura"):
 
     Dentro va el PID, así que se puede preguntar. Si su dueño ya no existe, el cerrojo
     está rancio y se retoma diciéndolo; si vive, el error es legítimo.
+
+    **No es reentrante, y lo dice.** La condición de robo llevaba un `pid != os.getpid()`
+    que convertía el propio cerrojo en «rancio» para el mismo proceso: un `with` anidado
+    sobre la misma ruta lo robaba, y al salir el interior borraba el fichero — el exterior
+    seguía creyendo que tenía la exclusión y ya no la tenía nadie. Una exclusión que se
+    evapora sin decirlo es peor que un interbloqueo, porque nada se pone rojo. Ahora el
+    mismo proceso recibe un `ErrorCerrojo` explícito, y el cerrojo exterior sobrevive.
     """
 
     ruta.parent.mkdir(parents=True, exist_ok=True)
     while True:
         try:
             descriptor = os.open(ruta, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-            break
         except FileExistsError as exc:
             try:
                 pid = int(ruta.read_text(encoding="utf-8").split()[0])
             except (OSError, ValueError, IndexError):
                 pid = None
-            if pid is not None and pid != os.getpid() and _proceso_vivo(pid):
-                raise ErrorCerrojo(
-                    f"otra {que_hace} está en curso (proceso {pid}): {ruta}"
-                ) from exc
+            if pid is not None and _proceso_vivo(pid):
+                quien = (
+                    "este mismo proceso ya tiene el cerrojo (reentrada no soportada)"
+                    if pid == os.getpid()
+                    else f"otra {que_hace} está en curso (proceso {pid})"
+                )
+                raise ErrorCerrojo(f"{quien}: {ruta}") from exc
             # Rancio: su dueño no existe o el fichero está ilegible.
             ruta.unlink(missing_ok=True)
+        else:
+            # El PID se escribe ANTES de ceder el control: un fichero vacío se
+            # clasifica como rancio, y entre el open y la escritura otro proceso
+            # podía robar un cerrojo vivo. La ventana no desaparece del todo, pero
+            # pasa de «lo que tarde el cuerpo» a dos llamadas al sistema seguidas.
+            os.write(descriptor, f"{os.getpid()}\n".encode("utf-8"))
+            os.close(descriptor)
+            break
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
-            fichero.write(f"{os.getpid()}\n")
         yield
     finally:
         ruta.unlink(missing_ok=True)

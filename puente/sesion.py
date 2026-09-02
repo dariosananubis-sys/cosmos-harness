@@ -51,7 +51,7 @@ from cosmos.guardarrailes import (
     estado_saltos,
     ruta_saltos,
 )
-from cosmos.medir import medir_casos
+from cosmos.medir import veredicto_de_presupuesto, medir_casos
 from cosmos.modelo import (
     ErrorConfiguracion,
     ErrorNicho,
@@ -538,10 +538,14 @@ def revisar_arbol(config, saltados: frozenset[str]) -> Revision:
     medicion = medir_casos(
         arbol, metodo=config.metodo, presupuesto=config.entrada, nichos=nichos
     )
-    entrada = medicion.evaluada.entrada
-    # Mismo criterio que el código de salida de `cosmos medir`: si aquí fuese otro,
-    # el guard y el comando dirían cosas distintas del mismo árbol.
-    holgado = entrada <= config.entrada
+    # El juez del presupuesto es uno solo, en `medir.veredicto_de_presupuesto`. Este
+    # comentario decía «mismo criterio que `cosmos medir`» y era falso: el comando
+    # comparaba con el agua y el guard sin ella, así que el guard daba verde donde el
+    # comando daba rojo. Tres comparaciones distintas con la misma etiqueta es peor que
+    # ninguna, porque cada una parece confirmar a las otras.
+    veredicto = veredicto_de_presupuesto(medicion, config.entrada)
+    entrada = veredicto.evaluado
+    holgado = veredicto.cabe
     verde = resultado.valido and holgado
     presupuesto = (
         f"entrada {entrada} / {config.entrada} tokens"

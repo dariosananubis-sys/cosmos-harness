@@ -463,6 +463,24 @@ MUTACIONES = (
         "tests.test_universo_navegable.LaParticionDeRendimientoNoSeRefunde.test_los_dos_oficios_existen_y_cada_mitad_esta_en_el_suyo",
         "recolgar una herramienta de calidad en rendimiento deshace en silencio la particion decidida (C03)",
     ),
+    # --- Agua condensada (2026-09-02): la condensacion fue reescritura, no recorte,
+    # y borrar una norma en una futura "limpieza" tiene que doler en rojo.
+    Mutacion(
+        "M54",
+        "galaxia/agua/mar-criterio.md",
+        "Mover o partir codigo no es reescribirlo de memoria: se traslada con la herramienta que conserva\nel historial y se cuadra el conteo.\n",
+        "",
+        "tests.test_agua_normativa.NingunaNormaSePierdeAlCondensar.test_cada_afirmacion_sigue_presente",
+        "borrar la norma de mover-sin-reescribir pasa desapercibido sin la lista a mano de afirmaciones",
+    ),
+    Mutacion(
+        "M55",
+        "galaxia/agua/mar-pruebas.md",
+        "Se mide primero y se escribe la asercion despues: el test afirma lo medido, no lo deseado.\n",
+        "",
+        "tests.test_agua_normativa.NingunaNormaSePierdeAlCondensar.test_cada_afirmacion_sigue_presente",
+        "la primera norma del mar de pruebas —la doctrina entera del repo— se puede borrar sin que E07-E20 digan nada",
+    ),
 )
 
 

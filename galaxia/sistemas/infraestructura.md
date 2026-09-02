@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: infraestructura
 padre: ""
-resumen: Que corra: contenedores, despliegue, nube, redes, copias y monitorizacion.
+resumen: Que corra y no se caiga: contenedores, despliegue, nube y copias.
 usa:
   - ciberseguridad
   - rendimiento

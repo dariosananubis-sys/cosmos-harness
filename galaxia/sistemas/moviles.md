@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: moviles
 padre: ""
-resumen: Aplicaciones para movil y escritorio, publicacion y tiendas de aplicaciones.
+resumen: Apps para iphone, android y escritorio: un codigo, publicacion y tiendas.
 usa:
   - saas
   - web

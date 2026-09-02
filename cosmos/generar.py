@@ -8,9 +8,6 @@ from pathlib import Path
 from .modelo import RANGOS, Arbol, NIVELES_SOLIDOS, Nodo
 
 
-MARCA = "<!-- Generado por cosmos generar. No editar a mano. -->"
-
-
 def _orden(nodo: Nodo) -> tuple[int, str, str]:
     return RANGOS.get(nodo.cosmos, 99), nodo.referencia, nodo.ruta_relativa
 
@@ -23,14 +20,14 @@ def generar_indice(arbol: Arbol) -> str:
     galaxias = sorted((n for n in arbol.nodos if n.cosmos == "galaxia"), key=_orden)
     galaxia = galaxias[0] if galaxias else None
     titulo = galaxia.nombre if galaxia and galaxia.nombre else "sin-galaxia"
-    lineas = [MARCA, "", f"# COSMOS — {titulo}"]
+    lineas = [f"# COSMOS — {titulo}"]
     if galaxia and galaxia.resumen:
         lineas.extend(["", galaxia.resumen])
 
     sistemas = sorted((n for n in arbol.nodos if n.cosmos == "sistema-solar"), key=_orden)
     lineas.extend(["", "## Sistemas solares", ""])
     if sistemas:
-        lineas.extend(f"- `{n.nombre}` — {n.resumen}" for n in sistemas)
+        lineas.extend(f"- {n.nombre}: {n.resumen}" for n in sistemas)
     else:
         lineas.append("- Ninguno")
 
@@ -41,6 +38,16 @@ def generar_indice(arbol: Arbol) -> str:
     #
     # No es lo mismo que ocultarlos: un océano se carga SIEMPRE y completo, así
     # que quien lee el contexto los tiene delante. Lo que sobra es el índice.
+    #
+    # Por el mismo criterio se fueron dos adornos más, medidos el 2026-09-02:
+    #   · el comentario «Generado por cosmos generar. No editar a mano.»: 23 tok.
+    #     Va dirigido a una persona que abra el fichero, pero quien lo lee en cada
+    #     turno es el agente, y quien de verdad impide el retoque a mano es E15 —
+    #     que ya dice esa frase exacta cuando el índice y el árbol divergen.
+    #   · los acentos graves y la raya de `- `nombre` — resumen`: 58 tok. El
+    #     catálogo, que se lee en el mismo bloque, ya usa `clave: resumen`; dos
+    #     formatos para la misma cosa cuestan tokens y no añaden nada.
+    # Total 81 tokens por sesión y por subagente, para siempre.
     return "\n".join(lineas) + "\n"
 
 

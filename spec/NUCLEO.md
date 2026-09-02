@@ -89,7 +89,8 @@ modelo**, así que contarlo infla justo lo que se paga siempre. Esto resuelve ad
 > |---|---|
 > | planeta, continente, pais, provincia | `<ruta>` (siempre: forman el mapa de descenso) |
 > | pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
-> | rio | `<ruta>: <resumen>` |
+> | rio (`momento: trabajo`, por defecto) | `<ruta>: <resumen>` |
+> | rio (`momento: mantenimiento`) | solo el nombre, en una línea agrupada |
 > | mar, lago, lluvia, estrella, luna | *(no aparece)* |
 
 Ordenar por rango y no alfabéticamente por nivel es deliberado: el catálogo se inyecta en contexto y
@@ -103,6 +104,23 @@ de su ruta completa, que por definición es el `nombre` de su sistema solar.
 Los ríos aparecen siempre y sin depender del nicho: son los comandos, y un comando que no se sabe
 que existe no se invoca. Es el único bloque del catálogo que no se acota, y por eso su resumen se
 escribe corto — se paga en cada sesión, como el índice.
+
+Pero no todos los comandos sirven para lo mismo, y el campo opcional `momento` lo declara:
+
+- **`trabajo`** (por defecto) — resuelve el encargo: `abrir`, `medir`, `memoria`, `saltar`.
+- **`mantenimiento`** — cuida el repositorio: `enganchar`, `proyectar`, `generar`, `acertar`.
+
+Los de mantenimiento aparecen **nombrados, no descritos**, en una sola línea agrupada. La razón es
+la tesis del proyecto aplicada a sus propias herramientas: `enganchar` se ejecuta una vez en la vida
+de un repositorio y su resumen viajaba en todos los turnos de todas las sesiones — coste que crece
+con lo que existe y no con lo que se usa.
+
+Lo que **no** se hace es esconderlos. Siguen en el catálogo por su nombre, y `cosmos abrir
+rio/<nombre>` entrega el cuerpo entero. Ahorrar tokens escondiendo una herramienta no es ahorrar:
+es perderla, y el sistema volvería a tener el problema que el índice resuelve. La invariante que
+guarda las dos mitades —que dejen de costar y que sigan encontrándose— es
+`tests/test_rio_momento.py`, con la lista de cuáles son escrita a mano a propósito: deducirla del
+árbol dejaría que quitarle el campo a un río subiera el coste en silencio.
 
 El índice sigue nombrando todos los sistemas solares con una línea, y los niveles intermedios siguen
 mostrando por dónde descender. Por eso una skill oculta no vuelve invisible la existencia de su
@@ -214,19 +232,31 @@ pero E19 (vista plana desincronizada) pone el árbol en rojo, y esa vista es jus
 viene a reparar. El comando quedaba bloqueado por su propio guardarraíl. Lo mismo con `generar` y
 E15.
 
+**El problema, segunda mitad (F11):** la resolución de arriba eximía a cada comando **de su propia**
+invariante, no de la del otro. En un árbol recién creado faltan las dos cosas, así que `generar`
+mandaba a `compilar` por E19, `compilar` mandaba a `generar` por E15, y **un árbol nuevo no tenía
+ningún camino a verde** — que es lo primero que hace quien clona COSMOS sobre otro proyecto (§0 de
+`GOAL.md`).
+
 **Resolución — regla general**, y vale para cualquier invariante futura de este tipo:
 
-> **Una invariante que compara el disco contra lo que se generaría no puede bloquear al comando que
-> lo genera.**
+> **Una invariante que compara el disco contra lo que se generaría no puede bloquear a un comando
+> que no la puede reparar** — ni a quien la genera, ni a nadie más.
 
 | Comando | Exige antes de escribir | Comprueba después |
 |---|---|---|
-| `generar` | E00–E14, E16–E19 (todo menos **E15**) | E15 |
-| `compilar [--nicho n]` | E00–E18 (todo menos **E19**) | E19 para la misma selección |
+| `generar` | todo menos **E15** (la repara) y **E19** (no la toca) | E15 |
+| `compilar [--nicho n]` | todo menos **E19** (la repara) y **E15** (no la toca) | E19 para la misma selección |
+| `arrancar` | nada: es el bootstrap | todas |
 | `validar` | todas | — |
 
 Así `generar` y `compilar` reparan lo suyo sin poder colarse con un árbol roto por cualquier otro
 motivo, que es lo que la regla 1 de `COMPILACION.md` protegía de verdad.
+
+`arrancar` es el único que escribe los **dos** artefactos generados, y por eso es el único que deja
+un árbol nuevo en verde de una vez. Escribe el índice **solo si no existe**: un índice ausente no
+puede engañar a nadie, uno presente y falso sí, y ahí E15 tiene que seguir siendo un rojo real. Si
+el índice existe y miente, `arrancar` sale en rojo y no lo toca.
 
 ## 7. Manifiesto: escritura atómica, y qué hacer con lo obsoleto
 

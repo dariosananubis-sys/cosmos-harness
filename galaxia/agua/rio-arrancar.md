@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: arrancar
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos arrancar
 resumen: Deja un clon recien bajado en verde: vista plana y validacion.
 ---

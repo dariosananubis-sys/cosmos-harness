@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: rendimiento
 padre: ""
-resumen: Trabajar sobre codigo que ya existe: medir por que va lento, depurar lo raro y subir su calidad.
+resumen: Codigo que ya existe: medir por que va lento, depurar lo raro y su calidad.
 usa:
   - ciberseguridad
 ---

@@ -186,3 +186,66 @@ Comprobado que no rompe nada hoy: `lecturas_exigidas` está vacía en este repos
 que el arreglo protege cuando se configure en vez de estorbar ahora.
 
 Cinco sabotajes más vistos fallar. 111 pruebas en `puente`, verde.
+
+---
+
+# Cuarta tanda: los 21 oficios, y los verbos que se pagaban sin usarse
+
+## Los resúmenes de oficio hablaban en el idioma del gremio
+
+`visibilidad` decía *«Que te encuentren: SEO tecnico, buscadores con IA y contenido»* y
+`cientifico`, *«Calculo numerico, simulacion, analisis cientifico y reproducibilidad»*.
+Bien escritos, y sin una sola palabra de las que usa quien pregunta: nadie escribe
+«reproducibilidad», escribe «que mi simulacion se pueda repetir igual».
+
+Reescritos los 21 con un criterio uniforme —**nombrar el trabajo con las palabras de
+quien lo pide**— y con el mismo presupuesto de caracteres: 1.397 antes, 1.368 después.
+
+| | Antes | Después |
+|---|---:|---:|
+| Encargos de ajuste | 66 % | 66 % |
+| **Encargos de validación** | **50 %** | **75 %** |
+
+Veinticinco puntos donde no se miraba, y ni uno donde sí. Es la forma de la mejora que no
+es puntería: si fuera sobreajuste, habría subido el otro.
+
+## Y luego el presupuesto dijo que no
+
+Ese cambio dejó el árbol en 4.017 / 4.000. No se deshizo ni se subió el límite: se buscó
+coste innecesario, y estaba en los propios verbos de COSMOS.
+
+Ocho de los quince ríos no resuelven el encargo de nadie: `enganchar` y `desenganchar` se
+ejecutan una vez en la vida del repositorio, `proyectar` cuando se lleva a otro sitio,
+`generar` y `compilar` cuando el guard te lo pide por su nombre. Su resumen viajaba en
+**cada turno de cada sesión**. Es la tesis del proyecto incumplida por sus propias
+herramientas.
+
+Campo nuevo `momento: trabajo | mantenimiento`. Los de mantenimiento se **nombran, no se
+describen**, en una línea agrupada — y siguen abriéndose enteros con `cosmos abrir
+rio/<nombre>`. Ahorrar escondiendo una herramienta no es ahorrar: es perderla, y hay una
+prueba para cada mitad.
+
+Resultado: **3.929 / 4.000**, con los 21 resúmenes nuevos dentro.
+
+## Faltaban dos ríos
+
+`abrir` y `acertar` se añadieron como comandos y nadie les escribió su verbo. Ahora hay
+una prueba que compara los comandos del CLI con los ríos del árbol, así que no puede
+volver a pasar.
+
+## Lo que queda ABIERTO y hay que decidir
+
+**Con tokenizador real el árbol está en 4.244 / 4.000.** El verde de arriba es del contador
+aproximado. Lo elevó el agente del núcleo y lo he confirmado ejecutándolo:
+
+    python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
+    /tmp/calib/bin/python -m cosmos medir --metodo exacto
+      Peor con agua ... 4.244 tokens
+      Presupuesto ..... 4.000     ROJO, excede en 244 tokens
+
+Recalibrar no lo arregla: solo hace visible el rojo. Son 244 tokens de contenido que
+recortar o un presupuesto que subir, y las dos cosas son decisión de Darío, no mía.
+
+Tres sabotajes más vistos fallar, y dos que **sobrevivieron a la primera** y obligaron a
+reescribir sus pruebas: el test miraba solo el árbol bueno, así que quitarle el campo a un
+río o admitir un `momento` inventado no ponía nada rojo.

@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: mapa
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos mapa
 resumen: Dibuja el arbol entero con adjuntos y aguas, solo para mirarlo.
 ---

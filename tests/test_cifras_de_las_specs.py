@@ -129,10 +129,6 @@ class LasCifrasQueSeRetiraronSiguenRetiradas(unittest.TestCase):
         self.assertEqual(rios_citados, set(), "NUCLEO volvió a enumerar ríos que el árbol ya lista")
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class LosEjemplosDeLaSpecValidan(unittest.TestCase):
     """El esquema normativo enseñaba un formato que su propio validador rechaza.
 
@@ -173,6 +169,50 @@ class LosEjemplosDeLaSpecValidan(unittest.TestCase):
                     re.search(rf"^(padre|ilumina|orbita): {nivel}/", texto, re.M),
                     f"volvió el formato '<nivel>/<nombre>' con {nivel}",
                 )
+
+
+class LosEjemplosDeComposicionApuntanAlUniversoReal(unittest.TestCase):
+    """I2: COMPOSICION razonaba sobre un universo que ya no existe.
+
+    Hablaba de `codigo`, `datos`, `guardia`, `artesania` y `mercados` —expulsados por la
+    prueba de UNIVERSO—, llamaba a `criterio` «sistema solar» cuando GOAL §1 lo fija como
+    mar, y el ejemplo de `usa:` de la propia spec que define E20 habría dado E20. Tras la
+    reescritura, esto vigila que sus rutas sigan siendo nodos reales — el mismo canario
+    que ya protege a FRONTMATTER.
+    """
+
+    def test_el_ejemplo_de_usa_apunta_a_nodos_reales(self) -> None:
+        texto = (RAIZ / "spec/COMPOSICION.md").read_text(encoding="utf-8")
+        ejemplos = re.findall(r"```yaml\n(---\ncosmos:.*?---)\n```", texto, re.S)
+        self.assertTrue(ejemplos, "desapareció el ejemplo de usa: de COMPOSICION")
+        rutas = {n.referencia for n in ARBOL.nodos}
+        for ejemplo in ejemplos:
+            campos = dict(re.findall(r"^(\w+): (.+)$", ejemplo, re.M))
+            padre = campos.get("padre", "").strip().strip('"')
+            if padre:
+                self.assertIn(padre, rutas, f"el ejemplo apunta a padre '{padre}', que no existe")
+            for destino in re.findall(r"^\s+- (.+)$", ejemplo, re.M):
+                self.assertIn(destino.strip(), rutas,
+                              f"el ejemplo de la spec que define E20 daría E20: '{destino.strip()}'")
+
+    def test_la_receta_de_la_tienda_nombra_sistemas_que_existen(self) -> None:
+        texto = (RAIZ / "spec/COMPOSICION.md").read_text(encoding="utf-8")
+        frase = re.search(r"montar una tienda[^.]*?es ((?:`[a-z-]+`[\s+]*)+)", texto)
+        self.assertIsNotNone(frase, "desapareció el ejemplo de combinación; actualiza este canario")
+        sistemas_reales = {n.nombre for n in ARBOL.nodos if n.cosmos == "sistema-solar"}
+        nombrados = re.findall(r"`([a-z-]+)`", frase.group(1))
+        self.assertGreaterEqual(len(nombrados), 2)
+        for nombre in nombrados:
+            self.assertIn(nombre, sistemas_reales,
+                          f"la spec compone con '{nombre}', que no es un sistema del árbol")
+
+    def test_criterio_es_un_mar_tambien_en_composicion(self) -> None:
+        """GOAL §1 (no negociable): «`criterio` es un mar». La spec no puede decir otra cosa."""
+
+        texto = (RAIZ / "spec/COMPOSICION.md").read_text(encoding="utf-8")
+        self.assertIn("mar/criterio", texto)
+        criterio = [n for n in ARBOL.nodos if n.nombre == "criterio"]
+        self.assertEqual([n.cosmos for n in criterio], ["mar"])
 
 
 class TodaInvarianteVivaTieneValvula(unittest.TestCase):
@@ -258,3 +298,9 @@ class ElReadmeNoOmiteElEngancheQueMasHace(unittest.TestCase):
         for enganche in de_la_spec - {"Enganche"}:
             with self.subTest(enganche):
                 self.assertIn(enganche, readme)
+
+
+# T05: este bloque vivía a media altura del fichero y las clases de debajo no se
+# ejecutaban en una invocación directa (4 pruebas de 13, terminando en OK). Al final.
+if __name__ == "__main__":
+    unittest.main()

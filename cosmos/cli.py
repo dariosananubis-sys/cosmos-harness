@@ -29,11 +29,12 @@ from .guardarrailes import (
     sufijo_saltos,
 )
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
-from .acertar import cargar_encargos, formatear as formatear_acierto, puntuacion_json, puntuar
+from .acertar import (Contraste, cargar_encargos, formatear as formatear_acierto,
+                      formatear_contraste, puntuacion_json, puntuar)
 from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import MetodoNoDisponible, casos_json, formatear_casos, medir_casos
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
-from .validar import formatear_validacion, validacion_json, validar_arbol
+from .validar import formatear_validacion, rango_comprobado, validacion_json, validar_arbol
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -57,14 +58,21 @@ def _parser() -> argparse.ArgumentParser:
 
     acertar_cmd = base("acertar", "¿el catálogo lleva a la herramienta correcta? La contra-métrica")
     acertar_cmd.add_argument("--encargos", type=Path, default=Path("pruebas/encargos.json"))
-    acertar_cmd.add_argument("--minimo", type=int, default=0, help="falla si se acierta menos de esto (en %%)")
+    acertar_cmd.add_argument(
+        "--validacion",
+        type=Path,
+        default=Path("pruebas/encargos-validacion.json"),
+        help="encargos que NO guían decisiones: la cifra honesta sale de aquí",
+    )
+    acertar_cmd.add_argument("--minimo", type=int, default=0,
+                             help="falla si se acierta menos de esto (en %%), medido en validación")
     acertar_cmd.add_argument("--detalle", action="store_true")
     acertar_cmd.add_argument("--json", action="store_true")
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
     estado.add_argument("--json", action="store_true", help="emite JSON")
 
-    validar = base("validar", "comprueba las invariantes E00-E19")
+    validar = base("validar", f"comprueba las invariantes {rango_comprobado()}")
     validar.add_argument("--json", action="store_true", help="emite JSON")
     validar.add_argument("--indice", type=Path, help="ruta del índice que se compara")
     validar.add_argument("--nicho", action="append", help="nicho activo; anula [nichos] activos")
@@ -86,7 +94,7 @@ def _parser() -> argparse.ArgumentParser:
     compilar.add_argument("--seco", action="store_true", help="describe cambios sin escribir")
     compilar.add_argument("--nicho", help="aplana solo las skills del nicho indicado")
 
-    arrancar = base("arrancar", "deja un clon recién bajado en verde: compila la vista y valida")
+    arrancar = base("arrancar", "deja un árbol nuevo o recién clonado en verde: compila, genera lo que falte y valida")
     arrancar.add_argument("--modo", choices=("symlink", "copia"))
     arrancar.add_argument("--destino", type=Path)
     arrancar.add_argument("--nicho", help="aplana solo las skills del nicho indicado")
@@ -209,7 +217,6 @@ def _compilar(
     arbol,
     *,
     seco: bool = False,
-    omitir_previo: frozenset[str] = frozenset({"E19"}),
 ) -> int:
     destino = args.destino.resolve() if args.destino else config.destino_compilacion
     modo = args.modo or config.modo_compilacion
@@ -219,7 +226,13 @@ def _compilar(
     # La válvula también vale aquí: si no, un salto legítimo dejaría el árbol en
     # verde para `validar` y en rojo para `compilar`, y el gate corre `arrancar`.
     saltados = _codigos_saltados(_saltos(config)[0])
-    previo = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=omitir_previo | saltados)
+    # E19 es lo que este comando repara; E15 es lo que NO puede reparar —`compilar`
+    # no escribe el índice— y por eso no puede bloquearle ni antes ni después
+    # (NUCLEO §6). Exigirla en el paso posterior era la otra mitad del
+    # interbloqueo de F11: `compilar` mandaba a `generar` por E15 y `generar`
+    # mandaba a `compilar` por E19. `validar` sigue exigiéndolas las dos.
+    ajenas = frozenset({"E15"}) | saltados
+    previo = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=ajenas | {"E19"})
     if not previo.valido:
         sys.stdout.write(_informe(previo, config))
         return 1
@@ -235,7 +248,7 @@ def _compilar(
     sys.stdout.write(anotar_salida(formatear_compilacion(compilacion), _saltos(config)[0]))
     if seco:
         return 0
-    posterior = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=saltados)
+    posterior = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=ajenas)
     if not posterior.valido:
         sys.stdout.write(_informe(posterior, config))
         return 1
@@ -243,21 +256,30 @@ def _compilar(
 
 
 def _arrancar(args: argparse.Namespace, config: Configuracion, arbol) -> int:
-    """Bootstrap de un clon recién bajado.
+    """Bootstrap de un árbol nuevo o de un clon recién bajado.
 
     La vista plana es un artefacto generado y no se versiona, así que un clon
     limpio la tiene ausente y E19 lo canta. Esto la construye y vuelve a validar,
     que es todo lo que le faltaba al repositorio para no parecer roto (H01).
+
+    En un árbol creado desde cero falta además el índice, y ahí `arrancar` también
+    lo escribe: los dos son artefactos generados, y ninguno de los dos existe.
     """
 
-    # E15 se omite solo en el paso previo: sin vista plana no se puede haber
-    # generado el índice todavía, y compilar no lo toca. Se vuelve a exigir entero
-    # en la validación final, así que un índice que miente sigue saliendo en rojo:
-    # arrancar hace que la vista exista, nunca fabrica el índice por su cuenta.
-    codigo = _compilar(args, config, arbol, omitir_previo=frozenset({"E15", "E19"}))
+    # `compilar` ignora E15 porque no la puede reparar; la validación final de
+    # aquí sí la exige entera, así que un índice que miente sigue saliendo en rojo.
+    codigo = _compilar(args, config, arbol)
     if codigo:
         sys.stdout.write("\nCOSMOS  arrancar  rojo\n")
         return codigo
+    # Un índice que NO existe no puede mentir, así que escribirlo no tapa nada: es
+    # el otro artefacto generado que un árbol recién creado no tiene. Sin esto,
+    # `arrancar` prometía dejar el árbol en verde y terminaba en rojo por E15 en el
+    # único caso que GOAL §1 vende —clonar COSMOS sobre un proyecto cualquiera—
+    # (F11). Si el índice ya está, no se toca: ahí E15 sigue siendo un rojo real.
+    if not config.indice.exists():
+        escribir_indice(arbol, config.indice)
+        sys.stdout.write(f"\nÍndice creado en {config.indice} (no existía)\n")
     args_validar = argparse.Namespace(indice=None, nicho=None, json=False)
     codigo = _validar(args_validar, config, arbol)
     destino = args.destino.resolve() if args.destino else config.destino_compilacion
@@ -383,14 +405,22 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])
-            previo = validar_arbol(
-                arbol, configuracion=config, indice=destino, omitir_codigos=frozenset({"E15"}) | saltados
-            )
+            # E15 es lo que este comando repara; E19 es lo que NO puede reparar
+            # —`generar` no toca la vista plana— y por eso tampoco puede bloquearle
+            # (NUCLEO §6). Exigírsela cerraba el árbol nuevo en un interbloqueo:
+            # `generar` mandaba a `compilar` por E19 y `compilar` mandaba a
+            # `generar` por E15, y nadie llegaba nunca a verde (F11).
+            propias = frozenset({"E15", "E19"}) | saltados
+            previo = validar_arbol(arbol, configuracion=config, indice=destino, omitir_codigos=propias)
             if not previo.valido:
                 sys.stdout.write(_informe(previo, config))
                 return 1
             escribir_indice(arbol, destino)
-            posterior = validar_arbol(arbol, configuracion=config, indice=destino, omitir_codigos=saltados)
+            # Revalidar después NO es ceremonia: es lo que impide declarar verde un
+            # índice que se acaba de escribir y sigue sin cuadrar con el árbol.
+            posterior = validar_arbol(
+                arbol, configuracion=config, indice=destino, omitir_codigos=frozenset({"E19"}) | saltados
+            )
             if not posterior.valido:
                 sys.stdout.write(_informe(posterior, config))
                 return 1
@@ -410,9 +440,27 @@ def ejecutar(argv: list[str] | None = None) -> int:
             return 0
         if args.comando == "acertar":
             pun = puntuar(arbol, cargar_encargos(args.encargos))
-            sys.stdout.write(puntuacion_json(pun) if args.json else formatear_acierto(pun, detalle=args.detalle))
-            if args.minimo and pun.total:
-                logrado = 100 * pun.aciertos / pun.total
+            val = (
+                puntuar(arbol, cargar_encargos(args.validacion))
+                if args.validacion and args.validacion.exists()
+                else None
+            )
+            contraste = Contraste(ajuste=pun, validacion=val)
+
+            if args.json:
+                sys.stdout.write(
+                    json.dumps(contraste.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+                )
+            elif args.detalle or val is None:
+                sys.stdout.write(formatear_acierto(pun, detalle=args.detalle))
+            else:
+                sys.stdout.write(formatear_contraste(contraste))
+
+            # El mínimo se exige sobre la validación: cobrar el listón con el conjunto que
+            # se mira al trabajar es dejar que el examinando escriba su propio examen.
+            juez = val or pun
+            if args.minimo and juez.total:
+                logrado = 100 * juez.aciertos / juez.total
                 if logrado < args.minimo:
                     print(f"\nacierto {logrado:.0f} % < mínimo exigido {args.minimo} %", file=sys.stderr)
                     return 1

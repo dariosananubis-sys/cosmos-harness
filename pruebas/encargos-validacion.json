@@ -1,0 +1,22 @@
+[
+  {"peticion": "necesito que mi web salga en las busquedas de chatgpt", "espera": "visibilidad", "nota": "conjunto de validacion: escrito sin mirar los resumenes"},
+  {"peticion": "quiero cobrar suscripciones mensuales a mis clientes", "espera": "saas"},
+  {"peticion": "sacar los datos de una tabla de una pagina que cambia cada dia", "espera": "extraccion"},
+  {"peticion": "mi contenedor se queda sin memoria en produccion", "espera": "infraestructura"},
+  {"peticion": "poner subtitulos automaticos a un video largo", "espera": "audiovisual"},
+  {"peticion": "un agente que use herramientas y recuerde conversaciones anteriores", "espera": "agentes-ia"},
+  {"peticion": "leer sensores de temperatura desde una placa", "espera": "embebidos"},
+  {"peticion": "hacer un juego en dos dimensiones para el navegador", "espera": "juegos"},
+  {"peticion": "que el aviso legal y la politica de cookies esten bien", "espera": "cumplimiento"},
+  {"peticion": "guardar copias de seguridad cifradas fuera de la oficina", "espera": "infraestructura"},
+  {"peticion": "convertir cientos de pdf escaneados en texto buscable", "espera": "extraccion"},
+  {"peticion": "una app que funcione en iphone y android con el mismo codigo", "espera": "moviles"},
+  {"peticion": "revisar si mi contrato de solidity tiene un fallo de reentrada", "espera": "blockchain"},
+  {"peticion": "mi consulta a la base de datos tarda treinta segundos", "espera": "rendimiento"},
+  {"peticion": "escribir el manual de usuario a partir del codigo", "espera": "documentos"},
+  {"peticion": "avisarme por telegram cuando entre un pedido nuevo", "espera": "automatizacion"},
+  {"peticion": "un modelo que clasifique fotos de producto", "espera": "cientifico"},
+  {"peticion": "saber si alguien esta usando mis claves de aws sin permiso", "espera": "ciberseguridad"},
+  {"peticion": "que la tienda no se caiga el dia de mayor venta", "espera": "infraestructura"},
+  {"peticion": "operar futuros con apalancamiento controlado", "espera": "trading"}
+]

@@ -104,9 +104,35 @@ caso**. Ninguno convierte otro oficio en el peor: `ciberseguridad` sigue arriba 
 `agentes-ia` queda segundo con 2.431.
 
 Aviso sobre el margen: el encargo hablaba de ~650 tokens y hoy son 119. **De esa diferencia, 45 son
-míos.** El resto es el commit `cf7e10a` de otra parte del proyecto (08:23 de hoy), que cambió cómo se
-mide el agua condicional: pasó de 961 a 1.398 tokens sin que se añadiera un solo nodo. Se dice aquí
-porque leer los 119 como consecuencia de este rescate sería falso.
+míos.** El resto es el commit `cf7e10a` de otra parte del proyecto (08:23 de hoy).
+
+> **Corregido el 2026-09-02 (F12).** Este párrafo decía que `cf7e10a` «cambió cómo se mide el agua
+> condicional: pasó de 961 a 1.398 tokens **sin que se añadiera un solo nodo**». Las tres cosas eran
+> falsas, y en la dirección que más engaña: hacían pensar que el margen se estrechó por un cambio de
+> método y no por haber gastado presupuesto. Medido sobre los dos árboles, cada uno con su código:
+>
+> ```
+> $ git archive cf7e10a^ | tar -x -C /tmp/pre  && cd /tmp/pre  && python3 -m cosmos medir | grep Agua
+>   Agua condicional  961 tokens   (5 aguas por paths:, fuera de la entrada)
+> $ ls /tmp/pre/galaxia/agua/mar-*.md | wc -l                       # 5
+> $ git archive cf7e10a  | tar -x -C /tmp/post && ls /tmp/post/galaxia/agua/mar-*.md | wc -l   # 6
+> ```
+>
+> `cf7e10a` **añadió** `mar-revision` (236 tok) y engordó otros tres (`criterio` 295→421,
+> `pruebas` 358→473, `resistencia` 100→161). Con el método viejo —la suma de toda el agua— ese
+> árbol da **1.499**, así que el contenido subió **+538**; el cambio de método bajó el número
+> **−101**, hasta los 1.398 publicados. Es decir: la medida bajó, y lo que subió fue el contenido
+> que el propio commit metió. Su mensaje de commit ya lo decía bien («Medido: 1.499 -> 1.398») y
+> este parte lo copió al revés.
+>
+> Y el cambio de método era ademas incorrecto: se revirtió el 2026-09-02 al volver a la definición
+> normativa de `NUCLEO.md` §3 (F06), así que hoy el agua se vuelve a medir como la suma de toda.
+>
+> Lección para los partes siguientes, del propio `GOAL.md` §1 («un número copiado a mano envejece en
+> silencio»): **un parte cita el bloque de `cosmos medir` con el hash del commit al que corresponde
+> en la misma línea**, no un número suelto de memoria.
+
+Se dice aquí porque leer los 119 como consecuencia de este rescate sería falso.
 
 Cadena de verificación, en verde:
 

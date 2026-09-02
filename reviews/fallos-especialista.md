@@ -29,7 +29,9 @@ f5cd39bcc8bb  cosmos/validar.py      d89b69638e96  cosmos/compilar.py
 > las mediciones se re-verificaron en `d54668e`** y ninguna cambió: entrada base 1.664, peor nicho
 > 2.483, agua 1.398, peor con agua 3.881, universo 158.037, descarga 98,4 %, validador verde. La
 > suite pasó de 89 a 95 pruebas (`tests/test_abrir.py`). `reviews/mejoras-especialista.md` es del
-> otro especialista y no lo he tocado.
+> otro especialista y no lo he tocado. Al cerrar, `HEAD` volvió a moverse a `b45560c` (otra ventana
+> commiteó, entre otras cosas, este mismo fichero): comprobado ahí de nuevo —`cosmos validar` verde,
+> `Ran 95 OK (skipped=1)` y `Ran 80 OK`— sin que cambie ninguna medición de este informe.
 
 Todo lo destructivo, en `/tmp/cosmos-esp/` (copias del repo, árboles sintéticos, sabotajes, un
 `venv` con `tiktoken`). **El repositorio no se modificó salvo este fichero.**
@@ -808,9 +810,20 @@ y tratar la ausencia de `limit` como «leyó como mucho ese número».
 ## F19 · CONFIRMADO · Los guards de sesión enmudecen desde cualquier subdirectorio, y fallan abiertos ante cualquier error
 
 `decidir()` busca `cosmos.toml` en `Path(entrada["cwd"]) / "cosmos.toml"`; si no está, lanza
-`ErrorSesion` y `main()` devuelve 0 sin decir nada. Es decir: **con el `cwd` del evento en un
-subdirectorio, los cinco guards están apagados** y nada lo indica. Lo mismo con cualquier
-`OSError`/`ValueError`/`RecursionError`: `main()` los captura todos y devuelve 0.
+`ErrorSesion` y `main()` devuelve 0 sin decir nada. Medido: el **mismo** evento de escritura sobre
+el índice, cambiando solo el `cwd`, y sin pasar `--config` (que es como lo cablea
+`cosmos enganchar --sesion`):
+
+```
+  cwd=<repo>            -> deny               exit 0
+  cwd=<repo>/galaxia    -> PASA (guard mudo)  exit 0
+  cwd=<repo>/cosecha    -> PASA (guard mudo)  exit 0
+  cwd=/tmp              -> PASA (guard mudo)  exit 0
+```
+
+**Con el `cwd` del evento en un subdirectorio, los cinco guards están apagados** y nada lo indica.
+Lo mismo con cualquier `OSError`/`ValueError`/`RecursionError`: `main()` los captura todos y
+devuelve 0.
 
 Fallar abierto es defendible para G05 (no romper la herramienta que vigila); no lo es para G03, cuyo
 único trabajo es denegar. Y el silencio total es lo peor de los dos mundos: un guard que no está no

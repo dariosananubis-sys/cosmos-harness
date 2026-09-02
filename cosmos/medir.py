@@ -11,11 +11,19 @@ from .generar import generar_indice
 from .modelo import NIVELES_AGUA, RANGOS, Arbol, Nodo, cuerpo, nicho_de_nodo, nombres_nichos, normalizar_nichos
 
 
-HEURISTICA = "heurística v2"
-# Medido el 2026-09-01 contra tiktoken/cl100k_base sobre 78 ficheros de este repo
-# (prosa en castellano, fichas de herramienta, código y agua). Ver docs/CALIBRACION.md.
-# Sin el factor, contar palabras y signos subestimaba un 20,4 %.
-FACTOR_CALIBRACION = 1.204
+HEURISTICA = "heurística v3"
+# Dos factores, porque el error NO es uniforme y calibrarlo con un solo corpus fue
+# el fallo F01: la v2 se midió sobre 78 ficheros de PROSA y no incluyó ni una muestra
+# del índice ni del catálogo generados — que son justo los dos bloques que forman la
+# entrada, y los que peor tokeniza contar palabras (listas de `ruta: resumen`, llenas
+# de barras, guiones y acentos, sin prosa que amortigüe).
+#
+# Resultado de aquel descuido: con un tokenizador real el árbol estaba en 4.544/4.000
+# mientras el medidor decía verde. El número que decide el proyecto iba un 15 % bajo.
+#
+# Medido el 2026-09-02 contra tiktoken/cl100k_base. Ver docs/CALIBRACION.md.
+FACTOR_CALIBRACION = 1.204          # prosa: specs, fichas, código, agua
+FACTOR_GENERADO = 1.381             # índice y catálogo: densos en símbolos
 MARGEN_ERROR: float | None = 0.052
 PATRON_TOKEN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
 
@@ -106,6 +114,18 @@ def contar_aprox(texto: str) -> int:
     """
 
     return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_CALIBRACION)
+
+
+def contar_generado(texto: str) -> int:
+    """Cuenta índice y catálogo, que tokenizan un 15 % peor que la prosa.
+
+    Una lista de `ruta: resumen` no se parece a un párrafo: cada barra, cada guion y
+    cada acento es una pieza aparte para un tokenizador BPE. Usar aquí el factor de
+    la prosa fue el fallo F01, y no era un matiz — ponía verde un árbol que estaba
+    en rojo.
+    """
+
+    return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_GENERADO)
 
 
 def _contador_exacto() -> tuple[Callable[[str], int], str] | None:
@@ -282,8 +302,17 @@ def medir_arbol(
     contador, metodo_real, tokenizador, estimado = _seleccionar_contador(metodo)
     seleccion = normalizar_nichos(arbol, nichos)
     partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion)
-    entrada = contador(contexto_inicial(arbol, seleccion, indice=indice))
-    detalle_entrada = [ParteMedida(nombre, contador(texto)) for nombre, texto in partes_entrada]
+
+    # El índice y el catálogo se cuentan con su propio factor: son listas densas en
+    # símbolos, no prosa, y tokenizan un 15 % peor (fallo F01). Con `exacto` no hay
+    # dos factores que valgan — el tokenizador ya cuenta lo que hay.
+    def _cuenta(nombre: str, texto: str) -> int:
+        if metodo_real == "aprox" and ("índice" in nombre or "catálogo" in nombre):
+            return contar_generado(texto)
+        return contador(texto)
+
+    detalle_entrada = [ParteMedida(nombre, _cuenta(nombre, texto)) for nombre, texto in partes_entrada]
+    entrada = sum(parte.tokens for parte in detalle_entrada)
     nodos_resto = [nodo for nodo in arbol.nodos if nodo.cosmos != "oceano"]
     detalle_arbol = [
         ParteMedida(nodo.referencia, contador(cuerpo(nodo)))

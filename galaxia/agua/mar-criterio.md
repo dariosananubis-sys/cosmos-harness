@@ -24,3 +24,11 @@ eso el criterio dice que se use la regla y no la paciencia.
 
 Que herramienta ejecuta cada una de estas comprobaciones en cada lenguaje se decide en
 `rendimiento/calidad`, no aqui: un mar fija la politica y no el catalogo.
+
+Antes de empezar se escribe la lista de ficheros que el encargo puede tocar, y lo que caiga fuera
+se para y pide permiso en vez de ampliarse solo: sin esa lista, un ayudante edito un fichero de
+semilla que nadie le habia pedido y deshacerlo costo mas que el propio encargo.
+
+Mover o partir codigo no es reescribirlo. El modelo borra el bloque y lo teclea de memoria, y por
+ahi se pierden lineas sin que salga un solo rojo: se traslada con la herramienta que conserva el
+historial y se comprueba que el conteo cuadra.

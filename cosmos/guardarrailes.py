@@ -20,7 +20,12 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-CODIGOS = tuple(f"E{numero:02d}" for numero in range(20))
+CODIGOS_INVARIANTES = tuple(f"E{numero:02d}" for numero in range(20))
+# Guardarraíles de sesión (`puente/sesion.py`). Tienen código propio porque la
+# válvula es obligatoria en TODO guardarraíl duro, no solo en el validador: uno
+# sin salida acotada acaba arrancado de raíz un viernes, y ya no vuelve.
+CODIGOS_SESION = ("G01", "G02", "G03", "G04", "G05")
+CODIGOS = CODIGOS_INVARIANTES + CODIGOS_SESION
 DIAS_MAXIMOS = 30
 MARCA_HOOK = "cosmos-enganchar"
 VERSION_HOOK = 1
@@ -89,7 +94,10 @@ def normalizar_codigo(codigo: str) -> str:
     if limpio in {"TODO", "TODOS", "*", "ALL"}:
         raise ErrorSalto("un salto acota un código concreto; 'todo' no es un salto, es apagar COSMOS")
     if limpio not in CODIGOS:
-        raise ErrorSalto(f"código desconocido: {codigo!r}; se esperaba uno de E00..E19")
+        raise ErrorSalto(
+            f"código desconocido: {codigo!r}; se esperaba una invariante (E00..E19)"
+            f" o un guardarraíl de sesión ({'/'.join(CODIGOS_SESION)})"
+        )
     return limpio
 
 
@@ -305,3 +313,175 @@ def desenganchar(base: Path) -> tuple[Path, str]:
         raise ErrorEnganche(f"el pre-commit de {ruta} no lo escribió COSMOS; no se ha tocado nada")
     ruta.unlink()
     return ruta, "eliminado"
+
+
+# --- Enganche de sesión ----------------------------------------------------
+#
+# El tercer enganche de spec/GUARDARRAILES.md. Los otros dos son de repositorio
+# —miran lo que ya está escrito—; este actúa mientras el agente trabaja.
+#
+# La LÓGICA de los guards no sabe quién la llama (`puente/sesion.py`: un evento
+# JSON por la entrada, una decisión por la salida). Lo que sí depende del runtime
+# concreto es este fichero de cableado, y por eso vive aquí solo, en una función
+# que se puede sustituir entera el día que el runtime cambie de formato.
+
+RUTA_AJUSTES = Path(".claude") / "settings.json"
+MARCA_SESION = "puente.sesion"
+NOMBRE_RESPALDO = "enganche-sesion.json"
+EVENTOS_SESION = (
+    ("SessionStart", None),
+    ("PreToolUse", "Bash|Write|Edit|MultiEdit|NotebookEdit"),
+    ("PostToolUse", "Bash|Read"),
+    ("PreCompact", None),
+    ("Stop", None),
+)
+
+
+def orden_sesion(interprete: str | None = None) -> str:
+    ejecutable = interprete or sys.executable
+    return (
+        f"PYTHONPATH='{instalacion()}'\"${{PYTHONPATH:+:$PYTHONPATH}}\" "
+        f"'{ejecutable}' -m {MARCA_SESION}"
+    )
+
+
+def bloque_sesion(orden: str) -> dict[str, list[dict]]:
+    entradas: dict[str, list[dict]] = {}
+    for evento, filtro in EVENTOS_SESION:
+        entrada: dict[str, object] = {"hooks": [{"type": "command", "command": orden}]}
+        if filtro:
+            entrada["matcher"] = filtro
+        entradas[evento] = [entrada]
+    return entradas
+
+
+def _es_entrada_nuestra(entrada: object) -> bool:
+    if not isinstance(entrada, dict):
+        return False
+    hooks = entrada.get("hooks")
+    if not isinstance(hooks, list):
+        return False
+    return any(
+        isinstance(hook, dict) and MARCA_SESION in str(hook.get("command", "")) for hook in hooks
+    )
+
+
+def podar_sesion(datos: dict) -> dict:
+    """Devuelve los ajustes sin NINGUNA entrada de COSMOS, dejando el resto intacto."""
+
+    copia = json.loads(json.dumps(datos))
+    hooks = copia.get("hooks")
+    if not isinstance(hooks, dict):
+        return copia
+    for evento in list(hooks):
+        entradas = hooks[evento]
+        if not isinstance(entradas, list):
+            continue
+        restantes = [entrada for entrada in entradas if not _es_entrada_nuestra(entrada)]
+        if restantes:
+            hooks[evento] = restantes
+        else:
+            del hooks[evento]
+    if not hooks:
+        del copia["hooks"]
+    return copia
+
+
+def ruta_respaldo(base: Path) -> Path:
+    return Path(base) / ".cosmos" / NOMBRE_RESPALDO
+
+
+def enganchar_sesion(base: Path, *, interprete: str | None = None) -> tuple[Path, str]:
+    """Añade el cableado de sesión sin pisar el de nadie.
+
+    Guarda los bytes exactos del fichero anterior para poder devolverlo idéntico:
+    reescribir los ajustes de otra persona «con el mismo contenido pero mejor
+    indentado» es la clase de cortesía por la que se desinstala un sistema.
+    """
+
+    raiz = raiz_git(base)
+    ruta = raiz / RUTA_AJUSTES
+    existia = ruta.is_file()
+    original = ruta.read_text(encoding="utf-8") if existia else None
+    if existia:
+        try:
+            datos = json.loads(original)
+        except ValueError as exc:
+            raise ErrorEnganche(f"{ruta} no es JSON válido; no se ha tocado nada ({exc})") from exc
+        if not isinstance(datos, dict):
+            raise ErrorEnganche(f"{ruta} no contiene un objeto JSON; no se ha tocado nada")
+    else:
+        datos = {}
+
+    datos = podar_sesion(datos)
+    hooks = datos.setdefault("hooks", {})
+    if not isinstance(hooks, dict):
+        raise ErrorEnganche(f"la clave 'hooks' de {ruta} no es un objeto; no se ha tocado nada")
+    for evento, entradas in bloque_sesion(orden_sesion(interprete)).items():
+        existentes = hooks.get(evento)
+        hooks[evento] = (existentes if isinstance(existentes, list) else []) + entradas
+
+    respaldo = ruta_respaldo(raiz)
+    respaldo.parent.mkdir(parents=True, exist_ok=True)
+    respaldo.write_text(
+        json.dumps(
+            {
+                "esquema": 1,
+                "existia": existia,
+                "creo_directorio": not ruta.parent.exists(),
+                "original": original,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    ruta.write_text(json.dumps(datos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return ruta, "actualizado" if existia else "creado"
+
+
+def desenganchar_sesion(base: Path) -> tuple[Path, str]:
+    """Quita el cableado. Si el resto no cambió, devuelve el fichero byte a byte."""
+
+    raiz = raiz_git(base)
+    ruta = raiz / RUTA_AJUSTES
+    respaldo = ruta_respaldo(raiz)
+    if not ruta.is_file():
+        respaldo.unlink(missing_ok=True)
+        return ruta, "ausente"
+    try:
+        datos = json.loads(ruta.read_text(encoding="utf-8"))
+    except ValueError:
+        return ruta, "ilegible"
+    if not isinstance(datos, dict):
+        return ruta, "ilegible"
+    podado = podar_sesion(datos)
+
+    guardado = {}
+    if respaldo.is_file():
+        try:
+            guardado = json.loads(respaldo.read_text(encoding="utf-8"))
+        except ValueError:
+            guardado = {}
+    original = guardado.get("original")
+    if guardado.get("existia") and isinstance(original, str):
+        try:
+            intacto = podado == json.loads(original)
+        except ValueError:
+            intacto = False
+        if intacto:
+            ruta.write_text(original, encoding="utf-8")
+            respaldo.unlink(missing_ok=True)
+            return ruta, "restaurado"
+    elif guardado.get("existia") is False and podado == {}:
+        ruta.unlink()
+        respaldo.unlink(missing_ok=True)
+        if guardado.get("creo_directorio") and not any(ruta.parent.iterdir()):
+            ruta.parent.rmdir()
+        return ruta, "eliminado"
+
+    ruta.write_text(json.dumps(podado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    respaldo.unlink(missing_ok=True)
+    return ruta, "podado"

@@ -1,23 +1,23 @@
 [
   {
     "peticion": "quiero saber por que esta API va lenta",
-    "espera": "rendimiento/velocidad/perfilado"
+    "espera": "rendimiento/perfilado"
   },
   {
     "peticion": "necesito reproducir un fallo que solo pasa a veces",
-    "espera": "rendimiento/velocidad/depuracion"
+    "espera": "rendimiento/depuracion"
   },
   {
     "peticion": "hay codigo duplicado por todo el proyecto",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "quiero cambiar una funcion en cuatrocientos ficheros a la vez",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "mis tests pasan pero no me fio de ellos",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "montar un bot que opere solo en un exchange",

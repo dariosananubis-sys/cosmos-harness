@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mutmut
-padre: rendimiento/calidad
+padre: refactorizacion/mutacion
 resumen: Rompe el codigo Python a proposito y mira si algun test se entera; el que sobrevive es una rama sin probar.
 ---
 

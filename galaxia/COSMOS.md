@@ -20,7 +20,8 @@ Veintiun oficios, seis mares que los cruzan y cinco oceanos siempre presentes; n
 - juegos: Videojuegos 2D y 3D: motor, bucle, fisica, activos y publicacion.
 - modelos-locales: IA en tu maquina: lenguaje y voz, sin internet ni coste por uso.
 - moviles: Apps para iphone, android y escritorio: un codigo, publicacion y tiendas.
-- rendimiento: Codigo que ya existe: medir por que va lento, depurar lo raro y su calidad.
+- refactorizacion: Entrar en codigo ajeno y dejarlo mejor sin romperlo: cambio en masa, reglas y mutacion.
+- rendimiento: Que el codigo vaya rapido: medir por que tarda y reproducir el fallo raro.
 - saas: Producto vendible: identidad, pagos, suscripciones y multi-cliente.
 - trading: Operar en mercados: datos, senal, riesgo, ejecucion y los bots que lo automatizan.
 - visibilidad: Que te encuentren: SEO tecnico, chatgpt y buscadores con IA.

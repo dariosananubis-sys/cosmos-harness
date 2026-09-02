@@ -386,11 +386,13 @@ partículas gramaticales: mientras `no`, `ni` y `ha` contaban como contenido, «
 nunca ha dado rojo» y «una copia que nunca se ha restaurado» —una analogía, no una duplicación—
 compartían cuatro «palabras» y puntuaban 0,44.
 
-Medido sobre la galaxia real (496 pares de nodos co-cargables): con el suelo en 3 quedan
-**exactamente los dos pares** que la revisión adversarial había señalado a mano leyendo el agua y
-las 21 estrellas (H13), y **ningún** falso positivo. El primer par no duplicado queda en 0,286 con
-solo dos palabras compartidas: por debajo del suelo y por debajo del umbral, con margen por los dos
-lados.
+Sobre la galaxia real de hoy (528 pares de nodos co-cargables, cifra vigilada por
+`tests/test_cifras_de_las_specs.py`) ningún par comparte ya tres palabras con contenido: los dos
+duplicados que existían se deduplicaron. En la medición que calibró el suelo (2026-09-02, árbol de
+entonces) quedaban con el suelo en 3 **exactamente los dos pares** que la revisión adversarial
+había señalado a mano leyendo el agua y las estrellas (H13), y **ningún** falso positivo; el
+primer par no duplicado quedaba en 0,286 con solo dos palabras compartidas — por debajo del suelo
+y por debajo del umbral, con margen por los dos lados.
 
 E17 salta cuando `solape(a, b) > presupuesto.solapamiento`. El error nombra los dos nodos, el
 porcentaje y **las dos frases concretas**, porque un rojo que no enseña la frase obliga a leer los

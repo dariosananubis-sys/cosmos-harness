@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ast-grep
-padre: rendimiento/calidad
+padre: refactorizacion/transformacion
 resumen: Busca y reescribe por forma del arbol sintactico, no por texto: un patron vale para cuatrocientos ficheros.
 ---
 

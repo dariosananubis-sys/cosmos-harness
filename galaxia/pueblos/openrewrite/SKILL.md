@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openrewrite
-padre: rendimiento/calidad
+padre: refactorizacion/transformacion
 resumen: Migra un proyecto JVM entero con recetas que conocen los tipos y respetan formato y comentarios.
 ---
 

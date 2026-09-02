@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hyperfine
-padre: rendimiento/velocidad/perfilado
+padre: rendimiento/perfilado
 resumen: Compara dos comandos cualesquiera con calentamiento y estadistica, en vez de cronometrar a ojo una vez.
 ---
 

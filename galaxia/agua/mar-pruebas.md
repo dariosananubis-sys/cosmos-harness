@@ -26,4 +26,4 @@ Se dobla el borde mas externo que resuelva el caso: cada capa de mas es un contr
 sostener a mano. Si hay que teclear una estructura de mas de tres claves para contentar a un doble,
 se doblo demasiado adentro.
 
-Las herramientas de mutacion de cada lenguaje estan en `rendimiento/calidad`.
+Las herramientas de mutacion de cada lenguaje estan en `refactorizacion/mutacion`.

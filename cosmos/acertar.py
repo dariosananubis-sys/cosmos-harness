@@ -310,6 +310,11 @@ def formatear_contraste(c: Contraste) -> str:
     # `brecha` y `como_dict` ya comprobaban `.total`; esta era la única de las tres que no,
     # y con un conjunto vacío salía un ZeroDivisionError crudo a la cara del usuario. Un
     # conjunto sin encargos no es un 0 %: es «no lo sé», y hay que decirlo así.
+    # Los DOS divisores, no solo el que salió en el traceback. Arreglar el que se ve y
+    # dejar al hermano una línea más abajo es el fix a medias que el revisor siguiente
+    # encuentra en el código escrito para corregir al anterior.
+    if not c.ajuste.total:
+        return formatear(c.ajuste)
     if not c.validacion or not c.validacion.total:
         salida = formatear(c.ajuste)
         if c.validacion is not None and not c.validacion.total:

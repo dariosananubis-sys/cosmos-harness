@@ -134,3 +134,40 @@ class LaDescargaNoSubeSolaPorEscribirDocumentacion(unittest.TestCase):
             despues = medir_arbol(cargar_arbol(base)).descarga
 
         self.assertEqual(antes, despues, "la descarga subió sola por escribir documentación")
+
+
+class ElPeorNichoEsElPeorDeVerdad(unittest.TestCase):
+    """T02: `max` por `min` en `medir_casos` y la suite entera seguía verde.
+
+    El comando publicaba «Peor nicho ... 1.528 tokens (juegos, 7 pueblos)» —el más barato
+    del árbol, con la etiqueta del peor— y el presupuesto daba 1.126 tokens de margen que
+    no existen. Todo el sistema de garantías descansa en esa palabra: el presupuesto
+    promete que **cualquier** sesión cabe, y solo lo promete si se mide la más cara.
+    """
+
+    def test_ningun_nicho_del_arbol_es_mas_caro_que_el_declarado_peor(self) -> None:
+        from cosmos.medir import medir_casos
+
+        config = cargar_configuracion(RAIZ / "cosmos.toml")
+        arbol = cargar_arbol(config.arbol)
+        casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
+
+        oficios = [n.nombre for n in arbol.nodos if n.cosmos == "sistema-solar"]
+        self.assertGreater(len(oficios), 1, "con un solo oficio la prueba no distingue nada")
+
+        peor_medido = max(
+            medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada,
+                        nichos=[oficio]).evaluada.entrada
+            for oficio in oficios
+        )
+        self.assertEqual(casos.peor.entrada, peor_medido,
+                         "el 'peor nicho' publicado no es el más caro del árbol")
+
+    def test_el_peor_nicho_declarado_existe(self) -> None:
+        from cosmos.medir import medir_casos
+
+        config = cargar_configuracion(RAIZ / "cosmos.toml")
+        arbol = cargar_arbol(config.arbol)
+        casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
+        oficios = {n.nombre for n in arbol.nodos if n.cosmos == "sistema-solar"}
+        self.assertIn(casos.peor_nicho, oficios)

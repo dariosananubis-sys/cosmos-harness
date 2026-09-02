@@ -1,0 +1,15 @@
+2026-09-02 · quemado al mirarlo
+
+Se ejecutó `acertar --encargos pruebas/encargos-validacion.json --detalle` y se leyó la lista
+de fallos ANTES de reescribir los 21 resúmenes de oficio. Desde ese momento estos 20 encargos
+dejaron de ser ciegos.
+
+Medido después (la acusación del revisor adversarial, confirmada con la propia función):
+de las 37 palabras nuevas que entraron en los resúmenes, seis existen SOLO en este conjunto y
+no en el de ajuste — `android`, `chatgpt`, `cookies`, `iphone`, `placas`, `solidity`.
+
+Las seis son mejoras legítimas por sí mismas: `moviles` debe decir «iphone y android», y
+`blockchain`, «solidity». Eso no las salva: la cifra del 75 % ya no mide generalización,
+mide un examen visto. **La cifra honesta de hoy es desconocida.**
+
+Para recuperar una: un conjunto nuevo escrito sin ejecutar nada, y no volver a mirarlo.

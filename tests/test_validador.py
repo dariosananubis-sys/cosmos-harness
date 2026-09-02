@@ -195,6 +195,54 @@ class PruebasInvariantes(unittest.TestCase):
         )
         self.exigir("E11")
 
+    def test_e11_cobertura_total_con_todos_los_globs_anclados(self) -> None:
+        """F07: `cobertura_total` no tenía ni una prueba que la ejercitara sola.
+
+        Los cebos de arriba llevan `**/*.*` o `**/?`, que no tienen ni una letra:
+        los caza `sin_anclaje` y `cobertura_total` nunca llega a decidir. Ponerla a
+        `False` dejaba E11 ciega —la invariante que se reescribió para cerrar H08—
+        sin que ninguna de las 175 pruebas se pusiera roja.
+
+        Aquí los nueve globs nombran una región cada uno, ninguno es global por sí
+        mismo, y juntos cubren las doce sondas del corpus normativo.
+        """
+
+        moja = [
+            r"**/*.py", r"**/*.html", r"**/*.md", r"**/*.txt", r"**/*.js",
+            r"**/Makefile", r"LICENSE", r"**/x", r"**/.gitignore",
+        ]
+        self.assertEqual([], [patron for patron in moja if validador._sin_anclaje(patron)])
+        self.assertTrue(validador.cobertura_total(moja), "el cebo tiene que cubrir las doce sondas")
+        self.escribir("mar.md", documento("mar", "sumado-anclado", "Simula reglas ancladas que sumadas lo abarcan todo.", moja=moja))
+        self.exigir("E11")
+
+    def test_el_corpus_de_sondas_no_deja_fuera_ninguna_familia(self) -> None:
+        """F07: quitar una sonda abría un hueco por el que pasa un océano.
+
+        `SONDAS_E11` es normativo (NUCLEO §9) y su valor está en que ninguna
+        familia de ficheros quede sin representar. Amputarlo no rompía nada: con
+        solo `main.py`, `['**/*.py']` ya «lo cubriría todo».
+        """
+
+        familias = {
+            "con extensión en la raíz": lambda s: "/" not in s and "." in s.lstrip("."),
+            "con extensión anidada": lambda s: "/" in s and "." in s.rsplit("/", 1)[1],
+            "sin extensión en la raíz": lambda s: "/" not in s and "." not in s,
+            "sin extensión anidada": lambda s: "/" in s and "." not in s.rsplit("/", 1)[1],
+            "oculto": lambda s: s.rsplit("/", 1)[-1].startswith("."),
+            "muy anidado": lambda s: s.count("/") >= 3,
+        }
+        for nombre, cumple in familias.items():
+            with self.subTest(familia=nombre):
+                self.assertTrue(
+                    any(cumple(sonda) for sonda in validador.SONDAS_E11),
+                    f"el corpus normativo ya no representa ficheros {nombre}",
+                )
+        self.assertFalse(
+            validador.cobertura_total([r"**/*.py"]),
+            "un corpus amputado dejaría que ['**/*.py'] pasara por océano",
+        )
+
     def test_e12_exceso_de_oceanos(self) -> None:
         self.escribir("oceano.md", documento("oceano", "global", "Protege una operación sintética irreversible.", moja=["**"]))
         config = Configuracion(**{**self.config.__dict__, "oceanos": 0})

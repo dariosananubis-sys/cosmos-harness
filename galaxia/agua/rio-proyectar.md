@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: proyectar
 moja: []
+momento: mantenimiento
 invoca: python3 -m puente.proyectar <repo>
 resumen: Lleva los oficios elegidos a un repositorio ajeno sin pisar lo suyo.
 ---

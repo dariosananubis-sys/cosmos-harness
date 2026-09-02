@@ -97,23 +97,28 @@ tomará una decisión.
 
 ## Salida
 
+El ejemplo es el árbol de juguete versionado (`cosmos medir --config ejemplo.toml`), no la
+galaxia: un bloque copiado a mano de un árbol que crece envejece en silencio a los cinco minutos
+—es H11, y el parte de F12 lo repitió—. Este se reproduce entero con ese comando, y el número que
+vale para la galaxia es siempre el que imprime `cosmos medir` hoy.
+
 ```
 COSMOS  medir
 
-  Entrada base .... 1.012 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±8%, heurística v1)
-  Peor nicho ...... 1.655 tokens   (ciberseguridad, 26 pueblos)
-  Agua condicional  817 tokens     (5 aguas por paths:, fuera de la entrada)
-  Peor con agua ... 2.472 tokens   (peor nicho + agua condicional)
-  Universo ........ 61.400 tokens  (estimado, ±8%)
-  Descarga ........ 97,3 %
-  Presupuesto ..... 4.000          OK, quedan 1.528 tokens en el peor caso con agua
+  Entrada base .... 111 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5%, heurística v3)
+  Peor nicho ...... 211 tokens   (construccion, 2 pueblos)
+  Agua condicional  29 tokens   (2 aguas por paths:, fuera de la entrada)
+  Peor con agua ... 240 tokens   (el peor caso + agua condicional)
+  Universo ........ 396 tokens   (estimado, ±5%, heurística v3)
+  Descarga ........ 46,7 %
+  Presupuesto ..... 4.000     OK, quedan 3.760 tokens en el peor caso con agua
 
   Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
 
   Lo más caro de la entrada evaluada:
-    1.  310 tok  índice de galaxia
-    2.  280 tok  oceano/seguridad
-    3.  190 tok  oceano/git
+    1.  122 tok  catálogo visible
+    2.  55 tok  índice de galaxia
+    3.  18 tok  oceano/operaciones-reversibles
 ```
 
 `--detalle` desglosa nodo a nodo. `--json` para máquinas. `--metodo exacto` falla en voz alta si no
@@ -137,3 +142,12 @@ dónde está el peso, y casi siempre son dos o tres nodos, no cincuenta.
 5. Un test de que un mar con cuerpo **sube** `entrada_con_agua` sin tocar `entrada`, y de que
    `entrada_con_agua ≤ universo`. Sin él, el agua vuelve a quedarse fuera del presupuesto en cuanto
    alguien refactorice, y nada se pone rojo.
+6. Un test de que **dos aguas que mojan el mismo fichero se cobran las dos**, y otro de que un agua
+   que no solapa con la más cara tampoco se cae del número. El 2026-09-02 el medidor agrupó el agua
+   «por extensión» y publicó el grupo más caro: sobre un árbol con `**/*.spec.*` y `**/*.ts` daba
+   240 tokens donde `src/app.spec.ts` carga 480 (F06). La premisa —que nadie toca un `.py` y un
+   `.css` a la vez— es falsa: el agua entra por `paths:` y **se queda toda la sesión**, que es lo
+   que esta tabla llama «el techo real de una sesión de trabajo». La definición buena es la de
+   `NUCLEO.md` §3, la suma de toda el agua condicional, y no se cambia sin cambiar la spec.
+7. Un test de que el **rótulo cuenta lo mismo que el número**: «N aguas por paths:» tiene que ser
+   `len(agua_condicional(árbol))`. Decía 5 habiendo 6, porque publicaba el tamaño del grupo ganador.

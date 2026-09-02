@@ -15,7 +15,7 @@ qué cargar y, sobre todo, **qué no existe todavía**.
 Producto final: un repo que se puede clonar sobre cualquier proyecto y que deja el harness
 organizado por niveles, con carga perezosa real y verificable.
 
-Y encima de ese esqueleto, **un universo de 20 oficios**, cada uno lleno de lo mejor que exista hoy
+Y encima de ese esqueleto, **un universo de oficios**, cada uno lleno de lo mejor que exista hoy
 en GitHub para ese trabajo — herramientas que se ejecutan, no listas de consejos. El mapa está en
 `spec/UNIVERSO.md`.
 
@@ -33,7 +33,7 @@ Dos exigencias que el encargo fija y que no son negociables:
 - **Capacidad y criterio van separados.** Un oficio que sabe programar mucho y no sabe qué no
   escribir produce más código de más, no menos. Por eso **el código vive dentro de cada nicho** (el
   de un exploit no se parece al de un tema de WordPress) y **`criterio` es un mar** que los moja a
-  todos: poda en los veinte sitios sin que nadie tenga que invocarlo.
+  todos: poda en todos los sitios a la vez sin que nadie tenga que invocarlo.
 - **Los oficios se combinan.** La contención dice dónde vive algo y cuándo se carga, **nunca** con
   quién se junta. Detalle y mecanismo en `spec/COMPOSICION.md`.
 - **Cada nicho apunta a sus vecinos y no duplica nada.** Un trabajo real cruza varios; el nicho lo
@@ -93,7 +93,7 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 |---|---|---|
 | **Universo** | Todo. Hay uno. | Galaxias |
 | **Galaxia** | Una familia de oficios afines | Sistemas solares |
-| **Sistema solar** | Un oficio por el que te contratan (los 20 de `spec/UNIVERSO.md`) | Planetas |
+| **Sistema solar** | Un oficio por el que te contratan (los de `spec/UNIVERSO.md`) | Planetas |
 | **Estrella** | El contexto que ilumina ese sistema: su `CLAUDE.md` | — (irradia) |
 | **Planeta** | Un proyecto concreto | Continentes |
 | **Luna** | Un subagente que orbita ese planeta | — (orbita) |

@@ -93,6 +93,12 @@ NIVELES_APLANADOS = frozenset({"pueblo"})
 # (spec/COMPOSICION.md): un nodo sin vecinos es perfectamente válido, y forzarlo
 # llenaría el árbol de relaciones inventadas para rellenar un campo.
 CAMPOS_OPCIONALES = {nivel: {"usa"} for nivel in NIVELES_SOLIDOS}
+# 'momento' separa el verbo que resuelve el encargo del que cuida el repositorio.
+# Los dos existen igual y los dos se abren igual; lo que cambia es si su resumen se paga
+# en cada sesión. Sin este campo, `enganchar` o `proyectar` cobraban su línea en todos
+# los turnos de la vida del proyecto para ejecutarse una vez.
+CAMPOS_OPCIONALES["rio"] = {"momento"}
+MOMENTOS_DE_RIO = frozenset({"trabajo", "mantenimiento"})
 
 
 @dataclass(frozen=True)
@@ -164,6 +170,12 @@ def _comprobar_e00(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
                 errores.append(_error("E00", nodo, f"falta el campo obligatorio {campo!r}", f"Añade {campo!r} al frontmatter."))
             elif not isinstance(nodo.datos[campo], str):
                 errores.append(_error("E00", nodo, f"{campo!r} debe ser texto", f"Escribe {campo!r} como un escalar de texto.", campo=campo))
+        momento = nodo.datos.get("momento")
+        if momento is not None and momento not in MOMENTOS_DE_RIO:
+            errores.append(_error(
+                "E00", nodo, f"'momento' inválido: {momento!r}",
+                f"Usa uno de {sorted(MOMENTOS_DE_RIO)}, o quita el campo (por defecto 'trabajo').",
+                campo="momento"))
         if isinstance(nodo.datos.get("nombre"), str) and not PATRON_NOMBRE.fullmatch(nodo.nombre):
             errores.append(_error("E00", nodo, f"nombre inválido: {nodo.nombre!r}", "Usa solo minúsculas ASCII, dígitos y guiones.", campo="nombre"))
         if nivel in NIVELES_VALIDOS:

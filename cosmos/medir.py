@@ -184,6 +184,7 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
         return RANGOS.get(nodo.cosmos, orden_agua.get(nodo.cosmos, len(RANGOS) + 2)), nodo.referencia
 
     lineas: list[str] = []
+    de_mantenimiento: list[str] = []
     for nodo in sorted(arbol.nodos, key=clave):
         del_nicho = seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
         if nodo.cosmos in intermedios:
@@ -202,7 +203,18 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
             if del_nicho:
                 lineas.append(f"{nodo.referencia}: {nodo.resumen}")
         elif nodo.cosmos in con_resumen:
-            lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+            if nodo.cosmos == "rio" and nodo.datos.get("momento") == "mantenimiento":
+                de_mantenimiento.append(nodo.nombre)
+            else:
+                lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+
+    # Los verbos de cuidar el repositorio se nombran, no se describen. `enganchar`,
+    # `proyectar` o `generar` no resuelven el encargo de nadie y su resumen se pagaba en
+    # cada sesión: coste que crece con lo que existe y no con lo que se usa, que es el
+    # problema que este proyecto persigue. Siguen siendo descubribles —están aquí, y
+    # `cosmos abrir rio/<nombre>` da el detalle entero—, solo dejan de estar precargados.
+    if de_mantenimiento:
+        lineas.append("rio (mantenimiento, 'cosmos abrir rio/x'): " + ", ".join(sorted(de_mantenimiento)))
     return "\n".join(lineas)
 
 
@@ -236,59 +248,40 @@ def contexto_inicial(
     return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos))
 
 
-def _extensiones_de(patrones: list[str]) -> set[str]:
-    """Extensiones que un conjunto de globs puede tocar. `**` significa todas."""
+def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
+    """Toda el agua condicional del árbol, que es la definición de NUCLEO §3.
 
-    exts: set[str] = set()
-    for patron in patrones:
-        p = str(patron)
-        if p.strip() in {"**", "**/*", "*"}:
-            return {"*"}
-        punto = p.rfind(".")
-        exts.add(p[punto:] if punto != -1 and "/" not in p[punto:] else "*")
-    return exts
+    Aquí vivía un cálculo que agrupaba los mares «por extensión» y publicaba solo
+    el grupo más caro. Su premisa era que nadie toca un `.py`, un `.css` y un
+    `.html` **en el mismo instante**, y por tanto que no se cargan a la vez. Es
+    falsa por dos motivos, y los dos se midieron (F06):
 
+    1. El agua entra por `paths:` y **se queda en el contexto el resto de la
+       sesión**. Un proyecto React + Python toca las dos cosas en la misma sesión
+       y paga las dos. Lo que decide el presupuesto no es un instante, es la
+       sesión — que es literalmente lo que `spec/MEDIDOR.md` llama «el techo real
+       de una sesión de trabajo».
+    2. La «extensión» se sacaba con `rfind(".")`, así que `**/tests/**` y
+       `**/Makefile` se volvían universales, y dos globs que casan el MISMO
+       fichero caían en grupos distintos y no se sumaban nunca. Medido: un árbol
+       con `**/*.spec.*` y `**/*.ts` publicaba 240 tokens donde `src/app.spec.ts`
+       carga 480. El medidor publicaba la mitad.
 
-def _peor_agua_coincidente(arbol: Arbol, contador) -> list[ParteMedida]:
-    """El agua que de verdad puede coincidir, no la suma de toda el agua que existe.
+    Y era, además, una divergencia silenciosa de la norma: `NUCLEO.md` §3 define
+    `agua = Σ tokens(cuerpo(n)) para n en agua_condicional(árbol)` y nadie tocó la
+    spec al cambiar el código. Un medidor que se afloja para que quepa el
+    contenido es el fallo F01 por la otra puerta.
 
-    Sumar todos los mares supone que alguien toca un `.py`, un `.css` y un `.html`
-    **en el mismo instante**, y por tanto que se cargan a la vez. No pasa: cada mar
-    declara sus extensiones y `criterio` (código) y `accesibilidad` (marcado y hojas
-    de estilo) casi no se solapan.
-
-    Medido el 2026-09-02, el peor caso absoluto daba 1.499 tokens y dejaba 63 de
-    margen; el peor caso **real** —la extensión que más agua atrae— es bastante
-    menor. La diferencia no es un matiz: con la medida irreal, añadir una lección
-    buena a un mar obligaba a recortar otra que no tenía nada que ver con ella.
-
-    Se calcula por extensión: para cada una que alguna agua nombre, se suma lo que
-    se cargaría al tocar un fichero así, y gana la más cara. Un agua que moja `**`
-    entra siempre, porque de verdad entra siempre.
+    No se publica un segundo número «por fichero». Calcularlo de verdad es
+    intersecar globs, y toda aproximación barata se equivoca **hacia abajo**, que
+    es justo el error que este arreglo viene a cerrar. El detalle nodo a nodo
+    (`medir --detalle`) dice quién cobra qué sin fabricar un segundo veredicto.
     """
 
-    aguas = [
-        (nodo, _extensiones_de(nodo.datos["moja"]), contador(cuerpo(nodo)))
+    return [
+        ParteMedida(f"{nodo.cosmos}/{nodo.nombre}", contador(cuerpo(nodo)))
         for nodo in agua_condicional(arbol)
     ]
-    if not aguas:
-        return []
-
-    universales = [(n, c) for n, e, c in aguas if "*" in e]
-    todas_ext = {e for _, exts, _ in aguas for e in exts if e != "*"}
-
-    mejor: list[ParteMedida] = [
-        ParteMedida(f"{n.cosmos}/{n.nombre}", c) for n, c in universales
-    ]
-    mejor_coste = sum(p.tokens for p in mejor)
-
-    for ext in todas_ext:
-        grupo = [(n, c) for n, exts, c in aguas if ext in exts or "*" in exts]
-        coste = sum(c for _, c in grupo)
-        if coste > mejor_coste:
-            mejor_coste = coste
-            mejor = [ParteMedida(f"{n.cosmos}/{n.nombre}", c) for n, c in grupo]
-    return mejor
 
 
 def medir_arbol(
@@ -321,7 +314,7 @@ def medir_arbol(
     resto = sum(parte.tokens for parte in detalle_arbol)
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
-    detalle_agua = _peor_agua_coincidente(arbol, contador)
+    detalle_agua = _detalle_agua(arbol, contador)
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,

@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: cientifico
 padre: ""
-resumen: Calculo numerico, simulacion, analisis cientifico y reproducibilidad.
+resumen: Calculo, simulacion, modelos que clasifican o predicen, repetibles.
 usa:
   - ingenieria-datos
   - rendimiento

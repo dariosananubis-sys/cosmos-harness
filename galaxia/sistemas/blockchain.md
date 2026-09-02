@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: blockchain
 padre: ""
-resumen: Contratos inteligentes, su auditoria y la infraestructura de cadena.
+resumen: Contratos inteligentes en solidity: auditar, desplegar y leer la cadena.
 usa:
   - ciberseguridad
   - rendimiento

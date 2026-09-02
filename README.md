@@ -69,7 +69,7 @@ Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se
 
 | Pieza | Qué hace |
 |---|---|
-| `cosmos validar` | E00–E19. Esquema, estructura, duplicación, presupuesto y artefactos sincronizados |
+| `cosmos validar` | E00–E20. Esquema, estructura, duplicación, presupuesto y artefactos sincronizados |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
 | `cosmos compilar` | Aplana los pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
@@ -102,7 +102,7 @@ python3 -m cosmos saltar --listar
 
 | Propiedad | Regla |
 |---|---|
-| Acotada | Un código concreto (`E00`..`E19`), nunca «todo» |
+| Acotada | Un código concreto (`E00`..`E20`), nunca «todo» |
 | Con motivo | Obligatorio. Sin `--motivo` no hay salto |
 | Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
 | Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |

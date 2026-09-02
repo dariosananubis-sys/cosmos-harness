@@ -318,7 +318,8 @@ def formatear_contraste(c: Contraste) -> str:
         f"  Ajuste ......... {c.ajuste.aciertos}/{c.ajuste.total} ({aj:.0f} %)   "
         "los encargos que SÍ se miran al trabajar",
         f"  Validación ..... {c.validacion.aciertos}/{c.validacion.total} ({va:.0f} %)   "
-        "escritos aparte; no guían ninguna decisión",
+        + ("YA MIRADO: es una segunda cifra de ajuste" if c.quemado
+           else "escritos aparte; no guían ninguna decisión"),
         "",
         f"  La cifra que vale es {va:.0f} %."
         if not c.quemado

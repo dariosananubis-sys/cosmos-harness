@@ -315,3 +315,60 @@ Al construir un sabotaje se restauró con `git checkout -- galaxia/` y eso **rev
 repadrados sin commitear**. Los ficheros nuevos sobrevivieron (son untracked), los
 modificados no. Se rehízo entero. La regla: para deshacer un sabotaje se guarda y se
 restaura **solo el fichero tocado**, nunca un directorio con trabajo vivo dentro.
+
+---
+
+# Sexta tanda: los cuatro fallos que quedaban del especialista
+
+## F17 — tres veredictos de presupuesto sobre el mismo árbol
+
+`E16` medía el peor nicho **con** su agua. `cosmos medir` devolvía su código de salida
+sobre el nicho activo con agua. Y los guards de sesión comparaban el nicho activo **sin**
+agua, con un comentario encima que decía *«mismo criterio que `cosmos medir`»*. No lo era.
+
+Ninguno estaba mal por separado; el fallo es que los tres se publicaban con la misma
+etiqueta, así que cada uno parecía confirmar a los otros. Con `[nichos] activos` puesto, el
+comando decía «quedan 325» donde el gate vigilaba 119.
+
+Ahora hay un juez único, `medir.veredicto_de_presupuesto`, y compara siempre lo que el
+presupuesto promete: **que cualquier sesión quepa** — el peor nicho con toda su agua. El
+nicho activo se sigue enseñando, como dato y no como veredicto.
+
+## F16 y F09 — escribir el índice entero, y un cerrojo del que se pueda salir
+
+`escribir_indice` era un `write_text` pelado mientras el manifiesto —menos crítico— ya
+tenía temporal, `fsync` y `os.replace`. El índice **es** el contexto de entrada: cortado a
+medias deja el árbol rojo por E15 y G03 impide arreglarlo a mano. Callejón sin salida.
+
+Y el cerrojo de `compilar` era `O_EXCL` a secas: si el proceso moría sin llegar a su
+`finally`, el fichero quedaba y **toda compilación futura fallaba para siempre**. Ahora
+lleva el PID dentro y se pregunta — si su dueño vive, rechaza; si no, retoma diciéndolo.
+
+Las dos piezas viven ya en `modelo.py` y las comparten `generar` y `compilar`.
+
+Nota de contrato: `test_lock_exclusivo_rechaza_segunda_compilacion` afirmaba el
+comportamiento viejo (bastaba que el fichero existiera). Se reescribió para afirmar el
+nuevo, con la razón dentro, y se le añadió el hermano: un cerrojo rancio no deja el
+repositorio inservible.
+
+## F23 — la descarga subía sola por escribir documentación
+
+`resto` sumaba el cuerpo de todo nodo no-océano, y los partes de commit viven en el árbol
+como `lluvia`: 17.263 tokens, el 11 % del universo, de historia interna que ningún agente
+carga para trabajar (`rio/memoria` los busca y devuelve dónde mirar, nunca el cuerpo).
+
+El efecto era de dos décimas —98,42 % contra 98,24 %— pero el defecto no es el tamaño: la
+métrica **crecía sola**. Cada parte nuevo mejoraba la descarga sin que el sistema
+descargara nada, y este repositorio escribe un parte por tanda. La prueba ejercita
+exactamente eso: añade un parte a un árbol de juguete y exige que la cifra no se mueva.
+
+## Y una prueba que no valía y hubo que rehacer
+
+El primer sabotaje de `escribir_atomico` **sobrevivió**: cambiarlo por `write_text` daba el
+mismo resultado en el caso feliz, así que la prueba no distinguía las dos
+implementaciones. Lo que sí las separa es que `os.replace` opera sobre la **entrada del
+directorio** y no sobre el fichero: con el destino en solo lectura dentro de un directorio
+escribible, la escritura atómica pasa y `write_text` da `PermissionError`. Y esa es
+justamente la propiedad que hace que un corte a mitad no deje el índice truncado.
+
+Doce sabotajes vistos fallar en esta tanda. 160 pruebas, 113 de puente, 38/38 mutaciones.

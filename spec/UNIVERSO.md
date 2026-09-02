@@ -128,8 +128,8 @@ python3 -m cosmos estado    # cuántas herramientas tiene cada oficio
 ```
 
 Eso cambia el límite de sitio: **ya no lo marca el total, lo marca el nicho más grande**. Añadir
-cinco herramientas a `juegos` no le cuesta nada a quien trabaja en `web`. El techo práctico está en
-unas 25 por nicho, que es donde vive hoy el mayor.
+cinco herramientas a `juegos` no le cuesta nada a quien trabaja en `web`. El techo práctico lo marca el nicho
+más grande, que es el que fija el peor caso del presupuesto: `cosmos estado` lo dice.
 
 Lo que no cambia: el criterio 2 sigue siendo eliminatorio. El presupuesto impide que un nicho
 engorde sin freno, pero **no impide meter basura repartida** — eso solo lo impide elegir bien.

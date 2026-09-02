@@ -115,7 +115,10 @@ def _parser() -> argparse.ArgumentParser:
     desengancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
 
     saltar = subparsers.add_parser("saltar", help="válvula de escape acotada, con motivo y caducidad")
-    saltar.add_argument("codigo", nargs="?", help="código concreto a saltar (E00..E19, G01..G05)")
+    saltar.add_argument(
+        "codigo", nargs="?",
+        help=f"código concreto a saltar ({rango_comprobado()}, G01..G05)",
+    )
     saltar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     saltar.add_argument("--motivo", help="obligatorio: por qué se salta")
     saltar.add_argument("--caduca", help="obligatorio: días de vigencia, como '7d' (máximo 30d)")
@@ -464,9 +467,28 @@ def ejecutar(argv: list[str] | None = None) -> int:
 
             # El mínimo se exige sobre la validación: cobrar el listón con el conjunto que
             # se mira al trabajar es dejar que el examinando escriba su propio examen.
-            juez = val or pun
-            if args.minimo and juez.total:
-                logrado = 100 * juez.aciertos / juez.total
+            #
+            # Y si el juez no está, NO se sustituye por el otro. Antes, `--validacion` con
+            # una ruta mal escrita hacía justo lo que estas líneas prohíben, en silencio:
+            # el fallback tranquilizador por defecto. Un examen que no aparece no se
+            # aprueba por incomparecencia.
+            if args.minimo:
+                if val is None:
+                    print(
+                        f"\n--minimo exige un conjunto de validación y no se pudo leer "
+                        f"{args.validacion}. Cobrarlo sobre los encargos de ajuste sería "
+                        f"dejar que el examinando escriba su propio examen.",
+                        file=sys.stderr,
+                    )
+                    return 2
+                if not val.total:
+                    print(
+                        f"\n--minimo exige un conjunto de validación con encargos y "
+                        f"{args.validacion} está vacío.",
+                        file=sys.stderr,
+                    )
+                    return 2
+                logrado = 100 * val.aciertos / val.total
                 if logrado < args.minimo:
                     print(f"\nacierto {logrado:.0f} % < mínimo exigido {args.minimo} %", file=sys.stderr)
                     return 1

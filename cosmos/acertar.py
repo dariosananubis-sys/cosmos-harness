@@ -307,8 +307,15 @@ class Contraste:
 
 
 def formatear_contraste(c: Contraste) -> str:
-    if not c.validacion:
-        return formatear(c.ajuste)
+    # `brecha` y `como_dict` ya comprobaban `.total`; esta era la única de las tres que no,
+    # y con un conjunto vacío salía un ZeroDivisionError crudo a la cara del usuario. Un
+    # conjunto sin encargos no es un 0 %: es «no lo sé», y hay que decirlo así.
+    if not c.validacion or not c.validacion.total:
+        salida = formatear(c.ajuste)
+        if c.validacion is not None and not c.validacion.total:
+            salida += "\n  El conjunto de validación existe pero está VACÍO: sin él, la\n"
+            salida += "  cifra de arriba es la del examen que sí se mira. No vale de listón.\n"
+        return salida
 
     aj = 100 * c.ajuste.aciertos / c.ajuste.total
     va = 100 * c.validacion.aciertos / c.validacion.total

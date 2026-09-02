@@ -328,10 +328,18 @@ def desenganchar(base: Path) -> tuple[Path, str]:
 RUTA_AJUSTES = Path(".claude") / "settings.json"
 MARCA_SESION = "puente.sesion"
 NOMBRE_RESPALDO = "enganche-sesion.json"
+# G05 tapa secretos y aparta salidas enormes DESPUÉS de que ocurran, y el guard
+# ya sabe hacerlo con las cinco herramientas que traen texto ajeno al contexto
+# (`puente.sesion.HERRAMIENTAS_VIGILADAS`). Aquí solo se enrutan tres de ellas —
+# `Grep`, `Glob` y `Task` no llegaban al guard—, así que un secreto encontrado por
+# `Grep` entraba en claro por una puerta que ya estaba construida y sin cablear.
+# `tests/test_guardarrailes.py` compara esta lista con la del guard: no puede
+# volver a quedarse corta en silencio.
+HERRAMIENTAS_POSTERIORES = ("Bash", "Read", "Grep", "Glob", "Task")
 EVENTOS_SESION = (
     ("SessionStart", None),
     ("PreToolUse", "Bash|Write|Edit|MultiEdit|NotebookEdit"),
-    ("PostToolUse", "Bash|Read"),
+    ("PostToolUse", "|".join(HERRAMIENTAS_POSTERIORES)),
     ("PreCompact", None),
     ("Stop", None),
 )

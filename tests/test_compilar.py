@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from cosmos.cli import ejecutar
 from cosmos.compilar import ErrorCompilacion, compilar_arbol
@@ -235,7 +236,16 @@ manifiesto = ".cosmos/compilado.json"
         self.assertIn("actualizadas 1", salida)
         self.assertNotIn("E19", validar_arbol(self.arbol(), configuracion=config).codigos())
 
-    def test_generar_repara_e15_pero_no_ignora_e19(self) -> None:
+    def test_generar_repara_e15_y_no_lo_bloquea_una_e19_que_no_puede_reparar(self) -> None:
+        """F11: cada comando se eximía de SU invariante, no de la del otro.
+
+        `generar` exigía E19 y `compilar` exigía E15, así que cada uno mandaba al
+        otro y un árbol nuevo no tenía camino a verde. `generar` no escribe la
+        vista plana: no puede repararla ni romperla, y por tanto no puede quedar
+        bloqueado por ella. Lo que sí sigue en rojo es `validar`, que las exige
+        todas — el rojo se ve, solo deja de secuestrar al comando equivocado.
+        """
+
         self.compilar()
         indice = self.arbol_dir / "COSMOS.md"
         indice.write_text("desincronizado\n", encoding="utf-8")
@@ -246,9 +256,66 @@ manifiesto = ".cosmos/compilado.json"
         indice.write_text("desincronizado otra vez\n", encoding="utf-8")
         (self.destino / "revisar" / "SKILL.md").write_text("vista rota\n", encoding="utf-8")
         codigo, salida = self.cli("generar")
+        self.assertEqual(0, codigo, salida)
+        self.assertEqual(generar_indice(self.arbol()), indice.read_text(encoding="utf-8"))
+        codigo, salida = self.cli("validar")
         self.assertEqual(1, codigo)
         self.assertIn("E19", salida)
-        self.assertEqual("desincronizado otra vez\n", indice.read_text(encoding="utf-8"))
+
+    def test_generar_no_declara_verde_sin_revalidar_lo_que_acaba_de_escribir(self) -> None:
+        """F07: desactivar la revalidación posterior no ponía roja ni una prueba.
+
+        Se dobla el borde más externo —quien escribe el fichero— y se comprueba que
+        `generar` NO dice verde con un índice que sigue sin cuadrar. Sin el paso
+        posterior, la única señal de que el índice escrito vale desaparece.
+        """
+
+        self.sincronizar_indice()
+        self.compilar()
+        with mock.patch(
+            "cosmos.cli.escribir_indice",
+            side_effect=lambda arbol, ruta: Path(ruta).write_text("indice que miente\n", encoding="utf-8"),
+        ):
+            codigo, salida = self.cli("generar")
+        self.assertEqual(1, codigo, salida)
+        self.assertIn("E15", salida)
+        self.assertNotIn("generar  verde", salida)
+
+    def test_un_arbol_nuevo_llega_a_verde_con_un_solo_arrancar(self) -> None:
+        """F11: el caso que GOAL §1 vende — clonar COSMOS sobre otro proyecto.
+
+        Ni índice ni vista plana. Antes: `validar` rojo por E15 y E19, `generar`
+        rojo por E19, `compilar` rojo por E15 y `arrancar` rojo por E15. Sin salida.
+        """
+
+        indice = self.arbol_dir / "COSMOS.md"
+        indice.unlink(missing_ok=True)
+        shutil.rmtree(self.destino, ignore_errors=True)
+        self.manifiesto.unlink(missing_ok=True)
+
+        codigo, salida = self.cli("validar")
+        self.assertEqual(1, codigo, "el punto de partida es un árbol nuevo en rojo")
+
+        codigo, salida = self.cli("arrancar")
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("arrancar  verde", salida)
+        self.assertEqual(0, self.cli("validar")[0])
+
+    def test_arrancar_no_repara_un_indice_que_existe_y_miente(self) -> None:
+        """La contrapartida: `arrancar` escribe el índice que FALTA, no el que miente.
+
+        Un índice ausente no puede engañar a nadie; uno presente y falso sí, y ahí
+        E15 tiene que seguir siendo un rojo de verdad — si no, el bootstrap se
+        convertiría en una forma de tapar el fallo que E15 existe para cazar.
+        """
+
+        self.sincronizar_indice()
+        self.compilar()
+        (self.arbol_dir / "COSMOS.md").write_text("# COSMOS — mentira\n", encoding="utf-8")
+        codigo, salida = self.cli("arrancar")
+        self.assertEqual(1, codigo)
+        self.assertIn("E15", salida)
+        self.assertEqual("# COSMOS — mentira\n", (self.arbol_dir / "COSMOS.md").read_text(encoding="utf-8"))
 
     def test_lock_exclusivo_rechaza_segunda_compilacion(self) -> None:
         lock = self.manifiesto.parent / "compilar.lock"

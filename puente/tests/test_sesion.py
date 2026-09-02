@@ -110,6 +110,27 @@ class Segmentacion(unittest.TestCase):
         objetivos = [o for orden in sesion.ordenes(bloque) for o in sesion.objetivos_de_escritura(orden)]
         self.assertEqual(objetivos, ["/tmp/inocente.txt"])
 
+    def test_un_operador_compuesto_no_parte_la_orden(self) -> None:
+        # `&>` y `>|` llevan dentro un carácter separador sin serlo. Partiendo por
+        # `&` y por `|` a secas, `echo x &> indice` quedaba en `echo x` y
+        # `> indice`, y ninguno de los dos declaraba destino.
+        self.assertEqual(sesion.ordenes("echo x &> salida.txt"), ["echo x &> salida.txt"])
+        self.assertEqual(sesion.ordenes("echo x &>> salida.txt"), ["echo x &>> salida.txt"])
+        self.assertEqual(sesion.ordenes("echo x >| salida.txt"), ["echo x >| salida.txt"])
+        self.assertEqual(sesion.ordenes("cosmos validar 2>&1 | head"), ["cosmos validar 2>&1", "head"])
+
+    def test_una_continuacion_de_linea_no_termina_la_orden(self) -> None:
+        partes = sesion.ordenes("echo x \\\n  > salida.txt")
+        self.assertEqual(len(partes), 1)
+        self.assertEqual(sesion.objetivos_de_escritura(partes[0]), ["salida.txt"])
+        # Y se resuelve como la resuelve el shell —las dos líneas quedan unidas—,
+        # sin dejar un salto de línea suelto haciéndose pasar por una ruta.
+        unida = sesion.ordenes("tee registro.log \\\n  otro.log")
+        self.assertEqual(
+            [o for parte in unida for o in sesion.objetivos_de_escritura(parte)],
+            ["registro.log", "otro.log"],
+        )
+
     def test_reconoce_los_escritores_declarados(self) -> None:
         self.assertEqual(sesion.objetivos_de_escritura("tee -a registro.log < /dev/null"), ["registro.log"])
         self.assertEqual(sesion.objetivos_de_escritura("cp origen.json destino.json"), ["destino.json"])
@@ -144,14 +165,23 @@ class RutasDeVeredicto(unittest.TestCase):
         decision = self._pre("Write", {"file_path": str(ruta_saltos(self.raiz))})
         self.assertEqual(decision.accion, "denegar")
 
-    def test_el_productor_autorizado_pasa(self) -> None:
+    def test_una_orden_de_cosmos_sin_redireccion_pasa(self) -> None:
+        # Pasa por no declarar ningún destino, no por un permiso: ya no hay
+        # productor autorizado. Lo que COSMOS escribe lo escribe desde dentro de
+        # Python y nunca aparece como objetivo de la orden.
         self.assertEqual(self._pre("Bash", {"command": "python3 -m cosmos generar"}).accion, "pasar")
 
-    def test_el_permiso_de_una_orden_no_cubre_a_la_siguiente(self) -> None:
-        # Aquí es donde la segmentación se gana el sueldo: sin ella, el bloque
-        # entero cuenta como «lo ejecuta cosmos» y la escritura a mano de la
-        # segunda orden entra de gorra detrás del permiso de la primera.
+    def test_una_escritura_a_mano_detras_de_cosmos_no_pasa(self) -> None:
         decision = self._pre("Bash", {"command": "python3 -m cosmos generar && echo falso >> arbol/COSMOS.md"})
+        self.assertEqual(decision.accion, "denegar")
+
+    def test_una_escritura_escondida_detras_de_una_orden_inocente_no_pasa(self) -> None:
+        # Aquí se gana el sueldo la segmentación: sin ella el bloque entero se
+        # juzga como una sola orden, el programa es `cat` —que no escribe nada— y
+        # el `cp` de la segunda se cuela sin que nadie mire su destino.
+        decision = self._pre(
+            "Bash", {"command": "cat arbol/COSMOS.md && cp /etc/hosts arbol/COSMOS.md"}
+        )
         self.assertEqual(decision.accion, "denegar")
 
     def test_una_escritura_cualquiera_pasa(self) -> None:
@@ -167,6 +197,81 @@ class RutasDeVeredicto(unittest.TestCase):
         cuerpo = json.loads(sesion.como_json(decision, "PreToolUse"))
         self.assertEqual(cuerpo["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertEqual(sesion.como_exit2(decision)[1], 2)
+
+
+class EvasionesDeShell(unittest.TestCase):
+    """G03, una prueba por forma de esquivarlo. Las siete estaban abiertas.
+
+    Un especialista las encontró y las ejecutó: `&>`, la redirección delante del
+    programa, `>|`, la continuación de línea, la palabra `cosmos` de argumento,
+    la sustitución de órdenes y `dd of=`. Cada una construye el ataque entero y
+    exige el `deny`. Van una por una a propósito: un único test genérico se pone
+    verde con la primera arreglada y deja las otras seis abiertas.
+    """
+
+    def setUp(self) -> None:
+        self.temporal = tempfile.TemporaryDirectory(prefix="sesion-evasiones-")
+        self.raiz = _repositorio(Path(self.temporal.name))
+        self.indice = "arbol/COSMOS.md"
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def _bash(self, comando: str):
+        return _decidir(
+            self.raiz,
+            _evento(
+                self.raiz,
+                hook_event_name="PreToolUse",
+                tool_name="Bash",
+                tool_input={"command": comando},
+            ),
+        )
+
+    def test_a_redireccion_con_ampersand(self) -> None:
+        self.assertEqual(self._bash(f"echo x &> {self.indice}").accion, "denegar")
+
+    def test_a_bis_redireccion_con_ampersand_y_anexado(self) -> None:
+        self.assertEqual(self._bash(f"echo x &>> {self.indice}").accion, "denegar")
+
+    def test_b_redireccion_delante_del_programa(self) -> None:
+        # `> fichero orden` es POSIX válido. El índice 0 se saltaba siempre, así
+        # que la orden no declaraba ningún destino.
+        self.assertEqual(self._bash(f"> {self.indice} echo x").accion, "denegar")
+
+    def test_c_redireccion_que_ignora_noclobber(self) -> None:
+        self.assertEqual(self._bash(f"echo x >| {self.indice}").accion, "denegar")
+
+    def test_d_continuacion_de_linea(self) -> None:
+        self.assertEqual(self._bash(f"echo x \\\n  > {self.indice}").accion, "denegar")
+
+    def test_e_la_palabra_cosmos_de_argumento_no_autoriza(self) -> None:
+        # Era la puerta abierta: el permiso se concedía porque `cosmos` aparecía
+        # suelto entre las piezas de la orden. Esa palabra la escribe cualquiera.
+        self.assertEqual(self._bash(f"python3 -c cosmos > {self.indice}").accion, "denegar")
+        self.assertEqual(self._bash(f"python3 x.py cosmos > {self.indice}").accion, "denegar")
+        self.assertEqual(self._bash(f"py cosmos > {self.indice}").accion, "denegar")
+
+    def test_f_un_destino_calculado_se_deniega(self) -> None:
+        # Indecidible sin ejecutar. Se deniega y se dice, que es lo contrario de
+        # fingir cobertura.
+        decision = self._bash(f"echo x > $(echo {self.indice})")
+        self.assertEqual(decision.accion, "denegar")
+        self.assertIn("se calcula al ejecutar", decision.motivo)
+
+    def test_f_bis_una_variable_como_destino_tambien(self) -> None:
+        self.assertEqual(self._bash("echo x > $DESTINO").accion, "denegar")
+
+    def test_g_dd_escribe_en_of(self) -> None:
+        # La rama de `of=` existía y no se alcanzaba nunca: `_ASIGNACION` casaba
+        # antes con `of=` y hacía `continue`.
+        self.assertEqual(self._bash(f"dd if=/etc/hosts of={self.indice}").accion, "denegar")
+
+    def test_una_redireccion_compuesta_a_una_ruta_inocente_pasa(self) -> None:
+        self.assertEqual(self._bash("echo x &> /tmp/inocente.log").accion, "pasar")
+
+    def test_duplicar_un_descriptor_no_es_escribir_un_fichero(self) -> None:
+        self.assertEqual(sesion.objetivos_de_escritura("cosmos validar 2>&1"), [])
 
 
 class MarcaDeLectura(unittest.TestCase):
@@ -257,6 +362,19 @@ class MarcaDeLectura(unittest.TestCase):
         self.assertEqual(decision.accion, "informar")
         self.assertEqual(self._escribir().accion, "denegar")
 
+    def test_saltar_la_redaccion_no_desarma_la_marca_de_lectura(self) -> None:
+        # G04 vivía DETRÁS del cortacircuitos de G05: abrir la válvula de la
+        # redacción dejaba a G04 sin poder crear ninguna marca y, con ella,
+        # denegando toda escritura para siempre. La válvula es acotada o no es
+        # válvula: quien abre una no puede arrancar otro guardarraíl distinto.
+        registrar_salto(ruta_saltos(self.raiz), "G05", "depurando un pipeline", timedelta(days=1))
+        self._leer()
+        self.assertEqual(self._escribir().accion, "pasar")
+
+    def test_saltar_la_lectura_deja_escribir_sin_haber_leido(self) -> None:
+        registrar_salto(ruta_saltos(self.raiz), "G04", "repositorio sin contrato", timedelta(days=1))
+        self.assertEqual(self._escribir().accion, "pasar")
+
     def test_sin_lecturas_exigidas_el_mecanismo_calla(self) -> None:
         otro = _repositorio(Path(self.temporal.name) / "limpio")
         decision = _decidir(
@@ -307,6 +425,61 @@ class Redaccion(unittest.TestCase):
             redactado, tapados = redactar_texto(f"{nombre}={falso}\n")
             self.assertEqual(tapados, 1, nombre)
             self.assertNotIn(falso, redactado)
+
+    def _post_bruto(self, respuesta: dict, herramienta: str = "Bash"):
+        return _decidir(
+            self.raiz,
+            _evento(
+                self.raiz,
+                hook_event_name="PostToolUse",
+                tool_name=herramienta,
+                tool_input={},
+                tool_response=respuesta,
+            ),
+        )
+
+    def test_tapa_el_valor_que_sale_por_stderr(self) -> None:
+        # `stderr` es justo donde salen las fugas: `curl -v`, un `git push` con el
+        # token en la URL del remoto, una traza con el entorno volcado. Se leía
+        # `output` y, a falta de él, `stdout`; `stderr` entraba en claro.
+        falso = "ghp_" + "a" * 36
+        decision = self._post_bruto({"stderr": f"remote: TOKEN={falso}\n", "exit_code": 1})
+        self.assertEqual(decision.accion, "reescribir")
+        self.assertNotIn(falso, decision.salida)
+
+    def test_el_texto_redactado_vuelve_por_los_dos_canales(self) -> None:
+        # Sustituir solo `output` deja el valor crudo entrando por `stderr` si el
+        # runtime entrega los canales por separado.
+        falso = "ghp_" + "b" * 36
+        decision = self._post_bruto({"stdout": "salida limpia\n", "stderr": f"TOKEN={falso}\n"})
+        actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
+        actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
+        self.assertNotIn(falso, json.dumps(actualizado))
+        self.assertLessEqual({"output", "stdout", "stderr"}, set(actualizado))
+
+    def test_tapa_lo_que_devuelve_una_lectura(self) -> None:
+        falso = "AKIA" + "0123456789ABCDEF"
+        decision = self._post_bruto({"file": {"content": f"AWS_SECRET={falso}\n"}}, "Read")
+        self.assertEqual(decision.accion, "reescribir")
+        self.assertNotIn(falso, decision.salida)
+
+    def test_tapa_lo_que_devuelve_un_grep(self) -> None:
+        falso = "AKIA" + "FEDCBA9876543210"
+        decision = self._post_bruto({"output": f".env:3:{falso}\n"}, "Grep")
+        self.assertEqual(decision.accion, "reescribir")
+        self.assertNotIn(falso, decision.salida)
+
+    def test_tapa_lo_que_devuelve_un_subagente(self) -> None:
+        falso = "AKIA" + "1122334455667788"
+        decision = self._post_bruto(
+            {"content": [{"type": "text", "text": f"la clave es {falso}"}]}, "Task"
+        )
+        self.assertEqual(decision.accion, "reescribir")
+        self.assertNotIn(falso, decision.salida)
+
+    def test_una_herramienta_fuera_de_la_lista_pasa(self) -> None:
+        falso = "ghp_" + "c" * 36
+        self.assertEqual(self._post_bruto({"output": f"TOKEN={falso}"}, "WebFetch").accion, "pasar")
 
     def test_una_salida_limpia_pasa_intacta(self) -> None:
         self.assertEqual(self._post("total 8\ndrwxr-xr-x  ficheros\n").accion, "pasar")

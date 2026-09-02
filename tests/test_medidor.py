@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import os
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
 from cosmos import medir
 from cosmos.modelo import Arbol, Nodo, cargar_arbol, cuerpo
+
+RAIZ = Path(__file__).resolve().parent.parent
 
 
 class PruebasMedidor(unittest.TestCase):
@@ -78,16 +82,106 @@ class PruebasMedidor(unittest.TestCase):
         self.assertEqual("Solo este cuerpo.", medir.contexto_inicial(arbol, indice=""))
         self.assertEqual(medir.contar_aprox("Solo este cuerpo."), medir.medir_arbol(arbol, metodo="aprox", indice="").entrada)
 
+    def test_los_factores_publicados_son_los_que_documenta_la_calibracion(self) -> None:
+        """Los tres números de la calibración, atados a `docs/CALIBRACION.md`.
+
+        Corre SIEMPRE, con tokenizador o sin él, porque cierra el agujero de F07:
+        `FACTOR_CALIBRACION = 1.0` revertía un 20 % de todas las cifras publicadas
+        y `MARGEN_ERROR = None` devolvía el «±desconocido» que la documentación da
+        por cerrado — y ninguna de las dos ponía roja una sola prueba.
+        """
+
+        doc = (RAIZ / "docs" / "CALIBRACION.md").read_text(encoding="utf-8")
+
+        def publicado(patron: str) -> float:
+            hallado = re.search(patron, doc)
+            self.assertIsNotNone(hallado, f"docs/CALIBRACION.md ya no publica {patron!r}")
+            return float(hallado.group(1).replace(",", "."))
+
+        self.assertEqual(publicado(r"`FACTOR_CALIBRACION` *= *([0-9.]+)"), medir.FACTOR_CALIBRACION)
+        self.assertEqual(publicado(r"`FACTOR_GENERADO` *= *([0-9.]+)"), medir.FACTOR_GENERADO)
+        self.assertIsNotNone(medir.MARGEN_ERROR, "el margen publicado no puede volver a ±desconocido")
+        self.assertAlmostEqual(publicado(r"error medio ([0-9,]+) %") / 100, medir.MARGEN_ERROR, places=4)
+
     def test_aproximado_y_exacto_respetan_margen_publicado(self) -> None:
+        """El margen se comprueba sobre lo que el medidor cuenta de verdad.
+
+        Antes esta prueba comparaba siete líneas de juguete y divergía un 19,05 %
+        contra el 5,2 % publicado: estaba en verde **solo** porque esta máquina no
+        tiene tokenizador (F03). Un `skip` silencioso sobre la única prueba de la
+        métrica principal es un verde comprado.
+
+        Ahora el corpus es el árbol real —los cuerpos que el medidor suma y los dos
+        bloques generados que forman la entrada—, que es lo que `FACTOR_CALIBRACION`
+        se calibró para contar. Sobre un árbol de juguete la divergencia media es
+        del 27,9 %: la representatividad del corpus no era un detalle.
+        """
+
         exacto = medir._contador_exacto()
         if exacto is None:
-            self.skipTest("tokenizador exacto local no disponible; comparación declaradamente omitida")
-        self.assertIsNotNone(medir.MARGEN_ERROR, "hay tokenizador exacto pero no existe margen publicado")
-        corpus = "# Prueba\n\nTexto en castellano and English.\n\n```python\nprint('ok')\n```\n"
-        esperado = exacto[0](corpus)
-        aproximado = medir.contar_aprox(corpus)
-        divergencia = abs(aproximado - esperado) / esperado
-        self.assertLessEqual(divergencia, medir.MARGEN_ERROR)
+            aviso = (
+                "SIN TOKENIZADOR: el margen publicado (±5,2 %) NO se ha verificado en esta "
+                "ejecución. Instálalo en un venv temporal (docs/CALIBRACION.md) o exige el fallo "
+                "con COSMOS_EXIGE_TOKENIZADOR=1."
+            )
+            if os.environ.get("COSMOS_EXIGE_TOKENIZADOR"):
+                self.fail(aviso)
+            print(f"\n  AVISO  {aviso}")
+            self.skipTest(aviso)
+
+        contar_exacto = exacto[0]
+        arbol = cargar_arbol(RAIZ / "galaxia")
+        cuerpos = [cuerpo(nodo) for nodo in arbol.nodos]
+        divergencias = [
+            abs(medir.contar_aprox(texto) - contar_exacto(texto)) / contar_exacto(texto)
+            for texto in cuerpos
+            if contar_exacto(texto) >= 20
+        ]
+        self.assertGreater(len(divergencias), 100, "el corpus de calibración se ha vaciado")
+        media = sum(divergencias) / len(divergencias)
+        self.assertLessEqual(
+            media, medir.MARGEN_ERROR,
+            f"la divergencia media real ({media:.2%}) supera el margen publicado; recalibra el factor "
+            "y actualiza docs/CALIBRACION.md, no bajes esta prueba",
+        )
+
+        # Y el número que decide el presupuesto, que es el que no puede mentir.
+        entrada_exacta = contar_exacto(medir.contexto_inicial(arbol, None))
+        entrada_aprox = medir.medir_arbol(arbol, metodo="aprox").entrada
+        self.assertLessEqual(
+            abs(entrada_aprox - entrada_exacta) / entrada_exacta, medir.MARGEN_ERROR,
+            f"la entrada publicada ({entrada_aprox}) se aleja del conteo real ({entrada_exacta}) "
+            "más de lo que declara el margen",
+        )
+
+    def test_canario_f01_el_veredicto_exacto_sigue_en_rojo(self) -> None:
+        """CANARIO, no invariante: afirma un defecto abierto para que no se olvide.
+
+        Con el tokenizador de referencia el árbol está en 4.323/4.000, mientras el
+        contador aproximado publica 3.990 y dice verde. Es el residuo de F01: los
+        dos factores redujeron el error del 15 % al 7,7 %, pero no lo cerraron, y
+        el commit que lo dio por arreglado midió el «verde de verdad» con el propio
+        contador aproximado.
+
+        No se cierra calibrando —recalibrar solo hace que el rojo se vea— sino
+        decidiendo qué contenido sale o qué presupuesto es el bueno, y eso no lo
+        decide una prueba. Reproducción:
+
+            python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
+            /tmp/calib/bin/python -m cosmos medir --metodo exacto
+
+        **El día que el veredicto exacto sea verde, esta prueba se pone roja: se
+        borra junto con el arreglo, y se actualiza docs/CALIBRACION.md.**
+        """
+
+        if medir._contador_exacto() is None:
+            self.skipTest("sin tokenizador no se puede medir el veredicto exacto")
+        arbol = cargar_arbol(RAIZ / "galaxia")
+        exacto = medir.medir_casos(arbol, metodo="exacto", presupuesto=4000).peor
+        self.assertGreater(
+            exacto.entrada_con_agua, exacto.presupuesto,
+            "el veredicto exacto ya es verde: F01 está cerrado, borra este canario",
+        )
 
     def test_no_medido_nunca_se_convierte_en_cero(self) -> None:
         resultado = medir.medir_arbol(Arbol(Path(".")), metodo="aprox", indice="")
@@ -135,6 +229,85 @@ class PruebasMedidor(unittest.TestCase):
         self.assertLessEqual(con_mar.entrada_con_agua, con_mar.universo, "el agua no se puede contar dos veces")
         self.assertEqual(["mar/criterio"], [parte.nombre for parte in con_mar.detalle_agua], "el río se invoca: no es agua condicional")
         self.assertIn('"agua"', medir.medicion_json(con_mar))
+
+    @staticmethod
+    def _escribir_arbol(raiz: Path, aguas: dict[str, list[str]]) -> None:
+        (raiz / "galaxia.md").write_text(
+            "---\ncosmos: galaxia\nnombre: agua\nresumen: Galaxia mínima para medir el agua condicional.\n---\n\nCuerpo.\n",
+            encoding="utf-8",
+        )
+        for nombre, moja in aguas.items():
+            (raiz / f"mar-{nombre}.md").write_text(
+                f'---\ncosmos: mar\nnombre: {nombre}\nresumen: Reglas del alcance {nombre} para esta prueba.\n'
+                f"moja: {moja!r}\n---\n\n" + " ".join(f"palabra{numero}" for numero in range(60)) + "\n",
+                encoding="utf-8",
+            )
+
+    def test_dos_aguas_que_mojan_el_mismo_fichero_se_cobran_las_dos(self) -> None:
+        """F06: el medidor publicaba la mitad del coste real de un solo fichero.
+
+        `**/*.spec.*` y `**/*.ts` casan los dos `src/app.spec.ts`, pero el cálculo
+        «por extensión» los metía en grupos distintos —`.*` y `.ts`— y se quedaba
+        con el más caro. Medido antes del arreglo: publicaba 120 tokens donde ese
+        fichero carga 240.
+        """
+
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            self._escribir_arbol(raiz, {"specs": ["**/*.spec.*"], "tipado": ["**/*.ts"]})
+            resultado = medir.medir_arbol(cargar_arbol(raiz), metodo="aprox", indice="")
+
+        nombres = sorted(parte.nombre for parte in resultado.detalle_agua)
+        self.assertEqual(["mar/specs", "mar/tipado"], nombres, "las dos mojan src/app.spec.ts")
+        self.assertEqual(sum(parte.tokens for parte in resultado.detalle_agua), resultado.agua)
+        self.assertEqual(2 * resultado.detalle_agua[0].tokens, resultado.agua)
+
+    def test_un_agua_que_no_solapa_con_la_mas_cara_tambien_se_cobra(self) -> None:
+        """F06: el agua de marcado y hojas de estilo desaparecía del número.
+
+        El cálculo «por extensión» se quedaba con el grupo más caro, así que un mar
+        que moja `.css` y no coincide con el de `.py` no se cobraba nunca. En la
+        galaxia real eso dejaba fuera `mar/accesibilidad` (101 tok): una sesión de
+        React + Python toca las dos cosas y paga las dos.
+
+        Además `**/tests/**` no tiene extensión: `rfind('.')` lo volvía «todas», y
+        el alcance por directorio dejaba de distinguirse de un océano.
+        """
+
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            self._escribir_arbol(raiz, {
+                "accesible": ["**/*.css"], "codigo": ["**/*.py"], "pruebas": ["**/tests/**"],
+            })
+            resultado = medir.medir_arbol(cargar_arbol(raiz), metodo="aprox", indice="")
+
+        self.assertEqual(
+            ["mar/accesible", "mar/codigo", "mar/pruebas"],
+            sorted(parte.nombre for parte in resultado.detalle_agua),
+            "ninguna se puede caer del número por no solapar con la más cara",
+        )
+        self.assertEqual(3 * resultado.detalle_agua[0].tokens, resultado.agua)
+
+    def test_el_recuento_publicado_es_el_numero_real_de_aguas(self) -> None:
+        """F06: la línea decía «5 aguas por paths:» habiendo seis.
+
+        El «5» era el tamaño del grupo ganador, no cuánta agua condicional existe.
+        Un rótulo que cuenta otra cosa que el número que acompaña miente dos veces.
+        """
+
+        with tempfile.TemporaryDirectory() as temporal:
+            raiz = Path(temporal)
+            self._escribir_arbol(raiz, {
+                "uno": ["**/*.py"], "dos": ["**/*.ts"], "tres": ["**/*.css"],
+                "cuatro": ["**/tests/**"], "cinco": ["**/*.md"], "seis": ["**/*.go"],
+            })
+            arbol = cargar_arbol(raiz)
+            resultado = medir.medir_arbol(arbol, metodo="aprox", indice="")
+            salida = medir.formatear_medicion(resultado)
+
+        self.assertEqual(6, len(medir.agua_condicional(arbol)))
+        self.assertEqual(6, len(resultado.detalle_agua))
+        self.assertIn("(6 aguas por paths:", salida)
 
     def test_arbol_vacio_no_publica_descarga_perfecta(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:

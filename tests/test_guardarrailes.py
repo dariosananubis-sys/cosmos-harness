@@ -20,12 +20,15 @@ from pathlib import Path
 
 from cosmos.cli import ejecutar, nichos_de_configuracion
 from cosmos.guardarrailes import (
+    EVENTOS_SESION,
+    RUTA_AJUSTES,
     ErrorEnganche,
     ErrorSalto,
     ahora_utc,
     analizar_duracion,
     desenganchar,
     enganchar,
+    enganchar_sesion,
     estado_saltos,
     registrar_salto,
     ruta_saltos,
@@ -305,6 +308,54 @@ class Enganche(unittest.TestCase):
         ruta, segundo = enganchar(self.repo, con_pruebas=False)
         self.assertEqual(("creado", "actualizado"), (primero, segundo))
         self.assertTrue(ruta.stat().st_mode & 0o111)
+
+
+class EnrutadoDeSesion(unittest.TestCase):
+    """El cableado tiene que llegar a TODAS las herramientas que el guard vigila.
+
+    G05 sabía tapar `Grep`, `Glob` y `Task` desde el principio —están en
+    `puente.sesion.HERRAMIENTAS_VIGILADAS`— pero el enrutado solo mandaba
+    `Bash|Read`: una puerta construida y sin cablear, por la que un secreto
+    encontrado con `Grep` entraba en claro. Se comprueba con el fichero de ajustes
+    que `enganchar_sesion` escribe de verdad y con una llamada real al guard, no
+    leyendo el módulo.
+    """
+
+    def setUp(self) -> None:
+        self.temporal = tempfile.TemporaryDirectory(prefix="cosmos-enrutado-")
+        self.base = Path(self.temporal.name).resolve()
+        subprocess.run(["git", "init", "-q", str(self.base)], check=True, capture_output=True)
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def test_los_ajustes_escritos_enrutan_las_cinco_herramientas(self) -> None:
+        enganchar_sesion(self.base)
+        ajustes = json.loads((self.base / RUTA_AJUSTES).read_text(encoding="utf-8"))
+        matcher = ajustes["hooks"]["PostToolUse"][0]["matcher"]
+        self.assertEqual(["Bash", "Glob", "Grep", "Read", "Task"], sorted(matcher.split("|")))
+
+    def test_el_enrutado_cubre_exactamente_lo_que_el_guard_vigila(self) -> None:
+        """Anti-deriva: la lista de aquí y la del guard no pueden separarse."""
+
+        from puente.sesion import HERRAMIENTAS_VIGILADAS
+
+        enrutado = dict(EVENTOS_SESION)["PostToolUse"].split("|")
+        self.assertEqual(sorted(HERRAMIENTAS_VIGILADAS), sorted(enrutado))
+
+    def test_el_guard_tapa_de_verdad_un_secreto_hallado_con_grep(self) -> None:
+        evento = {
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Grep",
+            "tool_response": "hallado AKIAIOSFODNN7EXAMPLE en el fichero",
+        }
+        resultado = subprocess.run(
+            [sys.executable, "-m", "puente.sesion"],
+            input=json.dumps(evento), capture_output=True, text=True, cwd=REPO_COSMOS,
+        )
+        self.assertEqual(0, resultado.returncode, resultado.stderr)
+        self.assertNotIn("AKIAIOSFODNN7EXAMPLE", resultado.stdout)
+        self.assertIn("REDACTADO", resultado.stdout)
 
 
 class HookQueBloquea(unittest.TestCase):

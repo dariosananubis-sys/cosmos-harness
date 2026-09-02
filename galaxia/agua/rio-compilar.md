@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: compilar
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos compilar
 resumen: Aplana las skills invocables con cerrojo y manifiesto atomico.
 ---

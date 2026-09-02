@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: enganchar
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos enganchar
 resumen: Cuelga la verificacion de cada commit sin pisar un hook ajeno.
 ---

@@ -77,8 +77,11 @@ Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se
 | Enganche | Cuándo corre | Se instala con |
 |---|---|---|
 | pre-commit | Antes de cada commit, sobre la **instantánea del índice** (no sobre lo que haya sucio en disco) | `cosmos enganchar` |
+| **sesión** | Mientras un agente trabaja: cinco guardarraíles que avisan, protegen lo generado y tapan secretos antes de que lleguen al modelo | `cosmos enganchar --sesion` |
 | CI | En cada push y cada PR | ya está en `.github/workflows/cosmos.yml` |
-| arranque | Al clonar | `cosmos arrancar` |
+
+(`cosmos arrancar` no es un enganche: es lo primero que se ejecuta tras clonar, porque la vista
+plana es un artefacto generado y no viaja en el repositorio.)
 
 `cosmos enganchar` es explícito y reversible: dice qué escribió y dónde, **no pisa un pre-commit
 ajeno** —si lo hay, lo dice y no toca nada— y `cosmos desenganchar` lo quita dejando el repositorio

@@ -95,6 +95,42 @@ class UnCerrojoDelQueSePuedeSalir(unittest.TestCase):
                     raise ValueError("algo falló dentro")
             self.assertFalse(lock.is_file(), "un cerrojo que no se suelta al fallar es el fallo")
 
+    def test_la_reentrada_se_rechaza_y_el_exterior_conserva_la_exclusion(self) -> None:
+        """B08: el `pid != os.getpid()` clasificaba el propio cerrojo como rancio.
+
+        Un `with` anidado sobre la misma ruta lo «retomaba», y al salir el interior
+        borraba el fichero: el exterior seguía creyendo que tenía la exclusión y ya
+        no la tenía nadie. Hoy no explotaba porque los dos llamantes usan rutas
+        distintas — era una mina para el día en que se unificaran. La exclusión no
+        puede evaporarse en silencio: la reentrada da `ErrorCerrojo` y el cerrojo
+        exterior sobrevive intacto.
+        """
+
+        with TemporaryDirectory() as tmp:
+            lock = Path(tmp, "x.lock")
+            with cerrojo(lock):
+                with self.assertRaises(ErrorCerrojo) as caso:
+                    with cerrojo(lock):
+                        pass
+                self.assertIn("mismo proceso", str(caso.exception))
+                self.assertTrue(lock.is_file(), "el rechazo de la reentrada se llevó el cerrojo exterior")
+                self.assertEqual(lock.read_text(encoding="utf-8").strip(), str(os.getpid()))
+            self.assertFalse(lock.is_file())
+
+    def test_el_pid_esta_dentro_antes_de_ceder_el_control(self) -> None:
+        """La ventana del fichero vacío: un cerrojo sin PID se clasifica como rancio.
+
+        Entre el `os.open(O_EXCL)` y la escritura del PID, otro proceso que leyera
+        veía un fichero vacío y robaba un cerrojo vivo. El PID se escribe ahora con
+        el mismo descriptor de la creación, antes del `yield`.
+        """
+
+        with TemporaryDirectory() as tmp:
+            lock = Path(tmp, "x.lock")
+            with cerrojo(lock):
+                self.assertEqual(lock.read_text(encoding="utf-8").strip(), str(os.getpid()),
+                                 "el cerrojo cedió el control con el fichero vacío")
+
 
 if __name__ == "__main__":
     unittest.main()

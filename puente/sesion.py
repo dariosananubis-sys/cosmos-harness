@@ -440,6 +440,10 @@ def rutas_de_veredicto(config) -> tuple[Path, ...]:
         Path(config.destino_compilacion),
         Path(config.manifiesto_compilacion),
         ruta_saltos(base),
+        # Las marcas de lectura y el contador de cierre también son veredicto:
+        # una marca escrita a mano es exactamente la autocertificación que G04
+        # existe para impedir.
+        Path(base) / ".cosmos" / DIRECTORIO_SESION,
     )
 
 
@@ -821,6 +825,10 @@ def decidir(entrada: dict, *, config_path: Path | None = None) -> tuple[Decision
     if manejador is None:
         return PASAR, evento
     ruta = Path(config_path) if config_path else Path(entrada.get("cwd") or Path.cwd()) / "cosmos.toml"
+    if not ruta.is_file():
+        # Enganchado sobre un repositorio que no usa COSMOS: silencio. Escanear
+        # el directorio de trabajo «por si acaso» sería caro y además mentiría.
+        raise ErrorSesion(f"no hay cosmos.toml en {ruta}")
     config = cargar_configuracion(ruta)
     if not config.arbol.is_dir():
         raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")

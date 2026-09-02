@@ -381,6 +381,8 @@ def podar_sesion(datos: dict) -> dict:
         if restantes:
             hooks[evento] = restantes
         else:
+            # Una lista vacía no dice nada: se quita a los dos lados de la
+            # comparación, y el fichero original se devuelve tal cual estaba.
             del hooks[evento]
     if not hooks:
         del copia["hooks"]
@@ -466,21 +468,26 @@ def desenganchar_sesion(base: Path) -> tuple[Path, str]:
         except ValueError:
             guardado = {}
     original = guardado.get("original")
-    if guardado.get("existia") and isinstance(original, str):
+    if "existia" in guardado:
+        # «El resto no ha cambiado» se comprueba comparando los dos ficheros SIN
+        # las entradas de COSMOS. Comparar contra el original tal cual daría falso
+        # negativo cuando el original ya traía una lista vacía para el mismo
+        # evento: podar la nuestra la deja vacía otra vez y no se distingue.
         try:
-            intacto = podado == json.loads(original)
+            previo = podar_sesion(json.loads(original)) if isinstance(original, str) else {}
         except ValueError:
-            intacto = False
-        if intacto:
+            previo = None
+        intacto = previo is not None and podado == previo
+        if intacto and guardado["existia"] and isinstance(original, str):
             ruta.write_text(original, encoding="utf-8")
             respaldo.unlink(missing_ok=True)
             return ruta, "restaurado"
-    elif guardado.get("existia") is False and podado == {}:
-        ruta.unlink()
-        respaldo.unlink(missing_ok=True)
-        if guardado.get("creo_directorio") and not any(ruta.parent.iterdir()):
-            ruta.parent.rmdir()
-        return ruta, "eliminado"
+        if intacto and not guardado["existia"]:
+            ruta.unlink()
+            respaldo.unlink(missing_ok=True)
+            if guardado.get("creo_directorio") and not any(ruta.parent.iterdir()):
+                ruta.parent.rmdir()
+            return ruta, "eliminado"
 
     ruta.write_text(json.dumps(podado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     respaldo.unlink(missing_ok=True)

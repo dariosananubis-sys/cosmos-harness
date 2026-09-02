@@ -147,3 +147,42 @@ ordenador que entienda sinónimos, que necesita un modelo y cuesta dinero (`GOAL
 
 Cinco sabotajes más vistos fallar, incluido el del `--minimo` cobrado sobre el conjunto
 equivocado.
+
+---
+
+# Tercera tanda: los guards estaban apagados y nadie lo sabía
+
+## F19 — con el `cwd` en un subdirectorio, los cinco guards callaban
+
+Reproducido antes de tocar nada, con el mismo evento y solo el directorio cambiando:
+
+    cwd=<repo>            -> deny
+    cwd=<repo>/galaxia    -> (mudo)
+    cwd=<repo>/cosecha    -> (mudo)
+    cwd=/tmp              -> (mudo)
+
+`cosmos.toml` se buscaba **solo** en `cwd`. Ahora se busca subiendo hasta la raíz, como
+hace `git` — y no solo desde el `cwd`: también desde **la ruta del fichero que se va a
+tocar**, que es el caso que de verdad importa. Un evento que escribe en
+`<repo>/galaxia/COSMOS.md` con el directorio de trabajo en `/tmp` no lo protegía nadie.
+Los cuatro casos deniegan hoy, y un repositorio que no usa COSMOS sigue en silencio.
+
+## F19b — y cualquier excepción se tragaba devolviendo 0
+
+Un guard reventado y un guard que aprueba se veían igual. La política se parte por lo que
+el guard hace: `PreToolUse` (G03, G04) **deniega** cuando no puede evaluar —su trabajo es
+denegar, y la válvula sigue ahí para seguir a propósito— y los demás pasan pero escriben
+la línea en `.cosmos/cierres.log`. Documentado en `spec/GUARDARRAILES.md`, sección nueva.
+
+## F18 — una lectura truncada contaba como lectura completa
+
+`_lectura_completa` daba por buena toda lectura sin `limit`. El runtime lee 2.000 líneas
+por defecto y **no lo pone en `tool_input`**, así que un fichero de 5.000 quedaba marcado
+como leído entero habiendo entrado el 40 %. El docstring ya decía lo correcto —*«el trozo
+que falta es justo el que importa»*—; el código decía otra cosa. La ausencia de `limit` se
+trata ahora como el tope implícito del runtime.
+
+Comprobado que no rompe nada hoy: `lecturas_exigidas` está vacía en este repositorio, así
+que el arreglo protege cuando se configure en vez de estorbar ahora.
+
+Cinco sabotajes más vistos fallar. 111 pruebas en `puente`, verde.

@@ -29,6 +29,7 @@ from .guardarrailes import (
     sufijo_saltos,
 )
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
+from .acertar import cargar_encargos, formatear as formatear_acierto, puntuacion_json, puntuar
 from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import MetodoNoDisponible, casos_json, formatear_casos, medir_casos
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
@@ -49,6 +50,12 @@ def _parser() -> argparse.ArgumentParser:
     abrir_cmd.add_argument("ruta", help="ruta cosmográfica o nombre, p.ej. 'trading/backtesting'")
     abrir_cmd.add_argument("--con-agua", action="store_true", help="incluye el agua que moja ese trabajo")
     abrir_cmd.add_argument("--json", action="store_true", help="emite JSON")
+
+    acertar_cmd = base("acertar", "¿el catálogo lleva a la herramienta correcta? La contra-métrica")
+    acertar_cmd.add_argument("--encargos", type=Path, default=Path("pruebas/encargos.json"))
+    acertar_cmd.add_argument("--minimo", type=int, default=0, help="falla si se acierta menos de esto (en %%)")
+    acertar_cmd.add_argument("--detalle", action="store_true")
+    acertar_cmd.add_argument("--json", action="store_true")
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
     estado.add_argument("--json", action="store_true", help="emite JSON")
@@ -392,6 +399,15 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "abrir":
             ap = abrir(arbol, args.ruta, con_agua=args.con_agua)
             sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
+            return 0
+        if args.comando == "acertar":
+            pun = puntuar(arbol, cargar_encargos(args.encargos))
+            sys.stdout.write(puntuacion_json(pun) if args.json else formatear_acierto(pun, detalle=args.detalle))
+            if args.minimo and pun.total:
+                logrado = 100 * pun.aciertos / pun.total
+                if logrado < args.minimo:
+                    print(f"\nacierto {logrado:.0f} % < mínimo exigido {args.minimo} %", file=sys.stderr)
+                    return 1
             return 0
         if args.comando == "estado":
             inv = inventariar(arbol)

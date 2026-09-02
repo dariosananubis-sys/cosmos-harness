@@ -157,8 +157,7 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
 
     seleccion = normalizar_nichos(arbol, nichos)
     con_resumen = {"pueblo", "rio"}
-    solo_nombre = {"planeta", "continente", "pais", "provincia"}
-    invocables = {"pueblo"}
+    intermedios = {"planeta", "continente", "pais", "provincia"}
     orden_agua = {"rio": len(RANGOS) + 1}
 
     def clave(nodo: Nodo) -> tuple[int, str]:
@@ -166,12 +165,24 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
 
     lineas: list[str] = []
     for nodo in sorted(arbol.nodos, key=clave):
-        if nodo.cosmos in invocables and (seleccion is None or nicho_de_nodo(arbol, nodo) not in seleccion):
-            continue
-        if nodo.cosmos in con_resumen:
+        del_nicho = seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
+        if nodo.cosmos in intermedios:
+            # Los intermedios son el mapa de descenso, y un mapa sin leyenda no
+            # sirve: sin su resumen, «ciberseguridad/analisis» obliga a adivinar.
+            # Medido el 2026-09-02 con la contra-métrica: con solo la ruta, el
+            # catálogo acertaba el 10 % de 50 encargos reales.
+            #
+            # Pero solo los del oficio activo. Antes se listaban los 48 de los 21
+            # oficios siempre, que es incoherente con el catálogo por nicho: quien
+            # trabaja en `web` no necesita el mapa interno de `embebidos`, y el
+            # índice ya nombra los 21 para saber que existen.
+            if del_nicho:
+                lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
+        elif nodo.cosmos == "pueblo":
+            if del_nicho:
+                lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+        elif nodo.cosmos in con_resumen:
             lineas.append(f"{nodo.referencia}: {nodo.resumen}")
-        elif nodo.cosmos in solo_nombre:
-            lineas.append(nodo.ruta_cosmos)
     return "\n".join(lineas)
 
 

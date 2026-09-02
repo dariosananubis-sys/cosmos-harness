@@ -59,7 +59,7 @@ en `reviews/revision-adversarial-final.md` (H16): con el nombre `calidad`, tanto
 `«El pais de calidad»` como `«Cosas y mas cosas varias.»` pasaban en verde. Con la lista completa
 los dos dan cero palabras con contenido y saltan.
 
-El umbral es **una** palabra, no dos. Medido sobre los 408 nodos de la galaxia real: el resumen más
+El umbral es **una** palabra, no dos. Medido sobre los 409 nodos de la galaxia real: el resumen más
 flojo que hay hoy aporta dos palabras con contenido, así que exigir una endurece sin generar un
 solo falso positivo, y exigir dos dejaría el margen a cero. Sigue siendo una heurística y va a
 fallar en algún caso raro. La respuesta correcta a un falso positivo es escribir un resumen mejor,

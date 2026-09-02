@@ -193,41 +193,64 @@ def agua_condicional(arbol: Arbol) -> list[Nodo]:
     ]
 
 
-def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
-    """Materializa exactamente los nombres/resúmenes visibles antes de bajar."""
+def nodos_de_catalogo(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> list[Nodo]:
+    """Los nodos con línea propia en el catálogo, en su orden. UNA selección para todos.
+
+    La comparten el renderizado (`catalogo_visible`) y la contra-métrica
+    (`acertar._lineas_del_catalogo`): si divergieran, la métrica volvería a puntuar
+    sobre un recorte del árbol que ningún agente ve — el fallo que ya ocurrió una vez.
+    Orden: el mapa del nicho en profundidad (alfabético por ruta = cada familia junta),
+    después los ríos. Los de mantenimiento no llevan línea propia: los agrupa el render.
+    """
 
     seleccion = normalizar_nichos(arbol, nichos)
-    con_resumen = {"pueblo", "rio"}
-    intermedios = {"planeta", "continente", "pais", "provincia"}
-    orden_agua = {"rio": len(RANGOS) + 1}
+    solidos = sorted(
+        (
+            nodo
+            for nodo in arbol.nodos
+            if nodo.cosmos in {"planeta", "continente", "pais", "provincia", "pueblo"}
+            and seleccion is not None
+            and nicho_de_nodo(arbol, nodo) in seleccion
+        ),
+        key=lambda nodo: nodo.ruta_cosmos,
+    )
+    rios = sorted(
+        (nodo for nodo in arbol.nodos if nodo.cosmos == "rio"),
+        key=lambda nodo: nodo.referencia,
+    )
+    return solidos + rios
 
-    def clave(nodo: Nodo) -> tuple[int, str]:
-        return RANGOS.get(nodo.cosmos, orden_agua.get(nodo.cosmos, len(RANGOS) + 2)), nodo.referencia
+
+def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
+    """Materializa exactamente los nombres/resúmenes visibles antes de bajar.
+
+    **Árbol indentado, no lista de rutas** (2026-09-02). El formato anterior pagaba la
+    ruta completa en cada línea: en el peor nicho, el 40 % del coste eran prefijos
+    repetidos («ciberseguridad/analisis/cadena-de-suministro/» delante de cinco pueblos),
+    medido con tiktoken. Un pueblo paga ahora su nombre y su sitio lo dice la
+    indentación — E18 garantiza que el nombre es único en toda la galaxia y
+    `cosmos abrir <nombre>` resuelve. Los hijos directos del sistema conservan el
+    prefijo `<nicho>/` porque son el ancla del árbol (y con varios nichos activos,
+    la única forma de saber de cuál cuelga cada mapa).
+
+    La idea viene del repo-map de aider (jerarquía comprimida bajo presupuesto de
+    tokens); aquí sin grafo de referencias porque el árbol ya declara la jerarquía.
+    """
 
     lineas: list[str] = []
     de_mantenimiento: list[str] = []
-    for nodo in sorted(arbol.nodos, key=clave):
-        del_nicho = seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
-        if nodo.cosmos in intermedios:
-            # Los intermedios son el mapa de descenso, y un mapa sin leyenda no
-            # sirve: sin su resumen, «ciberseguridad/analisis» obliga a adivinar.
-            # Medido el 2026-09-02 con la contra-métrica: con solo la ruta, el
-            # catálogo acertaba el 10 % de 50 encargos reales.
-            #
-            # Pero solo los del oficio activo. Antes se listaban los 48 de los 21
-            # oficios siempre, que es incoherente con el catálogo por nicho: quien
-            # trabaja en `web` no necesita el mapa interno de `embebidos`, y el
-            # índice ya nombra los 21 para saber que existen.
-            if del_nicho:
-                lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
-        elif nodo.cosmos == "pueblo":
-            if del_nicho:
-                lineas.append(f"{nodo.referencia}: {nodo.resumen}")
-        elif nodo.cosmos in con_resumen:
-            if nodo.cosmos == "rio" and nodo.datos.get("momento") == "mantenimiento":
+    for nodo in nodos_de_catalogo(arbol, nichos):
+        if nodo.cosmos == "rio":
+            if nodo.datos.get("momento") == "mantenimiento":
                 de_mantenimiento.append(nodo.nombre)
             else:
                 lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+            continue
+        profundidad = nodo.ruta_cosmos.count("/")
+        if profundidad <= 1:
+            lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
+        else:
+            lineas.append("  " * (profundidad - 1) + f"{nodo.nombre}: {nodo.resumen}")
 
     # Los verbos de cuidar el repositorio se nombran, no se describen. `enganchar`,
     # `proyectar` o `generar` no resuelven el encargo de nadie y su resumen se pagaba en

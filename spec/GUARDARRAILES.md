@@ -162,6 +162,39 @@ Lo único atado a un runtime concreto es el **fichero de cableado** que escribe
 el día que cambie el formato. `cosmos desenganchar` lo quita y, si nadie tocó el resto, devuelve el
 fichero **byte a byte** como estaba; si lo tocaron, quita solo lo suyo y lo dice.
 
+## Cuando el guard no puede decidir
+
+Un guardarraíl tiene tres respuestas, no dos: permitir, denegar y **no haber podido
+mirar**. Confundir la tercera con la primera es el fallo más silencioso que puede tener
+un sistema de vigilancia, porque no deja huella: un guard reventado y un guard que aprobó
+se ven exactamente igual desde fuera.
+
+Dos formas de caer en él, las dos medidas en este repositorio:
+
+1. **Por dónde se busca la configuración.** `cosmos.toml` se buscaba solo en el `cwd` del
+   evento. Con el directorio de trabajo en cualquier subcarpeta, los cinco guards estaban
+   apagados: el mismo evento de escritura sobre el índice daba `deny` desde la raíz y
+   pasaba desde `galaxia/`. Se busca **subiendo** hasta la raíz, como hace `git` — y no
+   solo desde el `cwd`, sino desde **la ruta del fichero que se va a tocar**, porque lo que
+   decide es dónde cae el daño, no desde dónde se lanza el comando.
+
+2. **Por cómo se tratan los errores.** Todo se capturaba devolviendo 0. La política ahora
+   se parte según lo que el guard hace:
+
+   | | Si el guard no puede evaluar |
+   |---|---|
+   | `PreToolUse` (G03, G04) | **Deniega**, diciendo que deniega porque no pudo mirar |
+   | El resto (G01, G02, G05) | Pasa, y **escribe la línea** en `.cosmos/cierres.log` |
+
+   La asimetría no es capricho. G03 y G04 existen **para denegar**: si no pueden decidir,
+   lo único coherente con su trabajo es negarse, y la válvula sigue ahí para seguir
+   adelante a propósito. Los otros tres avisan, resumen o tapan secretos, y romper la
+   herramienta que vigilan es peor que no avisar — pero dejan rastro, siempre.
+
+Y hay un silencio que se conserva entero: **un repositorio que no usa COSMOS no oye nada**,
+sin rastro tampoco. No hay nada que vigilar, y escribir un registro dentro del repositorio
+de otro sería peor que callar.
+
 ## Lo que NO se trae, y por qué
 
 Que un mecanismo exista en el harness auditado no lo hace de COSMOS. Esto se decidió no portar, para

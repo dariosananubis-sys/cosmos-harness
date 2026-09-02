@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: context7
-padre: documentos
+padre: documentos/desde-el-codigo
 resumen: Trae la documentacion vigente de una biblioteca en vez de fiarse de lo que el modelo recuerda.
 ---
 

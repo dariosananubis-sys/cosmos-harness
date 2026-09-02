@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hydra
-padre: cientifico
+padre: cientifico/experimentos
 resumen: Compone la configuracion del experimento y deja registrada la de cada corrida, sobreescribible desde la consola.
 ---
 

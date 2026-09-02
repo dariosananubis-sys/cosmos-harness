@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: paginas-legales
-padre: cumplimiento
+padre: cumplimiento/web-legal
 resumen: Crea y audita el aviso legal y la politica de cookies de una web publicada, y cambia su texto sin romperla.
 ---
 

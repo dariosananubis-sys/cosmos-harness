@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hypothesis
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: Genera las secuencias de eventos que nadie escribiria y comprueba que el invariante aguanta.
 ---
 

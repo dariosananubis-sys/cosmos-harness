@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: snakemake
-padre: cientifico
+padre: cientifico/experimentos
 resumen: Cada regla declara sus entradas y salidas y fija su propio entorno paso a paso.
 ---
 

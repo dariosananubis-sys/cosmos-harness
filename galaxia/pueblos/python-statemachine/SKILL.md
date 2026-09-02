@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: python-statemachine
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: El ciclo de vida de una orden como transiciones declaradas: lo prohibido falla al intentarlo.
 ---
 

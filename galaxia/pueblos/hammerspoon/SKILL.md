@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: hammerspoon
-padre: automatizacion
+padre: automatizacion/escritorio
 resumen: Automatiza la propia maquina: ventanas, atajos globales y eventos del sistema.
 ---
 

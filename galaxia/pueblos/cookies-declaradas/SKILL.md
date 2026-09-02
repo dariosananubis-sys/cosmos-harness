@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: cookies-declaradas
-padre: cumplimiento
+padre: cumplimiento/web-legal
 resumen: Mide que terceros carga la web de verdad y declara eso y solo eso, en lugar de la lista heredada de la plantilla.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sops
-padre: infraestructura
+padre: infraestructura/custodia
 resumen: Cifra solo los valores del fichero de configuracion para poder versionarlo sin servidor de secretos.
 ---
 

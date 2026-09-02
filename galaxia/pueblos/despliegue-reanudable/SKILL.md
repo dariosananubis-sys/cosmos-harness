@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: despliegue-reanudable
-padre: infraestructura
+padre: infraestructura/despliegue
 resumen: Fases con dependencias que se reanudan sin repetir efectos y paran solas en el paso irreversible.
 ---
 

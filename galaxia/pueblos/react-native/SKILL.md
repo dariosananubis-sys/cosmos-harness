@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: react-native
-padre: moviles
+padre: moviles/marcos
 resumen: Reutiliza conocimiento y ecosistema de React web a cambio de un puente nativo.
 ---
 

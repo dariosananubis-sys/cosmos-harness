@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: dvc
-padre: cientifico
+padre: cientifico/reproducible
 resumen: Versiona datos y pesos fuera del repositorio y reejecuta solo la etapa que cambio.
 ---
 

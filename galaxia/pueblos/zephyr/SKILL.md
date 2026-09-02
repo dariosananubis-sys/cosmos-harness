@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: zephyr
-padre: embebidos
+padre: embebidos/firmware
 resumen: Tiempo real con cientos de placas soportadas, arbol de dispositivo y arranque firmado.
 ---
 

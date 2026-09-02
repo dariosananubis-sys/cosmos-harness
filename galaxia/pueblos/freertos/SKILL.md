@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: freertos
-padre: embebidos
+padre: embebidos/firmware
 resumen: El nucleo mas pequeno y mas desplegado: planificador, colas y semaforos, y nada mas alrededor.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pais
 nombre: backtesting
-padre: trading
+padre: trading/estrategia
 resumen: Probar la estrategia contra el pasado sin mentirse: por que el backtest gana y en real se pierde.
 ---
 

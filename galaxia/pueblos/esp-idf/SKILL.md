@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: esp-idf
-padre: embebidos
+padre: embebidos/firmware
 resumen: Framework del fabricante para el microcontrolador mas usado, con radio y bluetooth.
 ---
 

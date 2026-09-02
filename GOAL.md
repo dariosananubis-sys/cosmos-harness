@@ -47,7 +47,22 @@ Dos exigencias que el encargo fija y que no son negociables:
 
 ## 2. El principio rector (lo que de verdad importa)
 
-> **No se le pide al agente que gaste menos. Se elimina la razón para gastar.**
+> **No se le pide al agente que gaste menos. Se elimina la razón para gastar de más.**
+
+Y el matiz decide el proyecto entero, así que va antes que nada — corregido por Darío el
+2026-09-02: *«yo no te dije que se centre en mínimo coste, sino que no hubiese costes innecesarios,
+que es distinto»*.
+
+**Coste mínimo** y **cero coste innecesario** llevan a sitios opuestos. Si la métrica es el mínimo,
+el óptimo perfecto es un harness vacío: cero tokens, cero herramientas, cero utilidad. Un sistema
+que solo mide lo que gasta acaba premiando al que no tiene nada.
+
+Lo que se persigue es otra cosa: **que esté todo lo que hace falta, y nada que no lo haga**. Una
+herramienta que se usa está bien pagada aunque cueste; una que nadie invoca es cara aunque cueste
+poco. Por eso **lo que falta también es un fallo**, y por eso el presupuesto no es un objetivo a
+batir sino un techo que obliga a elegir.
+
+El listón, dicho por él: **el harness más completo que exista**. No el más barato.
 
 Una regla que dice «sé breve», «no leas ficheros enteros», «usa pocas tools» es una **exhortación**:
 depende de que el modelo se acuerde, y el modelo no se acuerda. Es la causa de que los harness

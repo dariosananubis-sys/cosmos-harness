@@ -438,6 +438,31 @@ MUTACIONES = (
         "tests.test_un_solo_veredicto.ElVeredictoEsTrivalente.test_medir_sale_1_cuando_la_raiz_del_arbol_no_existe",
         "sin comprobar la raiz, medir calla el motivo: sale rojo por el veredicto trivalente pero sin decir que el arbol no esta (B10)",
     ),
+    # --- Taxonomia C01/C03 (2026-09-02): las decisiones de contenido tambien tienen canario.
+    Mutacion(
+        "M51",
+        "galaxia/sistemas/ciberseguridad.md",
+        "  - blockchain\n",
+        "",
+        "tests.test_universo_navegable.ElGrafoUsaLlegaATodosSalvoLosTerminales.test_ningun_oficio_sin_citar_salvo_los_declarados",
+        "quitando una arista, un oficio vuelve a quedarse sin que nadie lo cite y el mapa deja de llegar a el (C01)",
+    ),
+    Mutacion(
+        "M52",
+        "spec/UNIVERSO.md",
+        "# El universo — 22 oficios",
+        "# El universo — 21 oficios",
+        "tests.test_universo_navegable.ElCardinalDelTituloEsElDelDisco.test_universo_anuncia_los_oficios_que_hay",
+        "el cardinal del titulo vuelve a escribirse a mano y a envejecer sin que nada lo diga",
+    ),
+    Mutacion(
+        "M53",
+        "galaxia/pueblos/mutmut/SKILL.md",
+        "padre: refactorizacion/mutacion",
+        "padre: rendimiento",
+        "tests.test_universo_navegable.LaParticionDeRendimientoNoSeRefunde.test_los_dos_oficios_existen_y_cada_mitad_esta_en_el_suyo",
+        "recolgar una herramienta de calidad en rendimiento deshace en silencio la particion decidida (C03)",
+    ),
 )
 
 

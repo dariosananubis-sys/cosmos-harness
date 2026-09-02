@@ -606,6 +606,24 @@ COMPROBACIONES: tuple[Comprobacion, ...] = (
 )
 
 
+def codigos_comprobados() -> tuple[str, ...]:
+    """Los códigos que `validar` recorre, sacados de las propias comprobaciones.
+
+    La ayuda del CLI y el README decían «E00-E19» con E20 ya existiendo, y el
+    desfase estaba anotado en un parte de commit desde hacía días sin cerrarse
+    (F14). Un número copiado a mano envejece en silencio: se genera.
+    """
+
+    return tuple(sorted(f"E{c.__name__.removeprefix('_comprobar_e')}" for c in COMPROBACIONES))
+
+
+def rango_comprobado() -> str:
+    """`E00–E20`: el intervalo que la ayuda muestra, sin escribirlo a mano."""
+
+    codigos = codigos_comprobados()
+    return f"{codigos[0]}–{codigos[-1]}"
+
+
 def validar_arbol(
     arbol: Arbol,
     *,

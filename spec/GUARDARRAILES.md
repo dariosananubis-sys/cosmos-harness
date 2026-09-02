@@ -75,15 +75,30 @@ evento, así que fiarlo todo a ella deja mudo a un guard que no ha hablado nunca
 
 **G03 — anti-autocertificación.** El índice, la vista plana, el manifiesto, el registro de la
 válvula y las marcas de lectura valen porque los produce COSMOS. Escritos a mano ponen en verde un
-árbol que no lo está. `cosmos generar` y `cosmos compilar` siguen pudiendo escribirlos: el guard
-reconoce al productor autorizado por el programa que arranca la orden.
+árbol que no lo está.
 
-Para leer un bloque de shell, **cada orden se juzga por separado**, respetando el entrecomillado.
-Sin eso, `cosmos generar && echo falso >> COSMOS.md` cuela entero detrás del permiso de la primera
-orden. Y el reconocimiento de qué escribe una orden es **una función con alcance declarado**
-(redirecciones, `tee`, `truncate`, `sed -i`, destino de `cp`/`mv`/`install`/`ln`/`rsync`), no una
-regex que crece con cada «esto se me escapaba»: lo que escriba un intérprete que la orden arranque
-queda fuera y se dice, porque un límite declarado se puede tener en cuenta y uno oculto no.
+**No hay productor autorizado, y el hueco no se rellena con otro criterio.** Lo hubo: el guard
+eximía la orden entera si el programa casaba `python|py|cosmos` y la palabra `cosmos` aparecía
+suelta entre sus piezas, así que `python3 x.py cosmos > COSMOS.md` se llevaba permiso sobre TODAS
+las rutas de veredicto. No existe criterio robusto que poner en su lugar —lo único que el guard ve
+es una cadena de shell, y todo lo que se puede escribir en una cadena de shell se puede falsificar—
+y **tampoco hacía falta**: `cosmos generar` y `cosmos compilar` escriben desde dentro de Python,
+nunca como destino declarado de la orden, así que pasan por no declarar ninguno, no por un permiso.
+Lo único que la excepción añadía era dejar pasar `cosmos medir > COSMOS.md`, que es exactamente lo
+que G03 existe para impedir.
+
+Para leer un bloque de shell, **cada orden se juzga por separado**, respetando el entrecomillado,
+**los operadores compuestos** (`&>`, `&>>`, `>|`, `>&`, `|&`) y la continuación de línea: partiendo
+por `&` y `|` a secas, `echo x &> COSMOS.md` se rompía en dos trozos y ninguno declaraba destino. Y
+el reconocimiento de qué escribe una orden es **una función con alcance declarado** —redirecciones,
+incluida la forma POSIX `> fichero orden` con la redirección delante; `tee`, `truncate`, `sed -i`,
+`dd of=`, y el destino de `cp`/`mv`/`install`/`ln`/`rsync`—, no una regex que crece con cada «esto
+se me escapaba».
+
+Dos límites, declarados en vez de fingidos. Lo que escriba un intérprete que la orden arranque queda
+fuera (`python -c "open(...)"` es indecidible sin ejecutar). Y **un destino que se calcula al
+ejecutar** —`$(...)`, comillas invertidas, `$VAR`— **se deniega**: tampoco se puede resolver, y
+dejarlo pasar sería fingir cobertura. Quien lo necesite escribe la ruta literal o abre la válvula.
 
 **G04 — «lo he leído» pasa a ser un hecho comprobable.** La marca ata sesión, ruta y SHA-256 del
 contenido: otra ventana no la presta, y editar el documento invalida todas las lecturas anteriores.
@@ -105,11 +120,34 @@ De paso, una salida de más de 50 KB o 2.000 líneas se aparta a fichero y se en
 salida entra íntegra en el contexto de todos los turnos siguientes, que es exactamente lo que COSMOS
 mide y limita.
 
+**Qué canales cubre, exactamente.** Cubría `output`/`stdout` de `Bash` y nada más: `stderr` —que es
+justo donde salen las fugas típicas, un `curl -v`, un `git push` con el token en la URL del remoto,
+una traza con el entorno volcado— entraba en claro y sin contar para el desvío de salidas grandes.
+
+| Canal | Estado |
+|---|---|
+| `Bash` · `output`, `stdout`, `stderr` | **Tapado**, y el texto redactado vuelve por los mismos canales que lo trajeron |
+| `Read` | **Tapado**: el cableado enruta `PostToolUse` a `Bash` y `Read` |
+| `Grep`, `Glob`, `Task` | El guard los tapa **si el evento llega**, pero hoy el cableado no los enruta (`EVENTOS_SESION` filtra `PostToolUse` por `Bash\|Read`). **No cubiertos en la práctica** |
+| Respuesta anidada (`Read` con `file.content`, `Task` con bloques) | Se **lee** para decidir y avisar; que la sustitución llegue depende de que el runtime honre `updatedToolOutput` fuera de `Bash`, y eso no se puede comprobar desde aquí |
+
+Las dos últimas filas son **límite declarado, no cobertura**. La tercera se cierra ampliando el
+filtro de `EVENTOS_SESION`; la cuarta, el día que se pueda medir el runtime — hasta entonces se dice,
+igual que se dijo con `exit2`. Una cobertura declarada de más tranquiliza sin proteger, que es peor
+que una honesta de menos.
+
 ### Válvula: los cinco se saltan igual que las invariantes
 
 `cosmos saltar G03 --motivo "..." --caduca 7d`. Mismas reglas: acotado a un código, motivo
 obligatorio, caducidad de 30 días como máximo, registro que solo crece, y ninguna salida dice
 «verde» a secas con un salto vivo. Un guard sin válvula acaba arrancado de raíz un viernes.
+
+**Acotada quiere decir que abrir una no arranca otra.** G04 vivía detrás del cortacircuitos de G05,
+así que saltar la *redacción* dejaba al marcado de lectura sin poder crear una sola marca y, con
+`lecturas_exigidas` puesto, denegando **toda** escritura para siempre. Una válvula que obliga a
+abrir un segundo guard no es acotada — y el que se abre de propina es justo el que impide
+autocertificarse. Cada mecanismo mira su propio código y nada más; la marca de lectura se registra
+incluso con G04 saltado, porque anotar un hecho no cuesta nada y el salto caduca antes que la sesión.
 
 ### Dos formas de salida, un solo cerebro
 
@@ -179,29 +217,55 @@ de duplicación compara frases **literales** de más de 70 caracteres. En ese re
 están explicadas tres veces cada una —6.343 bytes en canales siempre cargados— y el detector dice
 «cero duplicación», porque las tres versiones están **parafraseadas**.
 
-Es un fallo perfectamente comprensible: nadie copia y pega dos veces la misma política. Se
-reescribe con otras palabras, en otro sitio, meses después, sin recordar que ya estaba. Por eso la
-duplicación real de un harness es **casi siempre** paráfrasis, y por eso un detector literal está
-ciego justo donde hace falta que vea.
+Es un fallo perfectamente comprensible, y tiene dos formas que conviene no mezclar. La primera es
+la **reedición**: la misma política, reescrita al copiarla a otro sitio, cambiando el orden, el
+conector y algún sinónimo, pero conservando tramos enteros de la frase original. La segunda es la
+**reformulación**, redactada de cero meses después y sin recordar que ya estaba, que no comparte ni
+una palabra rara con la primera.
+
+E17 existe contra la primera, que es la que un detector literal deja pasar por un carácter de
+diferencia. La segunda queda fuera, y más abajo se dice con números por qué.
 
 COSMOS añade una invariante a las 16 de `VALIDADOR.md`:
 
 > **E17** — Dos nodos que están simultáneamente en el contexto de entrada no pueden solaparse por
 > encima del umbral configurado.
 
-Mecanismo, con biblioteca estándar y sin red:
+Mecanismo, con biblioteca estándar y sin red. La unidad de comparación es **la afirmación**, no el
+documento: dos nodos pueden hablar del mismo tema sin repetir nada, y lo que molesta es la frase
+dicha dos veces.
 
-1. Normalizar: minúsculas, sin acentos, sin puntuación, sin palabras vacías del idioma.
-2. Trocear en **n-gramas de 4 palabras** (shingles).
-3. Comparar por similitud de Jaccard, por pares, **solo entre los nodos siempre cargados**.
-4. Por encima de `umbral_solapamiento` (por defecto 0,25), error con las frases que más pesan.
+1. Partir el cuerpo en frases y quedarse con las de **4 o más palabras con contenido**
+   (`MINIMO_PALABRAS_AFIRMACION`). Una frase corta no afirma nada que merezca vigilarse.
+2. Normalizar cada una: minúsculas, sin acentos, sin puntuación, sin palabras vacías del idioma, y
+   reducirla a un **conjunto** de palabras — el orden no cuenta, porque reordenar es la forma más
+   barata de esquivar un detector literal.
+3. Comparar por similitud de Jaccard **frase contra frase**, por pares y **solo entre los nodos
+   siempre cargados**, exigiendo al menos 3 palabras en común (`MINIMO_PALABRAS_COMPARTIDAS`) para
+   que dos frases con un par de palabras banales no puntúen.
+4. Se queda con el par que más se parece. Por encima de `umbral_solapamiento` (por defecto 0,25),
+   error citando las dos frases.
 
-Los n-gramas cazan la paráfrasis que la comparación literal no ve, porque una reescritura conserva
-casi siempre tramos de cuatro palabras. No caza una reformulación completa con vocabulario distinto
-—eso necesitaría semántica, y la semántica necesita un modelo, y un modelo cuesta dinero, que este
-proyecto no gasta (`GOAL.md` §5). Se dice claramente en la salida y en la documentación: **E17 caza
-la paráfrasis, no la reformulación total.** Un límite declarado se puede tener en cuenta; uno
-oculto, no.
+Comparar conjuntos de palabras caza la reedición que la comparación literal no ve, porque reordenar
+y cambiar un conector no cambia el conjunto. Medido con la propia función de E17, umbral 0,25
+(`tests/test_e17_limite.py` reproduce la tabla):
+
+| Similitud | Veredicto | Par |
+|---|---|---|
+| 1,000 | salta | copia literal |
+| 0,750 | salta | reedición: sinónimos y otro orden |
+| 0,000 | **pasa** | «Antes de tocar producción se deja escrito el camino de vuelta» / «No se modifica un entorno vivo sin haber redactado antes cómo deshacerlo» |
+| 0,000 | **pasa** | «Los secretos jamás se escriben en claro dentro del repositorio» / «Las credenciales nunca van sin cifrar en el código versionado» |
+
+Las dos últimas filas son la misma política dicha con otro vocabulario, y **E17 no las ve**: sin una
+sola palabra con contenido en común no hay nada que intersecar, y su similitud es exactamente cero — no baja,
+es cero. Cazarlas necesitaría semántica, la semántica necesita un modelo y un modelo cuesta dinero,
+que este proyecto no gasta (`GOAL.md` §5).
+
+Así que el límite se declara con su forma exacta, no como un «puede que se escape algo»: **E17 caza
+la reedición, no la reformulación con vocabulario distinto.** Contra la segunda no hay invariante,
+hay una costumbre —escribir una política en un solo sitio y enlazarla— y el aviso de que ahí el
+sistema no vigila. Un límite declarado se puede tener en cuenta; uno oculto, no.
 
 La comparación se hace **solo entre los siempre-cargados**. Dos pueblos de sistemas distintos pueden
 parecerse todo lo que quieran: nunca coinciden en contexto, así que su parecido no cuesta nada. El
@@ -226,3 +290,7 @@ coste solo existe cuando las dos copias se pagan a la vez, y ahí es donde mira 
    en los dos formatos de salida. Todo lo demás llama a funciones; esto prueba que el hook corre.
 10. Un test de que `cosmos desenganchar` devuelve el fichero de ajustes **byte a byte** cuando
     nadie tocó el resto, y de que no pisa las entradas de otro.
+11. **Una prueba por forma de evasión conocida, nunca una genérica.** Siete formas de shell
+    esquivaban G03 —`&>`, la redirección delante del programa, `>|`, la continuación de línea, la
+    palabra `cosmos` de argumento, la sustitución de órdenes y `dd of=`— y ninguna estaba cubierta.
+    Un test genérico se pone verde con la primera arreglada y deja las otras seis abiertas.

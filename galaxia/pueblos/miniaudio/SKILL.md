@@ -5,9 +5,7 @@ padre: juegos
 resumen: Un solo fichero en C y cero dependencias para reproducir y capturar sonido en cualquier plataforma.
 ---
 
-https://github.com/mackron/miniaudio - dominio publico (Unlicense) o MIT-0 a eleccion, licencia
-doble declarada en el propio fichero (la API de GitHub devuelve `NOASSERTION`) - 7.216 estrellas -
-ultimo push 2026-08-19 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/mackron/miniaudio · dominio publico (Unlicense) o MIT-0 a eleccion, licencia doble declarada en el propio fichero (la API de GitHub devuelve `NOASSERTION`) · 7.216★ · último push 2026-08-19 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 curl -O https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h

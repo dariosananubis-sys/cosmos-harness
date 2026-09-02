@@ -5,12 +5,12 @@ padre: agentes-ia/coste
 resumen: Pregunta la cuota que queda al servicio en vez de adivinarla, y senala el pico dentro de la ventana.
 ---
 
-`cosecha/quota-oficial.py` y `cosecha/quota-peak.py` — herramientas propias, no de GitHub.
+`scripts/quota-oficial.py` y `scripts/quota-peak.py` — herramientas propias, no de GitHub.
 
 ```bash
-python3 cosecha/quota-oficial.py            # % real de la ventana de 5 h y de la semanal
-python3 cosecha/quota-peak.py               # pico en ventana rodante de 5 h
-python3 cosecha/quota-peak.py --horas 168   # pico semanal
+python3 scripts/quota-oficial.py            # % real de la ventana de 5 h y de la semanal
+python3 scripts/quota-peak.py               # pico en ventana rodante de 5 h
+python3 scripts/quota-peak.py --horas 168   # pico semanal
 ```
 
 `quota-oficial.py` pregunta a la fuente autoritativa (`GET

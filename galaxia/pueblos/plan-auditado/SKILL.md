@@ -5,12 +5,12 @@ padre: agentes-ia/construccion
 resumen: Audita el plan antes de creerselo: campos, tipos, dependencias que existen y rastro de lo que dice estar hecho.
 ---
 
-`cosecha/audit-harness.sh` — herramienta propia, no de GitHub. Solo lectura.
+`scripts/audit-harness.sh` — herramienta propia, no de GitHub. Solo lectura.
 
 ```bash
-chmod +x cosecha/audit-harness.sh
-cosecha/audit-harness.sh                      # audita los proyectos del repo actual
-cosecha/audit-harness.sh ruta/al/proyecto     # solo uno
+chmod +x scripts/audit-harness.sh
+scripts/audit-harness.sh                      # audita los proyectos del repo actual
+scripts/audit-harness.sh ruta/al/proyecto     # solo uno
 ```
 
 Valida `feature_list.json` como un contrato: campos obligatorios, tipos, estado dentro de los

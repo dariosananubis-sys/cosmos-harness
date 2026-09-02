@@ -5,8 +5,7 @@ padre: blockchain
 resumen: Se le declara la invariante y genera llamadas hasta romperla, ejecutando de verdad.
 ---
 
-https://github.com/crytic/echidna - AGPL-3.0 - 3.172 estrellas - ultimo push 2026-08-31 (comprobado
-por API de GitHub el 2026-09-01). De Trail of Bits.
+https://github.com/crytic/echidna · AGPL-3.0 · 3.172★ · último push 2026-08-31 (comprobado por API de GitHub el 2026-09-01). De Trail of Bits.
 
 ```bash
 brew install echidna

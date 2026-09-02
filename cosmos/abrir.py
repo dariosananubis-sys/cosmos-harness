@@ -21,6 +21,7 @@ import json
 from dataclasses import dataclass, field
 
 from .modelo import Arbol, NIVELES_AGUA, NIVELES_SOLIDOS, Nodo, cuerpo
+from .validar import _glob_a_regex
 
 
 @dataclass
@@ -41,8 +42,11 @@ class Apertura:
                 {"ruta": h.referencia, "nivel": h.cosmos, "resumen": h.resumen}
                 for h in self.hijos
             ],
+            # Nombre y resumen, nunca el cuerpo: describir es una cosa y cargar es otra.
+            # Volcar los seis mares eran 1.499 tokens por cada `abrir`, que es justo el
+            # «cargarlo todo por si acaso» contra el que existe el proyecto (GOAL §2).
             "agua": [
-                {"nombre": f"{a.cosmos}/{a.nombre}", "cuerpo": cuerpo(a)} for a in self.agua
+                {"nombre": f"{a.cosmos}/{a.nombre}", "resumen": a.resumen} for a in self.agua
             ],
         }
 
@@ -89,21 +93,55 @@ def resolver(arbol: Arbol, ruta: str) -> Nodo:
     raise NodoNoEncontrado(f"no existe '{ruta}'.{pista}")
 
 
-def abrir(arbol: Arbol, ruta: str, *, con_agua: bool = False) -> Apertura:
+def agua_que_moja(arbol: Arbol, ruta_fichero: str | None) -> list[Nodo]:
+    """El agua que alcanza a UN fichero concreto, por su glob real.
+
+    `moja` es un glob de **ficheros** —`**/tests/**`, `**/*.tf`—, no una etiqueta de
+    oficio. El primer intento filtraba por nicho (`nicho in str(moja)`) y devolvia los
+    seis mares para cualquier nodo, porque todos los `moja` empiezan por `**/` y la
+    comprobacion de subcadena siempre acertaba. Dos oficios sin nada en comun recibian
+    identica lista.
+
+    Sin fichero no hay respuesta: que se toca es lo unico que decide que agua moja, y
+    adivinarlo es como devolverlo todo. Los oceanos no se listan porque mojan siempre —
+    ya estan cargados antes de abrir nada.
+    """
+
+    if not ruta_fichero:
+        return []
+
+    relativa = ruta_fichero[2:] if ruta_fichero.startswith("./") else ruta_fichero
+    alcanzadas = []
+    for nodo in arbol.nodos:
+        if nodo.cosmos not in NIVELES_AGUA or nodo.cosmos == "oceano":
+            continue
+        patrones = [p for p in nodo.datos.get("moja", []) if isinstance(p, str)]
+        if any(_glob_a_regex(patron).match(relativa) for patron in patrones):
+            alcanzadas.append(nodo)
+    return sorted(alcanzadas, key=lambda n: (n.cosmos, n.nombre))
+
+
+def abrir(arbol: Arbol, ruta: str, *, tocando: str | None = None) -> Apertura:
     """Devuelve lo que hay que leer para trabajar en ese nodo, y nada más.
 
     El cuerpo del nodo, el de su estrella si la tiene (ahí está lo que es cierto en
     ese oficio y falso fuera), y **los nombres** de sus hijos — nombres, no cuerpos:
     describir a los hijos es cargarlos, que es lo que el `GOAL.md` prohíbe.
+
+    Con `tocando`, ademas, **los nombres** del agua que alcanza a ese fichero concreto.
     """
 
     nodo = resolver(arbol, ruta)
 
+    # `ilumina` lleva la ruta completa y solo se compara con la ruta completa. Aceptar
+    # tambien el nombre suelto reabria la colision que NUCLEO §1 cerro: una estrella que
+    # ilumina `calidad` se habria enganchado a cualquier `.../calidad` del arbol. La
+    # comodidad de escribir el nombre ya la da `resolver`, que trata la duda como error.
     estrella = next(
         (
             n
             for n in arbol.nodos
-            if n.cosmos == "estrella" and n.datos.get("ilumina") in {nodo.referencia, nodo.nombre}
+            if n.cosmos == "estrella" and n.datos.get("ilumina") == nodo.referencia
         ),
         None,
     )
@@ -117,21 +155,9 @@ def abrir(arbol: Arbol, ruta: str, *, con_agua: bool = False) -> Apertura:
         key=lambda n: n.nombre,
     )
 
-    agua: list[Nodo] = []
-    if con_agua:
-        nicho = nodo.referencia.split("/", 1)[0]
-        agua = sorted(
-            (
-                n
-                for n in arbol.nodos
-                if n.cosmos in NIVELES_AGUA
-                and n.cosmos != "oceano"
-                and any(nicho in str(m) or "**" in str(m) for m in n.datos.get("moja", []))
-            ),
-            key=lambda n: n.nombre,
-        )
-
-    return Apertura(nodo=nodo, estrella=estrella, hijos=hijos, agua=agua)
+    return Apertura(
+        nodo=nodo, estrella=estrella, hijos=hijos, agua=agua_que_moja(arbol, tocando)
+    )
 
 
 def formatear(ap: Apertura) -> str:
@@ -153,9 +179,10 @@ def formatear(ap: Apertura) -> str:
         lineas.append("")
 
     if ap.agua:
-        lineas.append("  ── agua que moja este trabajo ──")
+        lineas.append("  ── agua que moja ese fichero ──")
         for a in ap.agua:
-            lineas.extend([f"    {a.cosmos}/{a.nombre}", f"      {cuerpo(a)}", ""])
+            lineas.extend([f"    {a.cosmos}/{a.nombre}", f"      {a.resumen}"])
+        lineas.append("")
 
     return "\n".join(lineas).rstrip() + "\n"
 

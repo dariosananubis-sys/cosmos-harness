@@ -5,7 +5,7 @@ padre: moviles
 resumen: Un solo codigo compilado a binario nativo que dibuja cada pixel con su propio motor.
 ---
 
-https://github.com/flutter/flutter - BSD-3-Clause - 178.735 estrellas - ultimo push 2026-09-01
+https://github.com/flutter/flutter · BSD-3-Clause · 178.735★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

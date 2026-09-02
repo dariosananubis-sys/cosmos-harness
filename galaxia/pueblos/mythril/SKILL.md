@@ -5,7 +5,7 @@ padre: blockchain
 resumen: Ejecucion simbolica sobre el codigo maquina: sirve cuando del contrato ajeno solo hay lo que esta desplegado.
 ---
 
-https://github.com/ConsenSysDiligence/mythril - MIT - 4.265 estrellas - ultimo push 2026-04-27
+https://github.com/ConsenSysDiligence/mythril · MIT · 4.265★ · último push 2026-04-27 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). Cuatro meses sin movimiento: vivo, pero no es de los
 que publican cada semana.
 

@@ -5,8 +5,7 @@ padre: moviles
 resumen: Reutiliza conocimiento y ecosistema de React web a cambio de un puente nativo.
 ---
 
-https://github.com/react/react-native - MIT - 126.472 estrellas - ultimo push 2026-09-01 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/react/react-native · MIT · 126.472★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 **Ojo con la URL**: el repositorio canonico ya NO es `facebook/react-native` — Meta movio la
 organizacion y ese camino responde con una redireccion permanente. Cualquier documento que enlace al

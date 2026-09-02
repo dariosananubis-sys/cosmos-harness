@@ -5,8 +5,7 @@ padre: blockchain
 resumen: Los estandares ya auditados: reescribirlos es como se mete un fallo evitable.
 ---
 
-https://github.com/OpenZeppelin/openzeppelin-contracts - MIT - 27.235 estrellas - ultimo push
-2026-09-01 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/OpenZeppelin/openzeppelin-contracts · MIT · 27.235★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 forge install OpenZeppelin/openzeppelin-contracts     # con Foundry

@@ -5,7 +5,7 @@ padre: juegos
 resumen: Editor de sprites y animacion con binarios gratis de verdad, no solo el codigo.
 ---
 
-https://github.com/LibreSprite/LibreSprite - GPL-2.0 - 8.323 estrellas - ultimo push 2026-06-15
+https://github.com/LibreSprite/LibreSprite · GPL-2.0 · 8.323★ · último push 2026-06-15 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). **El push enganya y hay que mirar las versiones, no los
 commits**: la ultima estable es la **v1.1, de 2023-12-03**, y la v1.2 (2025-03-02) sigue marcada como
 prelanzamiento. Casi dos anos sin binario estable, con el codigo moviendose.

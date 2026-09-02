@@ -5,15 +5,15 @@ padre: saas
 resumen: Validadores puros de entrada: identificador, slug, URL segura, subcarpeta sin travesia e identidad fiscal.
 ---
 
-`cosecha/input-validators.js` y `cosecha/nif-cif-validator.js` — herramientas propias, no hay
+`scripts/input-validators.js` y `scripts/nif-cif-validator.js` — herramientas propias, no hay
 repositorio público. Las rutas SON la referencia. Sin dependencias (solo `node:path`), puras y
 testeables.
 
 ```bash
 node --input-type=module -e "
 import { isValidUuid, isValidSlug, isSafeHttpsUrl, validateBatchRange, safeSubdir }
-  from './cosecha/input-validators.js';
-import { normalizeNif, resolveSlugFromList } from './cosecha/nif-cif-validator.js';
+  from './scripts/input-validators.js';
+import { normalizeNif, resolveSlugFromList } from './scripts/nif-cif-validator.js';
 
 console.log(isValidSlug('cliente-ejemplo'));                 // true
 console.log(isSafeHttpsUrl('javascript:alert(1)'));          // false

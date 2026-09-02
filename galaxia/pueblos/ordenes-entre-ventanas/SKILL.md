@@ -5,13 +5,13 @@ padre: agentes-ia/herramientas
 resumen: Entrega ordenes de la interfaz interactiva a las OTRAS ventanas abiertas; la propia va siempre la ultima.
 ---
 
-`cosecha/mandar-a-terminales.py` — herramienta propia, no de GitHub. macOS + VS Code, por AppleScript.
+`scripts/mandar-a-terminales.py` — herramienta propia, no de GitHub. macOS + VS Code, por AppleScript.
 
 ```bash
-python3 cosecha/mandar-a-terminales.py --listar
-python3 cosecha/mandar-a-terminales.py --calibrar                       # 1 vez por sesión
-python3 cosecha/mandar-a-terminales.py --enviar "/pre-compact" --mi-posicion 3 --dry-run
-python3 cosecha/mandar-a-terminales.py --enviar "/pre-compact" --mi-posicion 3
+python3 scripts/mandar-a-terminales.py --listar
+python3 scripts/mandar-a-terminales.py --calibrar                       # 1 vez por sesión
+python3 scripts/mandar-a-terminales.py --enviar "/pre-compact" --mi-posicion 3 --dry-run
+python3 scripts/mandar-a-terminales.py --enviar "/pre-compact" --mi-posicion 3
 ```
 
 Hay órdenes que **solo existen dentro de la sesión interactiva** (`/compact`, `/clear`, `/resume`,

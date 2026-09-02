@@ -5,26 +5,26 @@ padre: cumplimiento
 resumen: Mide que terceros carga la web de verdad y declara eso y solo eso, en lugar de la lista heredada de la plantilla.
 ---
 
-`cosecha/cookies_catalogo.py`, `legales-bloque-cookies.py`, `legales-bloque-rest.py`,
+`scripts/cookies_catalogo.py`, `legales-bloque-cookies.py`, `legales-bloque-rest.py`,
 `legales-cookies-complianz.py` y `legales-purga-servicios-complianz.py` — herramientas propias, no
 hay repositorio público. Las rutas SON la referencia.
 
 ```bash
 # 1. medir y escribir el bloque declarativo (con acceso al servidor)
-python3 cosecha/legales-bloque-cookies.py <slug> --ver
-python3 cosecha/legales-bloque-cookies.py <slug> --terceros "Google Analytics" --aplicar
+python3 scripts/legales-bloque-cookies.py <slug> --ver
+python3 scripts/legales-bloque-cookies.py <slug> --terceros "Google Analytics" --aplicar
 
 # 1-bis. el mismo texto sin SSH, solo por la API del gestor
-python3 cosecha/legales-bloque-rest.py <dominio> --terceros "Google Analytics" \
+python3 scripts/legales-bloque-rest.py <dominio> --terceros "Google Analytics" \
   --tabla "_ga,_ga_XXXXXXX" --aplicar
 #     credenciales en ~/.wp-sites/rest.json: {"<dominio>": {"base","user","app"}}
 
 # 2. rellenar finalidad, caducidad y titularidad de cada cookie
-python3 cosecha/legales-cookies-complianz.py <slug> --ver
-python3 cosecha/legales-cookies-complianz.py <slug> --aplicar
+python3 scripts/legales-cookies-complianz.py <slug> --ver
+python3 scripts/legales-cookies-complianz.py <slug> --aplicar
 
 # 3. quitar los servicios que la web NO carga
-python3 cosecha/legales-purga-servicios-complianz.py <slug> \
+python3 scripts/legales-purga-servicios-complianz.py <slug> \
   --mantener "WordPress,Complianz,Elementor,Google Analytics" --purgar-servicios --aplicar
 ```
 

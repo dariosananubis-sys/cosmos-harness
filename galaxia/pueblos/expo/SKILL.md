@@ -5,8 +5,7 @@ padre: moviles
 resumen: Capa gestionada sobre React Native: recarga en caliente, actualizaciones por aire y firma sin cadena local.
 ---
 
-https://github.com/expo/expo - MIT - 51.948 estrellas - ultimo push 2026-09-01 (comprobado por API
-de GitHub el 2026-09-01).
+https://github.com/expo/expo · MIT · 51.948★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 npx create-expo-app@latest MiApp

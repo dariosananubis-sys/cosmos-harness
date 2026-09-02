@@ -5,7 +5,7 @@ padre: saas
 resumen: Entrada por cookie a un panel interno con sesion aleatoria revocable, sin montar un servidor de identidad.
 ---
 
-`cosecha/docker-secret-cookie-auth.js` — herramienta propia, no hay repositorio público. La ruta ES
+`scripts/docker-secret-cookie-auth.js` — herramienta propia, no hay repositorio público. La ruta ES
 la referencia. Node 18+, sin dependencias (`node:crypto` y `node:http` nativos).
 
 ```bash
@@ -16,7 +16,7 @@ export APP_NAME="PANEL" APP_SESSION_TTL_MS=2592000000
 
 node --input-type=module -e "
 import http from 'node:http';
-import { handleAuth } from './cosecha/docker-secret-cookie-auth.js';
+import { handleAuth } from './scripts/docker-secret-cookie-auth.js';
 http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (handleAuth(req, res, url) === 'handled') return;   // login/logout ya respondidos

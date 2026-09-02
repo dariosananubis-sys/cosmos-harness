@@ -5,8 +5,7 @@ padre: cientifico
 resumen: Cada regla declara sus entradas y salidas y fija su propio entorno paso a paso.
 ---
 
-https://github.com/snakemake/snakemake - MIT - 2.854 estrellas - ultimo push 2026-08-31 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/snakemake/snakemake · MIT · 2.854★ · último push 2026-08-31 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pipx install snakemake

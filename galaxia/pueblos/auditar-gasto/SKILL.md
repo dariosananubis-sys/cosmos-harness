@@ -5,11 +5,11 @@ padre: agentes-ia/coste
 resumen: Busca en la configuracion las fugas conocidas: reglas sin filtro de ruta y servidores conectados sin usarse.
 ---
 
-`cosecha/auditar-gasto.py` — herramienta propia, no de GitHub. Solo lectura salvo con `--arreglar`.
+`scripts/auditar-gasto.py` — herramienta propia, no de GitHub. Solo lectura salvo con `--arreglar`.
 
 ```bash
-python3 cosecha/auditar-gasto.py              # audita; sale 1 si hay fuga, 0 si limpio
-python3 cosecha/auditar-gasto.py --arreglar   # vuelve a apagar los plugins de la lista
+python3 scripts/auditar-gasto.py              # audita; sale 1 si hay fuga, 0 si limpio
+python3 scripts/auditar-gasto.py --arreglar   # vuelve a apagar los plugins de la lista
 ```
 
 Revisa la configuración del arnés contra fugas ya diagnosticadas: enganches de `UserPromptSubmit`,

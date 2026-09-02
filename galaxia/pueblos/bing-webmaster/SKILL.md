@@ -5,20 +5,20 @@ padre: visibilidad
 resumen: El otro buscador, el que alimenta a varios asistentes de IA: alta, envio de URL y de mapa del sitio.
 ---
 
-`cosecha/bing-webmaster.py` — herramienta propia, no hay repositorio público. La ruta ES la
+`scripts/bing-webmaster.py` — herramienta propia, no hay repositorio público. La ruta ES la
 referencia. Consola de la API REST de Bing Webmaster Tools
 (https://learn.microsoft.com/en-us/bingwebmaster/getting-started).
 
 ```bash
 export BING_API_KEY=<CLAVE_API>        # una por cuenta, desde la interfaz de Bing
 
-python3 cosecha/bing-webmaster.py ping
-python3 cosecha/bing-webmaster.py add-site https://ejemplo.test/
-python3 cosecha/bing-webmaster.py verify https://ejemplo.test/          # tras inyectar el meta
-python3 cosecha/bing-webmaster.py submit-feed https://ejemplo.test/ https://ejemplo.test/sitemap_index.xml
-python3 cosecha/bing-webmaster.py submit-url  https://ejemplo.test/ https://ejemplo.test/contacto/
-python3 cosecha/bing-webmaster.py quota https://ejemplo.test/
-python3 cosecha/bing-webmaster.py url-info https://ejemplo.test/ https://ejemplo.test/contacto/
+python3 scripts/bing-webmaster.py ping
+python3 scripts/bing-webmaster.py add-site https://ejemplo.test/
+python3 scripts/bing-webmaster.py verify https://ejemplo.test/          # tras inyectar el meta
+python3 scripts/bing-webmaster.py submit-feed https://ejemplo.test/ https://ejemplo.test/sitemap_index.xml
+python3 scripts/bing-webmaster.py submit-url  https://ejemplo.test/ https://ejemplo.test/contacto/
+python3 scripts/bing-webmaster.py quota https://ejemplo.test/
+python3 scripts/bing-webmaster.py url-info https://ejemplo.test/ https://ejemplo.test/contacto/
 ```
 
 El otro buscador **importa más de lo que su cuota de mercado sugiere**, porque parte de los asistentes

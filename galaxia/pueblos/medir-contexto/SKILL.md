@@ -5,13 +5,13 @@ padre: agentes-ia/coste
 resumen: Lo que saben las transcripciones: cuanto costo la sesion, que entro de mas y que comandos se ejecutaron.
 ---
 
-`cosecha/medir-contexto-claude.py`, `cosecha/barrido-transcripts.py` y `cosecha/cc-history.sh` — tres
+`scripts/medir-contexto-claude.py`, `scripts/barrido-transcripts.py` y `scripts/cc-history.sh` — tres
 lecturas de la misma fuente (los `.jsonl` de `~/.claude/projects`). Herramientas propias, no de GitHub.
 
 ```bash
-python3 cosecha/medir-contexto-claude.py --json > antes.json   # báscula; repetir después del cambio
-python3 cosecha/barrido-transcripts.py /tmp/dias --proyecto <carpeta-del-proyecto> --dias 7
-chmod +x cosecha/cc-history.sh && cosecha/cc-history.sh --global | grep rsync
+python3 scripts/medir-contexto-claude.py --json > antes.json   # báscula; repetir después del cambio
+python3 scripts/barrido-transcripts.py /tmp/dias --proyecto <carpeta-del-proyecto> --dias 7
+chmod +x scripts/cc-history.sh && scripts/cc-history.sh --global | grep rsync
 ```
 
 El medidor deduplica por `requestId` (aparece 3-4 veces en el `.jsonl`) y separa **crear caché** de

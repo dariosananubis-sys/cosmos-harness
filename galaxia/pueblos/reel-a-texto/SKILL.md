@@ -7,10 +7,10 @@ resumen: Deja un video publicado en transcripcion mas fotogramas clave, que es l
 
 Herramienta propia, no publica. Tres guiones en la cosecha de este arbol:
 
-- `cosecha/analyze-reel.sh` — la tuberia entera: descarga, extrae el audio, transcribe en la propia
+- `scripts/analyze-reel.sh` — la tuberia entera: descarga, extrae el audio, transcribe en la propia
   maquina y saca cinco fotogramas repartidos por la duracion.
-- `cosecha/extract_frames.py` — solo los fotogramas equiespaciados, cuando ya hay transcripcion.
-- `cosecha/ig-dl.sh` — descarga en cascada para las redes que no dejan bajar sin sesion: cookie del
+- `scripts/extract_frames.py` — solo los fotogramas equiespaciados, cuando ya hay transcripcion.
+- `scripts/ig-dl.sh` — descarga en cascada para las redes que no dejan bajar sin sesion: cookie del
   navegador, luego dos descargadores, y raspado como ultimo recurso.
 
 ```bash
@@ -19,16 +19,16 @@ pip install mlx-whisper            # transcripcion por Metal, en Apple Silicon
 ```
 
 ```bash
-cosecha/analyze-reel.sh "<url-del-video>" /tmp/reel-analysis
-cosecha/analyze-reel.sh "<url-del-video>" /tmp/reel-analysis --high-precision
+scripts/analyze-reel.sh "<url-del-video>" /tmp/reel-analysis
+scripts/analyze-reel.sh "<url-del-video>" /tmp/reel-analysis --high-precision
 ```
 
 Deja en `/tmp/reel-analysis/<hash-de-la-url>/`: `video.mp4`, `audio.mp3`, `transcript.txt`,
 `frame_01.jpg` … `frame_05.jpg`, `meta.txt` y `description.txt`.
 
 ```bash
-cosecha/extract_frames.py --auto --min-chars 300      # solo los videos con transcripcion pobre
-cosecha/ig-dl.sh "<url-del-post>" ~/media
+scripts/extract_frames.py --auto --min-chars 300      # solo los videos con transcripcion pobre
+scripts/ig-dl.sh "<url-del-post>" ~/media
 ```
 
 No sustituye a `ffmpeg` ni a `whisper-cpp`: los llama. Existe porque la pregunta real casi nunca es

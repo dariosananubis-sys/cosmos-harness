@@ -481,6 +481,39 @@ MUTACIONES = (
         "tests.test_agua_normativa.NingunaNormaSePierdeAlCondensar.test_cada_afirmacion_sigue_presente",
         "la primera norma del mar de pruebas —la doctrina entera del repo— se puede borrar sin que E07-E20 digan nada",
     ),
+    # --- El verbo buscar y el catalogo en arbol (2026-09-02).
+    Mutacion(
+        "M56",
+        "cosmos/buscar.py",
+        "    for ruta in _ordenar(consulta, candidatos)[: max(limite, 0)]:\n",
+        "    for ruta in _ordenar(consulta, candidatos)[::-1][: max(limite, 0)]:\n",
+        "tests.test_buscar.ElVerboEncuentra.test_codigo_duplicado_lleva_a_las_reglas_de_refactorizacion",
+        "con el ranking invertido, buscar devuelve lo peor puntuado como primer resultado",
+    ),
+    Mutacion(
+        "M57",
+        "cosmos/medir.py",
+        '        if profundidad <= 1:\n',
+        '        if True:\n',
+        "tests.test_medidor.PruebasMedidor.test_catalogo_web_contiene_solo_pueblos_de_web",
+        "si el catalogo vuelve a pagar la ruta completa por linea, el 40% del peor nicho vuelve en silencio",
+    ),
+    Mutacion(
+        "M58",
+        "cosmos/acertar.py",
+        "        if validacion is not None and self.sellado:\n",
+        "        if False:\n",
+        "tests.test_sello_holdout.ElDetallePorEncargoNoSeEnsenaSellado.test_como_dict_redacta_solo_la_validacion",
+        "sin la redaccion, --json vuelve a ensenar el detalle por encargo: el gesto exacto que quemo el holdout anterior",
+    ),
+    Mutacion(
+        "M59",
+        "cosmos/juez.py",
+        "    return max(presentes, key=len) if presentes else None\n",
+        "    return presentes[0] if presentes else None\n",
+        "tests.test_juez_local.LaRutaSeExtraeDelRuido.test_si_nombra_varias_gana_la_mas_larga",
+        "con el primer candidato en vez del mas largo, contestar la hoja se puntua como la raiz que la contiene",
+    ),
 )
 
 

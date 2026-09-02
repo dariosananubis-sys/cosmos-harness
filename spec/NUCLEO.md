@@ -81,20 +81,27 @@ El frontmatter es metadata de COSMOS: `cosmos:`, `nombre:`, `padre:`. **Nunca ll
 modelo**, así que contarlo infla justo lo que se paga siempre. Esto resuelve además H3 de
 `reviews/claude-revisa-codigo-ronda1.md`.
 
-> **catalogo(árbol, nichos)** = una línea por nodo, en orden de rango y luego alfabético por ruta,
-> **excluyendo todo lo que ya aparece en el índice** (la galaxia, los sistemas solares y los
-> océanos):
+> **catalogo(árbol, nichos)** = una línea por nodo, **en árbol indentado y en profundidad**
+> (alfabético por ruta, que agrupa cada familia), **excluyendo todo lo que ya aparece en el
+> índice** (la galaxia, los sistemas solares y los océanos):
 >
 > | Nivel | Línea |
 > |---|---|
-> | planeta, continente, pais, provincia | `<ruta>` (siempre: forman el mapa de descenso) |
-> | pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
-> | rio (`momento: trabajo`, por defecto) | `<ruta>: <resumen>` |
+> | hijo directo del sistema (intermedio o pueblo) | `<nicho>/<nombre>: <resumen>` — el ancla del árbol |
+> | intermedio o pueblo más profundo | `<nombre>: <resumen>`, indentado dos espacios por nivel |
+> | rio (`momento: trabajo`, por defecto) | `rio/<nombre>: <resumen>`, tras el mapa |
 > | rio (`momento: mantenimiento`) | solo el nombre, en una línea agrupada |
 > | mar, lago, lluvia, estrella, luna | *(no aparece)* |
+>
+> Solo aparecen los sólidos cuyo sistema está en `nichos`. El nombre corto basta para invocar:
+> E18 exige nombre de pueblo único en toda la galaxia y `cosmos abrir <nombre>` resuelve.
 
-Ordenar por rango y no alfabéticamente por nivel es deliberado: el catálogo se inyecta en contexto y
-tiene que leerse como una jerarquía, no como una lista revuelta. Resuelve también H5.
+El árbol indentado sustituyó a la lista de rutas completas el 2026-09-02: en el peor nicho, el
+40 % del coste eran prefijos repetidos (medido con tiktoken: 1.452 → 1.093 en ciberseguridad).
+La indentación dice lo mismo que decía el prefijo, y leerse como jerarquía —que era el porqué del
+orden anterior (H5)— lo hace ahora la forma, no el orden de rango. La contra-métrica puntúa la
+misma selección por construcción (`medir.nodos_de_catalogo` es compartida) y conserva las palabras
+de la ruta en el texto puntuable, porque esa información el agente la sigue viendo — en la sangría.
 
 `nichos=None` significa **ningún nicho activo**: no aparece ningún pueblo. Una selección como
 `nichos=["web", "saas"]` incluye la unión de los pueblos contenidos por esos dos sistemas, y

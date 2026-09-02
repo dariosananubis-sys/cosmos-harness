@@ -32,13 +32,15 @@ límite de E17.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 from puente.lluvia import normalizar
-from .medir import catalogo_visible
+from .medir import nodos_de_catalogo
 from .modelo import Arbol
 
 
@@ -158,6 +160,13 @@ def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
     Con eso, los quince encargos cuya respuesta es un oficio —«que google encuentre mi
     web»— solo podían acertar de rebote, por un nieto, compitiendo contra el catálogo
     entero. No medía el árbol: medía un recorte del árbol que ningún agente ve.
+
+    Desde el catálogo en árbol indentado (2026-09-02), la selección de nodos es
+    literalmente la misma que renderiza `medir.catalogo_visible` — comparten
+    `medir.nodos_de_catalogo`, así que no pueden divergir. El texto puntuable de cada
+    nodo lleva su ruta completa además del resumen: es la información que la
+    indentación le da al agente (bajo qué familia está la línea), dicha en palabras
+    para que el BM25 la vea igual que antes del cambio de formato.
     """
 
     lineas = [
@@ -166,11 +175,17 @@ def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
         if nodo.cosmos == "sistema-solar"
     ]
     todos = [nombre for nombre, _ in lineas]
-    for linea in catalogo_visible(arbol, todos).splitlines():
-        if not linea.strip():
+    de_mantenimiento: list[str] = []
+    for nodo in nodos_de_catalogo(arbol, todos):
+        if nodo.cosmos == "rio" and nodo.datos.get("momento") == "mantenimiento":
+            de_mantenimiento.append(nodo.nombre)
             continue
-        ruta, _, resumen = linea.partition(":")
-        lineas.append((ruta.strip(), f"{ruta} {resumen}".strip()))
+        ruta = nodo.referencia
+        lineas.append((ruta, f"{ruta} {nodo.resumen}".strip()))
+    if de_mantenimiento:
+        # La línea agrupada del render también compite en el ranking, como línea que es.
+        lineas.append(("rio (mantenimiento, 'cosmos abrir rio/x')",
+                       "rio mantenimiento cosmos abrir rio " + " ".join(sorted(de_mantenimiento))))
     return lineas
 
 
@@ -274,6 +289,49 @@ def cargar_encargos(ruta: str | Path) -> list[Encargo]:
     return encargos
 
 
+def ruta_sello(ruta: str | Path) -> Path:
+    return Path(ruta).with_suffix(".SELLO")
+
+
+def sellar(ruta: str | Path) -> dict:
+    """Sella el holdout: a partir de aquí, su detalle por encargo no se enseña.
+
+    El holdout anterior no lo quemó la mala fe: lo quemó un `--detalle`/`--json`
+    abierto para ver qué fallaba. Un sello que no impida ESE gesto no sella nada.
+    El fichero .SELLO se versiona: romperlo es borrarlo, y ese gesto queda en git.
+    """
+
+    encargos = cargar_encargos(ruta)  # valida el esquema antes de sellar
+    datos = {
+        "sha256": hashlib.sha256(Path(ruta).read_bytes()).hexdigest(),
+        "sellado": date.today().isoformat(),
+        "encargos": len(encargos),
+    }
+    ruta_sello(ruta).write_text(json.dumps(datos, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return datos
+
+
+def leer_sello(ruta: str | Path) -> dict | None:
+    sello = ruta_sello(ruta)
+    if not sello.is_file():
+        return None
+    try:
+        datos = json.loads(sello.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return datos if isinstance(datos, dict) else None
+
+
+def sello_vigente(ruta: str | Path) -> bool:
+    """El sello ata el CONTENIDO exacto: editar el fichero lo invalida, como una marca de lectura."""
+
+    datos = leer_sello(ruta)
+    return bool(
+        datos and Path(ruta).is_file()
+        and datos.get("sha256") == hashlib.sha256(Path(ruta).read_bytes()).hexdigest()
+    )
+
+
 def formatear(p: Puntuacion, *, detalle: bool = False) -> str:
     if not p.total:
         return "COSMOS  acertar\n\n  sin encargos que puntuar\n"
@@ -324,6 +382,7 @@ class Contraste:
     ajuste: Puntuacion
     validacion: Puntuacion | None
     quemado: str | None = None
+    sellado: bool = False
 
     @property
     def brecha(self) -> float | None:
@@ -335,9 +394,18 @@ class Contraste:
                 - 100 * self.validacion.aciertos / self.validacion.total)
 
     def como_dict(self) -> dict[str, object]:
+        validacion = self.validacion.como_dict() if self.validacion else None
+        if validacion is not None and self.sellado:
+            # El detalle por encargo es EXACTAMENTE lo que quema un holdout: verlo
+            # una vez basta para escribir hacia el examen. Con el sello vigente se
+            # publica el agregado y se explica el porqué, no se confía en la memoria.
+            validacion["resultados"] = (
+                "SELLADO: el detalle por encargo quemaría el holdout; "
+                "romper el sello es borrar el .SELLO, y ese gesto queda en git"
+            )
         return {
             "ajuste": self.ajuste.como_dict(),
-            "validacion": self.validacion.como_dict() if self.validacion else None,
+            "validacion": validacion,
             "brecha_puntos": self.brecha,
             "quemado": self.quemado,
             "cifra_honesta": (
@@ -379,6 +447,11 @@ def formatear_contraste(c: Contraste) -> str:
         if not c.quemado
         else f"  {va:.0f} %, pero ESTE CONJUNTO YA SE MIRÓ y un holdout es de un solo uso:",
     ]
+
+    if c.sellado and not c.quemado:
+        lineas.append("  (holdout SELLADO: el detalle por encargo no se enseña, que es lo que quema)")
+    elif not c.quemado:
+        lineas.append("  (holdout SIN SELLAR: 'cosmos acertar --sellar' impide quemarlo por descuido)")
 
     if c.quemado:
         lineas.extend(

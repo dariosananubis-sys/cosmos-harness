@@ -1,83 +1,22 @@
 [
-  {
-    "peticion": "necesito que mi web salga en las busquedas de chatgpt",
-    "espera": "visibilidad",
-    "nota": "conjunto de validacion: escrito sin mirar los resumenes"
-  },
-  {
-    "peticion": "quiero cobrar suscripciones mensuales a mis clientes",
-    "espera": "saas"
-  },
-  {
-    "peticion": "sacar los datos de una tabla de una pagina que cambia cada dia",
-    "espera": "extraccion"
-  },
-  {
-    "peticion": "mi contenedor se queda sin memoria en produccion",
-    "espera": "infraestructura"
-  },
-  {
-    "peticion": "poner subtitulos automaticos a un video largo",
-    "espera": "audiovisual"
-  },
-  {
-    "peticion": "un agente que use herramientas y recuerde conversaciones anteriores",
-    "espera": "agentes-ia"
-  },
-  {
-    "peticion": "leer sensores de temperatura desde una placa",
-    "espera": "embebidos"
-  },
-  {
-    "peticion": "hacer un juego en dos dimensiones para el navegador",
-    "espera": "juegos"
-  },
-  {
-    "peticion": "que el aviso legal y la politica de cookies esten bien",
-    "espera": "cumplimiento"
-  },
-  {
-    "peticion": "guardar copias de seguridad cifradas fuera de la oficina",
-    "espera": "infraestructura"
-  },
-  {
-    "peticion": "convertir cientos de pdf escaneados en texto buscable",
-    "espera": "extraccion"
-  },
-  {
-    "peticion": "una app que funcione en iphone y android con el mismo codigo",
-    "espera": "moviles"
-  },
-  {
-    "peticion": "revisar si mi contrato de solidity tiene un fallo de reentrada",
-    "espera": "blockchain"
-  },
-  {
-    "peticion": "mi consulta a la base de datos tarda treinta segundos",
-    "espera": "rendimiento"
-  },
-  {
-    "peticion": "escribir el manual de usuario a partir del codigo",
-    "espera": "documentos"
-  },
-  {
-    "peticion": "avisarme por telegram cuando entre un pedido nuevo",
-    "espera": "automatizacion"
-  },
-  {
-    "peticion": "un modelo que clasifique fotos de producto",
-    "espera": "cientifico"
-  },
-  {
-    "peticion": "saber si alguien esta usando mis claves de aws sin permiso",
-    "espera": "ciberseguridad"
-  },
-  {
-    "peticion": "que la tienda no se caiga el dia de mayor venta",
-    "espera": "infraestructura"
-  },
-  {
-    "peticion": "operar futuros con apalancamiento controlado",
-    "espera": "trading"
-  }
+  {"peticion": "el formulario de contacto de mi web manda spam y no llegan los correos de clientes", "espera": "web"},
+  {"peticion": "necesito facturar suscripciones mensuales con iva europeo", "espera": "saas"},
+  {"peticion": "quiero un panel con las ventas del dia que no haya que actualizar a mano", "espera": "analitica"},
+  {"peticion": "se me corrompio la base de datos y no tengo copia de anoche", "espera": "infraestructura"},
+  {"peticion": "quiero sacar los precios de la competencia cada manana", "espera": "extraccion"},
+  {"peticion": "el contrato inteligente maneja fondos y me da miedo desplegarlo", "espera": "blockchain/auditoria"},
+  {"peticion": "la aplicacion se come la bateria del movil", "espera": "moviles"},
+  {"peticion": "quiero doblar mis videos al ingles con mi propia voz", "espera": "audiovisual"},
+  {"peticion": "que el asistente recuerde lo que hablamos la semana pasada", "espera": "agentes-ia/memoria"},
+  {"peticion": "quiero pasar la ia a mi servidor para no mandar datos fuera", "espera": "modelos-locales"},
+  {"peticion": "el pipeline carga datos rotos sin avisar a nadie", "espera": "ingenieria-datos"},
+  {"peticion": "quiero enterarme si alguien intenta entrar en mi servidor", "espera": "ciberseguridad/defensiva/deteccion"},
+  {"peticion": "tengo que cumplir el reglamento europeo de accesibilidad antes de fin de ano", "espera": "cumplimiento"},
+  {"peticion": "mi juego va a tirones cuando hay muchos enemigos en pantalla", "espera": "juegos"},
+  {"peticion": "quiero leer la temperatura de un sensor y mandarla por wifi", "espera": "embebidos"},
+  {"peticion": "la simulacion da resultados distintos cada vez que la corro", "espera": "cientifico"},
+  {"peticion": "quiero automatizar el informe que mando cada lunes por correo", "espera": "automatizacion"},
+  {"peticion": "heredamos un proyecto enorme sin tests y hay que meterle mano sin romperlo", "espera": "refactorizacion"},
+  {"peticion": "quiero un manual de usuario que se regenere solo cuando cambia el producto", "espera": "documentos"},
+  {"peticion": "quiero un bot que compre cuando baje el precio y no me arruine", "espera": "trading"}
 ]

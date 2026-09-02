@@ -29,8 +29,11 @@ from .guardarrailes import (
     sufijo_saltos,
 )
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
+from .buscar import buscar_nodos, busqueda_json, formatear_busqueda
+from .juez import ErrorJuez
 from .acertar import (Contraste, ErrorEncargos, cargar_encargos, formatear as formatear_acierto,
-                      formatear_contraste, puntuacion_json, puntuar)
+                      formatear_contraste, leer_sello, puntuacion_json, puntuar, sellar,
+                      sello_vigente)
 from .estado import estado_json, formatear as formatear_estado, inventariar
 from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
                     veredicto_de_presupuesto)
@@ -58,6 +61,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     abrir_cmd.add_argument("--json", action="store_true", help="emite JSON")
 
+    # Sin el posicional `raiz` de base(): con dos posicionales, la primera palabra de la
+    # consulta se leia como raiz del arbol y la busqueda corria sobre un directorio inventado.
+    buscar_cmd = subparsers.add_parser("buscar", help="encuentra el nodo por intención: el mismo motor con el que se mide el acierto")
+    buscar_cmd.add_argument("consulta", nargs="+", help="lo que se busca, en lenguaje natural, sin comillas")
+    buscar_cmd.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
+    buscar_cmd.add_argument("--limite", type=int, default=5, help="cuántos resultados (por defecto 5)")
+    buscar_cmd.add_argument("--json", action="store_true", help="emite JSON")
+
     acertar_cmd = base("acertar", "¿el catálogo lleva a la herramienta correcta? La contra-métrica")
     acertar_cmd.add_argument("--encargos", type=Path, default=Path("pruebas/encargos.json"))
     acertar_cmd.add_argument(
@@ -70,6 +81,12 @@ def _parser() -> argparse.ArgumentParser:
                              help="falla si se acierta menos de esto (en %%), medido en validación")
     acertar_cmd.add_argument("--detalle", action="store_true")
     acertar_cmd.add_argument("--json", action="store_true")
+    acertar_cmd.add_argument("--sellar", action="store_true",
+                             help="sella el conjunto de validación: su detalle por encargo deja de enseñarse")
+    acertar_cmd.add_argument("--juez", metavar="MODELO",
+                             help="puntúa con un modelo local ya servido por ollama (no arranca ninguno)")
+    acertar_cmd.add_argument("--servidor", default="http://localhost:11434",
+                             help="URL del servidor de modelos (por defecto, ollama local)")
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
     estado.add_argument("--json", action="store_true", help="emite JSON")
@@ -462,11 +479,37 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "mapa":
             sys.stdout.write(generar_mapa(arbol))
             return 0
+        if args.comando == "buscar":
+            if not config.arbol.is_dir():
+                print(f"COSMOS  buscar  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
+                return 1
+            consulta = " ".join(args.consulta)
+            hallazgos = buscar_nodos(arbol, consulta, limite=args.limite)
+            sys.stdout.write(busqueda_json(hallazgos, consulta) if args.json else formatear_busqueda(hallazgos, consulta))
+            # Sin resultados no es un error del comando, pero sí una búsqueda que no
+            # encontró: salida 1, para que un guion que dependa del hallazgo se entere.
+            return 0 if hallazgos else 1
         if args.comando == "abrir":
             ap = abrir(arbol, args.ruta, tocando=args.tocando)
             sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
             return 0
         if args.comando == "acertar":
+            if args.sellar:
+                datos = sellar(args.validacion)
+                print(
+                    f"COSMOS  acertar  holdout sellado\n\n"
+                    f"{args.validacion}: {datos['encargos']} encargos, sha256 {datos['sha256'][:12]}…\n"
+                    "Desde ahora su detalle por encargo no se enseña. Editar el fichero invalida el\n"
+                    "sello; romperlo es borrar el .SELLO, y ese gesto queda en git."
+                )
+                return 0
+            if args.juez:
+                from .juez import formatear_juicio, juzgar
+
+                encargos_ajuste = cargar_encargos(args.encargos)
+                juicio = juzgar(arbol, encargos_ajuste, modelo=args.juez, servidor=args.servidor)
+                sys.stdout.write(formatear_juicio(juicio, puntuar(arbol, encargos_ajuste), args.juez))
+                return 0
             pun = puntuar(arbol, cargar_encargos(args.encargos))
             val = (
                 puntuar(arbol, cargar_encargos(args.validacion))
@@ -474,10 +517,18 @@ def ejecutar(argv: list[str] | None = None) -> int:
                 else None
             )
             marca = args.validacion.with_suffix(".QUEMADO") if args.validacion else None
+            sellado = bool(val is not None and args.validacion and sello_vigente(args.validacion))
+            if val is not None and not sellado and leer_sello(args.validacion) is not None:
+                print(
+                    "AVISO: el conjunto de validación cambió después de sellarse; su cifra no es "
+                    "publicable hasta volver a sellarlo con --sellar.",
+                    file=sys.stderr,
+                )
             contraste = Contraste(
                 ajuste=pun,
                 validacion=val,
                 quemado=marca.read_text(encoding="utf-8") if marca and marca.exists() else None,
+                sellado=sellado,
             )
 
             if args.json:
@@ -532,6 +583,9 @@ def ejecutar(argv: list[str] | None = None) -> int:
         # de encargos que no está o no cumple su esquema es un error de uso (2), no
         # un rojo de la métrica (1) — y nunca un traceback.
         print(f"COSMOS  acertar  rojo\n\n{exc}", file=sys.stderr)
+        return 2
+    except ErrorJuez as exc:
+        print(f"COSMOS  acertar  sin juez\n\n{exc}", file=sys.stderr)
         return 2
     except (MetodoNoDisponible, ErrorCompilacion, ErrorNicho, ErrorSalto, ErrorEnganche) as exc:
         print(f"COSMOS  {args.comando}  rojo\n\n{exc}", file=sys.stderr)

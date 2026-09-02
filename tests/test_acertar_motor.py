@@ -131,5 +131,79 @@ class ElRecorteDeSufijos(unittest.TestCase):
         self.assertEqual(_ordenar("buscadores", candidatos)[0], "b")
 
 
+class UnSoloNormalizador(unittest.TestCase):
+    """A02: cuatro normalizadores, tres casi iguales, y una promesa a medias.
+
+    `_ordenar` promete «la misma normalización que usa la búsqueda de memoria»
+    (`puente/lluvia.normalizar`) y era una copia con destino a divergir. Ahora es la
+    misma función por construcción; esto fija la propiedad para que una copia nueva
+    que se desvíe —acentos, dígitos, palabras cortas— se ponga roja aquí.
+    """
+
+    def test_acertar_tokeniza_como_la_busqueda_de_memoria(self) -> None:
+        from puente.lluvia import normalizar
+
+        sondas = (
+            "¡Que google me ENCUENTREN ya!",
+            "e-mail número 42 ñu a b",
+            "BÚSCA-me: acentos, guiones y MAYÚSCULAS",
+        )
+        for sonda in sondas:
+            with self.subTest(sonda):
+                self.assertEqual(_normalizar(sonda), [_raiz(p) for p in normalizar(sonda)])
+
+
+class LosEncargosSeValidanEnElBorde(unittest.TestCase):
+    """B09: `cosmos acertar` reventaba con traceback crudo en el caso de estreno.
+
+    `rio/acertar` se anuncia en cualquier proyecto sobre el que se clone COSMOS, y en
+    todos menos éste `pruebas/encargos.json` no existe: `FileNotFoundError` a la cara.
+    El mismo cuidado que ya recibía `--validacion` (mensaje entero, salida 2), aplicado
+    al fichero que sí se lee siempre. Medido antes de escribir cada aserción.
+    """
+
+    def test_el_estreno_no_es_un_traceback(self) -> None:
+        from cosmos.acertar import ErrorEncargos, cargar_encargos
+
+        with TemporaryDirectory() as tmp:
+            with self.assertRaises(ErrorEncargos) as caso:
+                cargar_encargos(Path(tmp, "encargos.json"))
+        self.assertIn("no existe", str(caso.exception))
+        self.assertIn("recién clonado", str(caso.exception),
+                      "el mensaje tiene que decir que el estreno es lo esperable, no un fallo")
+
+    def test_json_invalido_y_esquema_roto_explican_en_vez_de_reventar(self) -> None:
+        from cosmos.acertar import ErrorEncargos, cargar_encargos
+
+        casos = (
+            ("no json", "no es JSON válido"),
+            ("{}", "debe ser una lista"),
+            ('[{"peticion": "x"}]', "necesita 'peticion' y 'espera'"),
+            ('[{"peticion": "x", "espera": 3}]', "necesita 'peticion' y 'espera'"),
+        )
+        with TemporaryDirectory() as tmp:
+            for contenido, fragmento in casos:
+                with self.subTest(contenido):
+                    ruta = Path(tmp, "encargos.json")
+                    ruta.write_text(contenido, encoding="utf-8")
+                    with self.assertRaises(ErrorEncargos) as caso:
+                        cargar_encargos(ruta)
+                    self.assertIn(fragmento, str(caso.exception))
+
+    def test_por_cli_sale_2_con_mensaje_y_sin_traceback(self) -> None:
+        import subprocess
+        import sys
+
+        raiz = Path(__file__).resolve().parent.parent
+        with TemporaryDirectory() as tmp:
+            r = subprocess.run(
+                [sys.executable, "-m", "cosmos", "acertar", "--encargos", str(Path(tmp, "no-existe.json"))],
+                capture_output=True, text=True, cwd=raiz,
+            )
+        self.assertEqual(r.returncode, 2, "el estreno no es un rojo de la métrica: es un error de uso")
+        self.assertNotIn("Traceback", r.stderr)
+        self.assertIn("no existe", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

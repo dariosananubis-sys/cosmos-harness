@@ -33,14 +33,17 @@ límite de E17.
 from __future__ import annotations
 
 import json
-import re
-import unicodedata
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from puente.lluvia import normalizar
 from .medir import catalogo_visible
 from .modelo import Arbol
+
+
+class ErrorEncargos(ValueError):
+    """El fichero de encargos no existe o no cumple su esquema. Mensaje entero, sin traceback."""
 
 
 @dataclass(frozen=True)
@@ -130,9 +133,15 @@ def _raiz(palabra: str) -> str:
 
 
 def _normalizar(texto: str) -> list[str]:
-    plano = unicodedata.normalize("NFKD", texto.lower())
-    plano = "".join(c for c in plano if not unicodedata.combining(c))
-    return [_raiz(p) for p in re.findall(r"[a-z0-9]{2,}", plano)]
+    """La tokenización de `puente/lluvia` más el recorte de sufijos.
+
+    El docstring de `_ordenar` promete «la misma normalización que usa la búsqueda de
+    memoria», y hasta hoy era una copia casi igual: verdadera a medias, y con la
+    divergencia garantizada en la primera corrección que tocara una de las dos. Ahora
+    es la misma función por construcción — lo único propio de aquí es `_raiz`.
+    """
+
+    return [_raiz(p) for p in normalizar(texto)]
 
 
 def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
@@ -225,11 +234,44 @@ def puntuar(arbol: Arbol, encargos: list[Encargo]) -> Puntuacion:
 
 
 def cargar_encargos(ruta: str | Path) -> list[Encargo]:
-    datos = json.loads(Path(ruta).read_text(encoding="utf-8"))
-    return [
-        Encargo(peticion=d["peticion"], espera=d["espera"], nota=d.get("nota", ""))
-        for d in datos
-    ]
+    """Carga y valida el fichero de encargos, o explica qué le pasa.
+
+    `rio/acertar` se anuncia en cualquier proyecto sobre el que se clone COSMOS, y en
+    todos menos éste `pruebas/encargos.json` no existe: el caso de estreno terminaba en
+    un `FileNotFoundError` crudo. El mismo trato que ya recibía `--validacion` —mensaje
+    entero y salida limpia— se aplica aquí a lo que se lee, no solo a un fichero de los
+    dos. Validar en el borde es lo que evita que el `KeyError` salga desde el fondo.
+    """
+
+    ruta = Path(ruta)
+    try:
+        crudo = ruta.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise ErrorEncargos(
+            f"no existe {ruta}: sin encargos no hay nada que puntuar. En un proyecto "
+            "recién clonado es lo esperable — créalo como lista JSON de objetos "
+            '{"peticion": "...", "espera": "ruta/del/nodo"} antes de medir el acierto.'
+        ) from None
+    except OSError as exc:
+        raise ErrorEncargos(f"no se puede leer {ruta}: {exc}") from exc
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError as exc:
+        raise ErrorEncargos(f"{ruta} no es JSON válido ({exc}); se esperaba una lista de encargos") from exc
+    if not isinstance(datos, list):
+        raise ErrorEncargos(f"{ruta} debe ser una lista de encargos y es {type(datos).__name__}")
+    encargos: list[Encargo] = []
+    for indice, dato in enumerate(datos):
+        if (
+            not isinstance(dato, dict)
+            or not isinstance(dato.get("peticion"), str)
+            or not isinstance(dato.get("espera"), str)
+        ):
+            raise ErrorEncargos(
+                f"{ruta}: el encargo {indice} necesita 'peticion' y 'espera' de texto"
+            )
+        encargos.append(Encargo(peticion=dato["peticion"], espera=dato["espera"], nota=str(dato.get("nota", ""))))
+    return encargos
 
 
 def formatear(p: Puntuacion, *, detalle: bool = False) -> str:

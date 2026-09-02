@@ -298,7 +298,12 @@ class Veredicto:
     dato, no como veredicto.
     """
 
-    cabe: bool
+    # Trivalente: `True` cabe, `False` no cabe, `None` = NO HABÍA NADA QUE MEDIR.
+    # Sobre un árbol vacío —o un `--config` cuyo `arbol` resuelve a un directorio
+    # que no está— el juez decía «OK, quedan 4.000 tokens»: `0 <= presupuesto` es
+    # verdad, pero un cero que sale de no haber observado nada no es un verde, es
+    # «no lo sé». Es el mismo patrón que `descarga` ya publica como `no_definida`.
+    cabe: bool | None
     evaluado: int
     presupuesto: int
     nicho: str
@@ -308,6 +313,8 @@ class Veredicto:
         return self.presupuesto - self.evaluado
 
     def como_linea(self) -> str:
+        if self.cabe is None:
+            return "SIN MEDIR: el árbol no aporta ni un token; un veredicto sobre nada no es un OK"
         if self.cabe:
             return f"OK, quedan {self.margen} tokens en el peor caso con agua ({self.nicho})"
         return f"ROJO, excede en {-self.margen} tokens en el peor caso con agua ({self.nicho})"
@@ -318,7 +325,7 @@ def veredicto_de_presupuesto(casos: "ResumenMedicion", presupuesto: int) -> Vere
 
     peor = casos.peor
     return Veredicto(
-        cabe=peor.entrada_con_agua <= presupuesto,
+        cabe=None if peor.universo == 0 else peor.entrada_con_agua <= presupuesto,
         evaluado=peor.entrada_con_agua,
         presupuesto=presupuesto,
         nicho=casos.peor_nicho or "sin nichos",

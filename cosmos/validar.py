@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 from .compilar import errores_vista
 from .generar import generar_indice
-from .medir import medir_casos
+from .medir import medir_casos, veredicto_de_presupuesto
 from .modelo import (
     NIVELES_ADJUNTOS,
     NIVELES_AGUA,
@@ -452,8 +452,9 @@ def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorVa
     medicion = casos.peor
     # NUCLEO §3: se compara lo que se paga sin invocar nada, y el agua que entra
     # por `paths:` se paga sin invocarla. Comparar solo `entrada` dejaba fuera del
-    # presupuesto todo el coste de los mares (H14).
-    if medicion.entrada_con_agua <= config.entrada:
+    # presupuesto todo el coste de los mares (H14). El juez es único y vive en
+    # `medir.veredicto_de_presupuesto`: aquí, en el CLI y en los guards de sesión.
+    if veredicto_de_presupuesto(casos, config.entrada).cabe:
         return []
     partes = list(medicion.detalle_entrada) + list(medicion.detalle_agua)
     caros = ", ".join(

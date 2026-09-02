@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .modelo import Arbol, Nodo, nicho_de_nodo, normalizar_nichos
+from .modelo import ErrorCerrojo, cerrojo, Arbol, Nodo, nicho_de_nodo, normalizar_nichos
 
 
 NIVELES_APLANADOS = frozenset({"pueblo"})
@@ -271,26 +271,22 @@ def compilar_arbol(
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
     seleccion = normalizar_nichos(arbol, nichos)
     if not seco and not _bloqueado:
-        manifiesto.parent.mkdir(parents=True, exist_ok=True)
-        lock = manifiesto.parent / "compilar.lock"
+        # El cerrojo compartido sabe distinguir «ocupado» de «alguien murió aquí»: antes,
+        # un proceso muerto sin llegar al `finally` dejaba el fichero y toda compilación
+        # futura fallaba para siempre.
         try:
-            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-        except FileExistsError as exc:
-            raise ErrorCompilacion(f"otra compilación está en curso: {lock}") from exc
-        try:
-            with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
-                fichero.write(f"{os.getpid()}\n")
-            return compilar_arbol(
-                arbol,
-                destino=destino,
-                manifiesto=manifiesto,
-                modo=modo,
-                seco=False,
-                nichos=seleccion,
-                _bloqueado=True,
-            )
-        finally:
-            lock.unlink(missing_ok=True)
+            with cerrojo(manifiesto.parent / "compilar.lock", que_hace="compilación"):
+                return compilar_arbol(
+                    arbol,
+                    destino=destino,
+                    manifiesto=manifiesto,
+                    modo=modo,
+                    seco=False,
+                    nichos=seleccion,
+                    _bloqueado=True,
+                )
+        except ErrorCerrojo as exc:
+            raise ErrorCompilacion(str(exc)) from exc
     datos = _leer_manifiesto(manifiesto)
     if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")

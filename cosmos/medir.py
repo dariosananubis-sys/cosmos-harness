@@ -284,6 +284,47 @@ def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
     ]
 
 
+@dataclass(frozen=True)
+class Veredicto:
+    """Un solo juez del presupuesto, para que no haya tres verdades.
+
+    Había tres comparaciones distintas sobre el mismo árbol y las tres se publicaban con
+    la misma etiqueta: E16 medía el peor caso con agua, `cosmos medir` el nicho activo
+    con agua, y los guards de sesión el nicho activo **sin agua**. Con `[nichos] activos`
+    puesto, `medir` decía «quedan 325» donde E16 vigilaba 119; el guard, más alto todavía.
+
+    Lo que garantiza el presupuesto es que **cualquier sesión quepa**, así que el juez es
+    siempre el peor nicho con toda su agua. El nicho activo se sigue enseñando, pero como
+    dato, no como veredicto.
+    """
+
+    cabe: bool
+    evaluado: int
+    presupuesto: int
+    nicho: str
+
+    @property
+    def margen(self) -> int:
+        return self.presupuesto - self.evaluado
+
+    def como_linea(self) -> str:
+        if self.cabe:
+            return f"OK, quedan {self.margen} tokens en el peor caso con agua ({self.nicho})"
+        return f"ROJO, excede en {-self.margen} tokens en el peor caso con agua ({self.nicho})"
+
+
+def veredicto_de_presupuesto(casos: "ResumenMedicion", presupuesto: int) -> Veredicto:
+    """El único sitio donde se decide si un árbol cabe. Los tres llamantes usan esto."""
+
+    peor = casos.peor
+    return Veredicto(
+        cabe=peor.entrada_con_agua <= presupuesto,
+        evaluado=peor.entrada_con_agua,
+        presupuesto=presupuesto,
+        nicho=casos.peor_nicho or "sin nichos",
+    )
+
+
 def medir_arbol(
     arbol: Arbol,
     *,
@@ -306,7 +347,16 @@ def medir_arbol(
 
     detalle_entrada = [ParteMedida(nombre, _cuenta(nombre, texto)) for nombre, texto in partes_entrada]
     entrada = sum(parte.tokens for parte in detalle_entrada)
-    nodos_resto = [nodo for nodo in arbol.nodos if nodo.cosmos != "oceano"]
+    # El universo es lo que un agente PODRÍA cargar trabajando. Los océanos quedan fuera
+    # porque ya están dentro de `entrada`; la lluvia también, y por otra razón: son los
+    # partes de commit del propio COSMOS, su historia interna. Nadie los carga para
+    # resolver un encargo — `rio/memoria` los busca y devuelve dónde mirar, nunca el
+    # cuerpo. Contarlos inflaba la descarga (98,42 % con ellos, 98,24 % sin ellos) y,
+    # peor, la inflaba **sola**: cada parte nuevo mejoraba la cifra sin que el sistema
+    # descargara nada. Una métrica que sube sola por escribir documentación no mide nada.
+    nodos_resto = [
+        nodo for nodo in arbol.nodos if nodo.cosmos not in {"oceano", "lluvia"}
+    ]
     detalle_arbol = [
         ParteMedida(nodo.referencia, contador(cuerpo(nodo)))
         for nodo in sorted(nodos_resto, key=lambda n: (RANGOS.get(n.cosmos, 99), n.referencia, n.ruta_relativa))

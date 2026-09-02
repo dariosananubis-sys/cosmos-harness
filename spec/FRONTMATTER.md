@@ -116,8 +116,20 @@ está degradando por el mismo camino por el que se degradan todos. El umbral por
 subirlo es una decisión consciente que se escribe en `cosmos.toml`, no un ajuste silencioso.
 
 Un mar o un lago con `moja: ["**"]` es un océano **encubierto**, y es el modo de fallo más común y
-más caro: alguien quiere que su regla «se vea siempre» y la disfraza de local. El validador lo
-rechaza por igualdad literal del patrón, no por intención declarada.
+más caro: alguien quiere que su regla «se vea siempre» y la disfraza de local. El validador no lo caza
+comparando el patrón con `"**"`: eso lo esquivaría cualquiera escribiendo `**/*` o una lista de
+globs que entre todos lo cubren igual. Lo que mide es la **cobertura real** — si el conjunto de
+patrones casa con todas las sondas del corpus normativo, es un océano se llame como se llame
+(`NUCLEO.md` §9). La intención declarada no cuenta; el alcance efectivo, sí.
+
+## Campos opcionales
+
+Ninguno de los dos es obligatorio, y los dos los valida el código.
+
+| Campo | Dónde | Regla |
+|---|---|---|
+| `usa` | cualquier sólido | Lista de rutas completas de nodos que existen, y nunca la propia (E20). Declara **con qué se trabaja junto** sin arrastrar carga: se valida el destino y no se carga nada, porque una dependencia automática sería la cadena de arrastre que trae medio internet. Ver `spec/COMPOSICION.md` |
+| `momento` | solo `rio` | `trabajo` (por defecto) o `mantenimiento` (E00). Un río de mantenimiento cuida el repositorio y no resuelve el encargo de nadie, así que el catálogo lo **nombra sin describirlo**: su resumen dejaría de pagarse en cada sesión para usarse una vez. Ver `spec/NUCLEO.md` §2 |
 
 ## Lo que ningún nodo puede llevar
 

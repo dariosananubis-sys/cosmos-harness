@@ -16,3 +16,4 @@ El historico solo contiene lo que sigue cotizando; lo que se deslisto no esta, y
 estrategia parece mejor de lo que fue.
 El bot no falla cuando el mercado se mueve, falla cuando se reinicia con una posicion abierta:
 ese caso se prueba a proposito antes de dejarlo solo.
+Una guarda que comprueba el nombre del broker no guarda nada: se fotografian los objetos al arrancar, se comparan por identidad cada ciclo, y se sustituye uno adrede para verla saltar.

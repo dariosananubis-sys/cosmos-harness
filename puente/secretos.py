@@ -486,6 +486,56 @@ def escanear(modo: str = "todo", *, raiz: str | Path | None = None) -> list[str]
     return sorted(set(hallazgos))
 
 
+# --- Redacción -------------------------------------------------------------
+#
+# El escáner de arriba DETECTA sobre los blobs del índice: llega tarde para un
+# valor que ya viajó a la salida de un comando. Lo que sigue REESCRIBE ese texto
+# antes de que nadie lo lea, con el mismo catálogo y las mismas excepciones.
+#
+# Se redacta por patrón de VALOR, no por nombre de campo. Una blocklist de
+# nombres no acaba nunca —`sshPass`, `SSH_PASSWORD`, `ssh_pwd`, `clave_ssh`— y
+# el día que falta un nombre el valor pasa entero. Aquí lo que dispara es la
+# forma del dato: un `ghp_…`, un `-----BEGIN … PRIVATE KEY-----`, un IBAN.
+
+MARCA_REDACCION = "[REDACTADO: {etiqueta}]"
+
+
+def _redaccion(etiqueta: str, coincidencia: re.Match[bytes]) -> bytes:
+    """Sustituye solo el valor cuando el patrón lo aísla; si no, el hallazgo entero."""
+
+    if _permitida(etiqueta, coincidencia):
+        return coincidencia.group(0)
+    marca = MARCA_REDACCION.format(etiqueta=etiqueta).encode("utf-8")
+    valor = coincidencia.groupdict().get("valor")
+    if valor:
+        return coincidencia.group(0).replace(valor, marca, 1)
+    return marca
+
+
+def redactar_texto(texto: str) -> tuple[str, int]:
+    """Devuelve (texto redactado, número de valores tapados).
+
+    Conserva el resto del texto intacto: quien lee sigue viendo el error, el
+    nombre del campo y el contexto; lo único que desaparece es el valor.
+    """
+
+    datos = texto.encode("utf-8", "surrogateescape")
+    total = 0
+    for etiqueta, patron in PATRONES:
+        cuenta = 0
+
+        def _sustituir(coincidencia: re.Match[bytes], _etiqueta: str = etiqueta) -> bytes:
+            nonlocal cuenta
+            reemplazo = _redaccion(_etiqueta, coincidencia)
+            if reemplazo != coincidencia.group(0):
+                cuenta += 1
+            return reemplazo
+
+        datos = patron.sub(_sustituir, datos)
+        total += cuenta
+    return datos.decode("utf-8", "replace"), total
+
+
 NOMBRE_CONOCIDOS = "secretos-conocidos.txt"
 
 

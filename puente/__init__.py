@@ -1,8 +1,10 @@
 """Puente: piezas migradas desde VanguardIA-Harness y adaptadas a COSMOS.
 
-Cuatro herramientas que el árbol cosmográfico no traía y que ya estaban resueltas:
+Cinco herramientas que el árbol cosmográfico no traía y que ya estaban resueltas:
 proyectar sobre un repo ajeno, escanear secretos sobre el índice Git, verificar
-sobre una instantánea del índice y consultar la lluvia sin traerse su cuerpo.
+sobre una instantánea del índice, consultar la lluvia sin traerse su cuerpo y
+guardar la SESIÓN mientras el agente trabaja (`sesion.py`), que es lo único que
+no miran ni el pre-commit ni el CI.
 """
 
 from .etiquetas import etiqueta_de_ruta

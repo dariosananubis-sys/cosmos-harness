@@ -10,3 +10,7 @@ desde ahí se desciende. Abrir un nivel hermano "por si acaso" es el gesto que e
 cuesta siempre y aporta una vez.
 
 Si algo se necesita a menudo desde varios sitios, es agua y quiere un `moja`, no una copia.
+
+Lo que devuelve un encargo delegado es el camino de un fichero y dos líneas: tres mil líneas de
+respuesta las paga enteras quien delegó, y un contexto lleno de material de paso razona entre un
+20 % y un 40 % peor.

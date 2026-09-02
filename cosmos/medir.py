@@ -205,6 +205,61 @@ def contexto_inicial(
     return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos))
 
 
+def _extensiones_de(patrones: list[str]) -> set[str]:
+    """Extensiones que un conjunto de globs puede tocar. `**` significa todas."""
+
+    exts: set[str] = set()
+    for patron in patrones:
+        p = str(patron)
+        if p.strip() in {"**", "**/*", "*"}:
+            return {"*"}
+        punto = p.rfind(".")
+        exts.add(p[punto:] if punto != -1 and "/" not in p[punto:] else "*")
+    return exts
+
+
+def _peor_agua_coincidente(arbol: Arbol, contador) -> list[ParteMedida]:
+    """El agua que de verdad puede coincidir, no la suma de toda el agua que existe.
+
+    Sumar todos los mares supone que alguien toca un `.py`, un `.css` y un `.html`
+    **en el mismo instante**, y por tanto que se cargan a la vez. No pasa: cada mar
+    declara sus extensiones y `criterio` (código) y `accesibilidad` (marcado y hojas
+    de estilo) casi no se solapan.
+
+    Medido el 2026-09-02, el peor caso absoluto daba 1.499 tokens y dejaba 63 de
+    margen; el peor caso **real** —la extensión que más agua atrae— es bastante
+    menor. La diferencia no es un matiz: con la medida irreal, añadir una lección
+    buena a un mar obligaba a recortar otra que no tenía nada que ver con ella.
+
+    Se calcula por extensión: para cada una que alguna agua nombre, se suma lo que
+    se cargaría al tocar un fichero así, y gana la más cara. Un agua que moja `**`
+    entra siempre, porque de verdad entra siempre.
+    """
+
+    aguas = [
+        (nodo, _extensiones_de(nodo.datos["moja"]), contador(cuerpo(nodo)))
+        for nodo in agua_condicional(arbol)
+    ]
+    if not aguas:
+        return []
+
+    universales = [(n, c) for n, e, c in aguas if "*" in e]
+    todas_ext = {e for _, exts, _ in aguas for e in exts if e != "*"}
+
+    mejor: list[ParteMedida] = [
+        ParteMedida(f"{n.cosmos}/{n.nombre}", c) for n, c in universales
+    ]
+    mejor_coste = sum(p.tokens for p in mejor)
+
+    for ext in todas_ext:
+        grupo = [(n, c) for n, exts, c in aguas if ext in exts or "*" in exts]
+        coste = sum(c for _, c in grupo)
+        if coste > mejor_coste:
+            mejor_coste = coste
+            mejor = [ParteMedida(f"{n.cosmos}/{n.nombre}", c) for n, c in grupo]
+    return mejor
+
+
 def medir_arbol(
     arbol: Arbol,
     *,
@@ -226,10 +281,7 @@ def medir_arbol(
     resto = sum(parte.tokens for parte in detalle_arbol)
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
-    detalle_agua = [
-        ParteMedida(f"{nodo.cosmos}/{nodo.nombre}", contador(cuerpo(nodo)))
-        for nodo in agua_condicional(arbol)
-    ]
+    detalle_agua = _peor_agua_coincidente(arbol, contador)
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,

@@ -27,3 +27,11 @@ Un test cuyo disparador no es el que usa produccion pasa sin probar nada.
 
 Que motor de mutacion corresponde a cada lenguaje esta en `rendimiento/calidad`, junto al resto de
 herramientas que aplican estas politicas.
+
+Se dobla el borde mas externo que resuelva el caso: cada capa de mas es un contrato que toca
+sostener a mano. Si hay que teclear una estructura de mas de tres claves para contentar a un doble,
+se doblo demasiado adentro; doblando solo el origen de los datos, el codigo real arma el objeto
+valido sin ayuda.
+
+El interprete se nombra entero: coger el del sistema en vez del entorno del proyecto convirtio
+518 pruebas en verde en 194 con 39 caidas por dependencias que no estaban.

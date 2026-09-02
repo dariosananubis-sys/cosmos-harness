@@ -44,7 +44,7 @@ contradicción. Y si el `padre` no resuelve, salta E02. La galaxia no declara `p
 tampoco cierra ciclos, y el agua no tiene `padre` en absoluto.
 
 > **E04 («ciclo») queda retirada.** Su hueco en la numeración **no se reutiliza**: los códigos
-> siguen siendo E00–E03 y E05–E19. La aciclicidad no se vigila porque el diseño la ganó; fingir
+> siguen siendo E00–E03 y E05–E20. La aciclicidad no se vigila porque el diseño la ganó; fingir
 > que se vigila con una comprobación que ningún árbol legal puede disparar es peor que no tenerla
 > (`GOAL.md` §7: un verde que nunca ha dado rojo no se distingue de uno roto).
 
@@ -107,8 +107,13 @@ escribe corto — se paga en cada sesión, como el índice.
 
 Pero no todos los comandos sirven para lo mismo, y el campo opcional `momento` lo declara:
 
-- **`trabajo`** (por defecto) — resuelve el encargo: `abrir`, `medir`, `memoria`, `saltar`.
-- **`mantenimiento`** — cuida el repositorio: `enganchar`, `proyectar`, `generar`, `acertar`.
+- **`trabajo`** (por defecto) — resuelve el encargo del que trabaja en un oficio.
+- **`mantenimiento`** — cuida el repositorio: no lo pide ningún encargo.
+
+Cuáles son de cada clase no se escribe aquí: la lista cambió el mismo día en que se creó el
+campo y esta enumeración se quedó con la mitad. La dice el árbol —`cosmos estado`— y la fija
+`tests/test_rio_momento.py`, que la lleva escrita a mano **a propósito**: deducirla del árbol
+dejaría que quitarle el campo a un río subiera el coste en silencio.
 
 Los de mantenimiento aparecen **nombrados, no descritos**, en una sola línea agrupada. La razón es
 la tesis del proyecto aplicada a sus propias herramientas: `enganchar` se ejecuta una vez en la vida
@@ -381,7 +386,7 @@ partículas gramaticales: mientras `no`, `ni` y `ha` contaban como contenido, «
 nunca ha dado rojo» y «una copia que nunca se ha restaurado» —una analogía, no una duplicación—
 compartían cuatro «palabras» y puntuaban 0,44.
 
-Medido sobre la galaxia real (465 pares de nodos co-cargables): con el suelo en 3 quedan
+Medido sobre la galaxia real (496 pares de nodos co-cargables): con el suelo en 3 quedan
 **exactamente los dos pares** que la revisión adversarial había señalado a mano leyendo el agua y
 las 21 estrellas (H13), y **ningún** falso positivo. El primer par no duplicado queda en 0,286 con
 solo dos palabras compartidas: por debajo del suelo y por debajo del umbral, con margen por los dos

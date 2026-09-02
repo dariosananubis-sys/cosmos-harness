@@ -7,23 +7,20 @@ resumen: Un test afirma lo medido, no lo deseado. Cobertura alta no demuestra qu
 
 Se mide primero y se escribe la asercion despues: el test afirma lo medido, no lo deseado.
 
-La unica forma objetiva de separar un test real de uno decorativo es la mutacion: se altera el
-codigo a proposito y se mira si alguien se entera. Un mutante que sobrevive es una rama que nadie
-comprobaba. Cuesta ordenes de magnitud mas que la suite, asi que se apunta a un modulo y se corre
-de madrugada, nunca en cada commit.
+Solo la mutacion separa con objetividad el test real del decorativo: se rompe el codigo a proposito
+y se mira quien se entera; el mutante vivo es una rama que nadie comprobaba.
+Cuesta ordenes de magnitud mas que la suite: un modulo cada vez y de madrugada, nunca en cada
+commit. Los motores por lenguaje estan en `refactorizacion/mutacion`.
 
-El caso que rompe casi nunca se escribe a mano: se busca mutando la entrada y viendo que caminos
-nuevos aparecen. Si nadie ha intentado romperlo con datos que nadie escribiria, no esta probado.
+El caso que rompe no se escribe a mano: se muta la entrada y se miran los caminos nuevos; sin
+datos que nadie escribiria, no esta probado.
 
-El fallo intermitente se graba, no se razona: una ejecucion repetible bit a bit convierte una
-condicion de carrera en algo depurable. En sistemas distribuidos la prueba seria inyecta el fallo
-real -particion, reloj desviado, proceso muerto- y comprueba la historia observada.
+El fallo intermitente se graba, no se razona: repetible bit a bit, la condicion de carrera se
+vuelve depurable. En distribuido se inyecta el fallo real -particion, reloj desviado, proceso
+muerto- y se comprueba la historia observada.
 
-Un test cuyo disparador no es el que usa produccion pasa sin probar nada. Para extremo a extremo,
-navegador real con traza, nunca una simulacion.
+Un disparador que no es el de produccion pasa sin probar nada; el extremo a extremo, en
+navegador real con traza, nunca simulado.
 
-Se dobla el borde mas externo que resuelva el caso: cada capa de mas es un contrato que toca
-sostener a mano. Si hay que teclear una estructura de mas de tres claves para contentar a un doble,
-se doblo demasiado adentro.
-
-Las herramientas de mutacion de cada lenguaje estan en `refactorizacion/mutacion`.
+Se dobla el borde mas externo que resuelva el caso: cada capa de mas es un contrato sostenido a
+mano; mas de tres claves para contentar a un doble es doblar demasiado adentro.

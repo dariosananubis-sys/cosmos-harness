@@ -5,30 +5,23 @@ moja: ["**/*.py", "**/*.js", "**/*.ts", "**/*.tsx", "**/*.php", "**/*.go", "**/*
 resumen: Que no se escriba de mas: lo mas simple que funciona, reutilizar antes que crear, tocar lo justo.
 ---
 
-Se toca lo minimo. Un cambio grande se hace en pasos que se pueden verificar por separado. Antes de
-escribir algo nuevo se busca si ya existe: duplicar es deuda. Las transformaciones sobre muchos
-ficheros van con herramienta, no a mano, porque el error humano escala.
+Se toca lo minimo; un cambio grande va en pasos verificables por separado. Antes de escribir
+algo nuevo se busca si ya existe: duplicar es deuda. Reutilizar se busca por simbolo y por quien lo
+referencia, no adivinando desplazamientos ni barriendo a ciegas.
 
-Lo mecanico lo mide un analizador con arbol sintactico, no la vista. Si una regla se puede escribir,
-la comprueba una maquina y deja de gastarse tiempo en discutirla.
+Lo mecanico lo mide un analizador con arbol sintactico, no la vista: la regla que se puede
+escribir la comprueba una maquina y deja de discutirse. Un modelo no garantiza consistencia en
+cientos de ficheros; una regla determinista si: el cambio repetido se declara como patron
+sintactico y lo aplica la herramienta, nunca la mano, porque el error humano escala.
 
-**Reutilizar antes que crear se busca, no se recuerda.** Se pregunta por el simbolo y por quien lo
-referencia, en vez de adivinar desplazamientos de texto o barrer a ciegas.
+Tocar lo justo se demuestra comparando arboles, no leyendo el diff: lo reformateado no cuenta
+como cambio ni su ruido tapa el error real.
 
-**Tocar lo justo se demuestra midiendo el arbol, no leyendo el diff.** El cambio repetido se describe
-como patron sintactico y se aplica igual en todas partes; luego se revisa comparando arboles, para
-que lo reformateado no aparezca como cambio y su ruido no tape el error de verdad.
+Antes de empezar se lista que ficheros puede tocar el encargo; lo de fuera se para y pide
+permiso, no se amplia solo.
 
-Un modelo no puede garantizar consistencia en cuatrocientos ficheros. Una regla determinista si; por
-eso el criterio dice que se use la regla y no la paciencia.
+Mover o partir codigo no es reescribirlo de memoria: se traslada con la herramienta que conserva
+el historial y se cuadra el conteo.
 
-Que herramienta ejecuta cada una de estas comprobaciones en cada lenguaje se decide en
-`refactorizacion`, no aqui: un mar fija la politica y no el catalogo.
-
-Antes de empezar se escribe la lista de ficheros que el encargo puede tocar, y lo que caiga fuera
-se para y pide permiso en vez de ampliarse solo: sin esa lista, un ayudante edito un fichero de
-semilla que nadie le habia pedido y deshacerlo costo mas que el propio encargo.
-
-Mover o partir codigo no es reescribirlo. El modelo borra el bloque y lo teclea de memoria, y por
-ahi se pierden lineas sin que salga un solo rojo: se traslada con la herramienta que conserva el
-historial y se comprueba que el conteo cuadra.
+La herramienta concreta de cada comprobacion y lenguaje se decide en `refactorizacion`: el mar
+fija la politica, no el catalogo.

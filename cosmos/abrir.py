@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from .modelo import Arbol, NIVELES_AGUA, NIVELES_SOLIDOS, Nodo, cuerpo
 from .validar import _glob_a_regex
@@ -110,7 +111,26 @@ def agua_que_moja(arbol: Arbol, ruta_fichero: str | None) -> list[Nodo]:
     if not ruta_fichero:
         return []
 
+    # Una ruta absoluta devolvía agua vacía en silencio, porque los `moja` casan contra
+    # rutas relativas al proyecto. Devolver «ninguna» ante algo que no se supo interpretar
+    # es el mismo defecto que tenía el filtro por nicho al revés: aquí no se distingue
+    # «este fichero no lo moja nada» de «no entendí lo que me diste».
     relativa = ruta_fichero[2:] if ruta_fichero.startswith("./") else ruta_fichero
+    if relativa.startswith("/"):
+        candidata = Path(relativa)
+        raices = [arbol.raiz, arbol.raiz.parent]
+        for raiz in raices:
+            try:
+                relativa = str(candidata.relative_to(raiz))
+                break
+            except ValueError:
+                continue
+        else:
+            raise NodoNoEncontrado(
+                f"'{ruta_fichero}' está fuera del proyecto ({arbol.raiz.parent}): el agua se "
+                f"decide por la ruta relativa a la raíz, así que una de fuera no moja nada. "
+                f"Pásala relativa."
+            )
     alcanzadas = []
     for nodo in arbol.nodos:
         if nodo.cosmos not in NIVELES_AGUA or nodo.cosmos == "oceano":

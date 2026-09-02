@@ -1041,11 +1041,43 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--formato", choices=("json", "exit2"), default="json")
     parser.add_argument("--config", type=Path, default=None, help="ruta de cosmos.toml")
     args = parser.parse_args(argv)
+    # Una entrada que no se puede leer es tan «no puedo evaluar» como un `cosmos.toml`
+    # roto, y antes se trataba al revés: exit 0 y silencio. Pero hay un matiz que decide
+    # la respuesta — con el JSON ilegible **no se sabe siquiera qué evento es**, así que
+    # denegar sería bloquear todos los hooks ante cualquier basura del canal. Se separan
+    # los dos casos: si no se sabe qué es, rastro y paso; si se sabe que es `PreToolUse`
+    # y el resto está malformado, se deniega, que es lo que ese guard existe para hacer.
+    crudo = sys.stdin.read()
     try:
-        entrada = json.load(sys.stdin)
-    except (ValueError, TypeError):
+        entrada = json.loads(crudo)
+    except (ValueError, TypeError) as fallo:
+        _anotar_fallo({"hook_event_name": "?", "tool_name": "?"}, fallo)
         return 0
     if not isinstance(entrada, dict):
+        _anotar_fallo({"hook_event_name": "?", "tool_name": "?"},
+                      TypeError(f"el evento no es un objeto: {type(entrada).__name__}"))
+        return 0
+
+    if entrada.get("hook_event_name") == "PreToolUse" and not entrada.get("tool_name"):
+        fallo = ValueError("PreToolUse sin 'tool_name': no se puede saber qué se iba a ejecutar")
+        _anotar_fallo(entrada, fallo)
+        decision = Decision(
+            accion="denegar",
+            motivo=(
+                "COSMOS  sesion  rojo  el guard no pudo evaluar este evento\n"
+                f"  {fallo}\n"
+                "Se deniega porque el guard que debía mirarlo no ha podido, no por lo que\n"
+                "hace la herramienta. Si hace falta seguir, abre la válvula con 'cosmos saltar'."
+            ),
+        )
+        if args.formato == "exit2":
+            texto, codigo = como_exit2(decision)
+            if texto:
+                sys.stderr.write(texto + "\n")
+            return codigo
+        cuerpo = como_json(decision, "PreToolUse")
+        if cuerpo:
+            sys.stdout.write(cuerpo + "\n")
         return 0
     try:
         decision, evento = decidir(entrada, config_path=args.config)

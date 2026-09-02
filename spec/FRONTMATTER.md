@@ -30,14 +30,14 @@ validador lo trata como error, no como aviso.
 ---
 cosmos: pueblo
 nombre: agent-browser
-padre: provincia/navegacion-web
+padre: web/construccion-de-sitios
 resumen: Automatiza un navegador real por CDP; captura, rellena y verifica.
 ---
 ```
 
 | Campo | Obligatorio | Regla |
 |---|---|---|
-| `padre` | sí, salvo galaxia | `<nivel>/<nombre>` de un nodo existente de rango estrictamente menor |
+| `padre` | sí, salvo galaxia | La **ruta completa** de un nodo existente de rango estrictamente menor (`NUCLEO.md` §1). El nivel NO aparece en la ruta: `web/pagos`, nunca `pais/pagos` |
 
 **Rango de los sólidos** (de mayor a menor superficie):
 
@@ -72,7 +72,7 @@ Hay exactamente **una** galaxia por instalación, y es el único nodo sin `padre
 ---
 cosmos: estrella
 nombre: web
-ilumina: sistema-solar/web
+ilumina: web
 resumen: Contexto permanente de todo trabajo de web.
 ---
 ```

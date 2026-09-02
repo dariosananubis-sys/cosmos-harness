@@ -81,11 +81,11 @@ Un nodo puede declarar con qué se usa habitualmente. Los 21 sistemas solares lo
 ---
 cosmos: pueblo
 nombre: refactor-masivo
-padre: rendimiento/calidad
+padre: refactorizacion/transformacion
 resumen: Aplica una transformación a cientos de ficheros con AST, no con expresiones regulares.
 usa:
-  - rendimiento/calidad/ast-grep
-  - rendimiento/calidad/mutmut
+  - refactorizacion/transformacion/ast-grep
+  - refactorizacion/mutacion/mutmut
 ---
 ```
 
@@ -106,11 +106,12 @@ Lo que **no** hace: cargar nada solo. Una dependencia automática convertiría `
 arrastre —cargas uno y vienen cinco— que es el mecanismo exacto por el que un gestor de paquetes
 acaba trayendo medio internet. Aquí la carga siempre la decide quien trabaja.
 
-Límite conocido y medido (revisión 2026-09-02): el grafo `usa:` de los sistemas es hoy más estrella
-que malla —la mayoría de aristas no son recíprocas y varios oficios no los cita nadie—. E20
-garantiza que ningún destino miente; **no** garantiza que el vecindario sea navegable en las dos
-direcciones. Qué aristas añadir es una decisión de taxonomía, no de validador, y está anotada con
-sus números en el registro.
+El grafo se revisó el 2026-09-02 (C01): se añadieron las aristas que son verdad sobre cómo se
+cruza el trabajo real —cada una con su historia en el parte `taxonomia-c01-c03`— y quedó un único
+oficio al que nadie manda, `juegos`, declarado **terminal**: se llega a él por el encargo, no desde
+otro oficio. E20 garantiza que ningún destino miente; que ningún oficio quede sin citar salvo los
+terminales declarados lo vigila `tests/test_universo_navegable.py`. La reciprocidad total no se
+persigue: una arista es una afirmación sobre el trabajo, no un trámite de simetría.
 
 ## Los límites de esto
 

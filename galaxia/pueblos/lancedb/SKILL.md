@@ -21,14 +21,14 @@ tabla = db.create_table("notas", data=[
 print(tabla.search([0.1, 0.2, 0.25]).limit(2).to_list())
 ```
 
-**Cabe en 8 GB con holgura, y es la razón de que gane**: corre dentro del proceso, con formato columnar
+**Cabe donde otros ni arrancan, y es la razón de que gane**: corre dentro del proceso, con formato columnar
 propio y acceso directo a disco, así que **no mantiene el índice entero en memoria** por diseño —
 soporta conjuntos más grandes que la RAM disponible. No hay ningún servicio adicional compitiendo por
 la RAM residente.
 
 Gana a `qdrant/qdrant` (34.313★) y a `chroma-core/chroma` (29.196★) exactamente en este entorno: los
 dos son mejores a escala real (filtrado complejo, miles de millones de vectores) pero piden un proceso
-servidor permanente con su propia porción de RAM. En una máquina de 8 GB con el editor y el navegador
+servidor permanente con su propia porción de RAM. En una máquina justa de memoria con el editor y el navegador
 abiertos, ese proceso es el que provoca el intercambio. No es sustituto en todos los escenarios: es el
 mejor **para esta máquina**.
 

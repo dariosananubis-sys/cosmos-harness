@@ -35,7 +35,7 @@ Cierra el único hueco que le faltaba a este oficio: hasta aquí todo era texto 
 forma de que un modelo local **mirase** algo. El caso real es cotidiano: una captura de un panel que
 no se puede compartir, la foto de un albarán, un pantallazo del cliente con un error.
 
-**En 8 GB, con cuantización 4 bits**: un modelo de visión de ~3B ocupa 2-2,5 GB y va con soltura; uno
+**Con cuantización 4 bits**: un modelo de visión de ~3B ocupa 2-2,5 GB y va con soltura; uno
 de 7B en 4 bits ronda los 5 GB y deja el sistema al límite con el editor abierto. Por encima no entra,
 igual que en su vecino de texto. Y ojo con lo propio de visión: **la imagen también ocupa** —una
 captura de pantalla de retina son miles de tokens visuales—, así que se reescala antes de pasarla, o el

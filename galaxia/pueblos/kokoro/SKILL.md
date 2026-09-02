@@ -28,7 +28,7 @@ sf.write("salida.wav", audio, sr)
 ```
 
 Ochenta y dos millones de parametros: consume dos o tres gigas y corre en CPU sin grafica dedicada,
-lo que en un Mac de 8 GB es la diferencia entre usable e inviable. Gana a `rhasspy/piper` (11,3k
+lo que en una maquina justa de memoria es la diferencia entre usable e inviable. Gana a `rhasspy/piper` (11,3k
 estrellas, MIT), que era el sintetizador mas conocido del hueco, por un motivo comprobable y no
 opinable: ese repositorio esta **archivado** y su ultimo push es de 2025-08-26. Frente a
 `espeak-ng/espeak-ng`, que sigue vivo y pesa muchisimo menos, gana en calidad — aquel suena robotico

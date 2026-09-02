@@ -30,4 +30,4 @@ mismo protocolo escrito a mano sin dependencias, sirve solo si algún día hay q
 Ojo, dos falsos verdes: una sesión con nombre reutilizada por otro trabajo puede estar en otra URL, y
 el informe sale entero y es mentira — de ahí `--session` estable por tarea y comprobar la URL antes de
 medir. Y «presente en el DOM» no es «visible»: exigir `offsetParent` y dimensiones > 0. En una máquina
-de 8 GB, tres sesiones simultáneas es el techo; `close --all` mata las de otros trabajos.
+justa de memoria, pocas sesiones simultáneas; `close --all` mata las de otros trabajos.

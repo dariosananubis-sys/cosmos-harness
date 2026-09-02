@@ -25,7 +25,7 @@ print(resumen.compute())                          # aqui ejecuta, por trozos
 
 Se prefiere a `ray-project/ray` (43,7k estrellas, Apache-2.0, mucho mas popular) por una razon
 medible en esta maquina concreta: Ray aparta por defecto cerca de un tercio de la memoria de la
-maquina para su almacen de objetos nada mas arrancar, que en 8 GB es agresivo; Dask no reserva nada
+maquina para su almacen de objetos nada mas arrancar, agresivo si la memoria anda justa; Dask no reserva nada
 por adelantado y baja de escala sin friccion. Para un grupo de maquinas de verdad y para el
 ecosistema de aprendizaje distribuido, Ray sigue siendo la eleccion correcta. Y frente a `joblib`,
 que es mas ligero todavia: si el trabajo es vergonzosamente paralelo en un solo proceso, `joblib`
@@ -37,5 +37,5 @@ el resultado entero a memoria — un `compute()` sobre algo que no cabe mata el 
 un unico fichero grande crea una sola particion y el paralelismo no existe, sin ningun aviso.
 
 Aviso de maquina: por defecto arranca tantos procesos como nucleos, cada uno con su copia del
-interprete. En un Mac de 8 GB conviene fijar `n_workers` y `memory_limit` a mano, como arriba, en vez
+interprete. Con memoria justa conviene fijar `n_workers` y `memory_limit` a mano, como arriba, en vez
 de dejar el automatico.

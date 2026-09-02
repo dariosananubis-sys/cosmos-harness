@@ -38,7 +38,7 @@ cc juego.c -o juego $(pkg-config --libs --cflags raylib) && ./juego
 
 Es el escalon de abajo de `godot` y `bevy`: no hay editor, ni escena, ni sistema de activos. Hay una
 ventana, un bucle y funciones de dibujo — y compila y arranca en segundos, que es lo que lo hace la
-unica de las tres comoda en una maquina de 8 GB con memoria justa. Se elige para entender como
+unica de las tres comoda en una maquina con memoria justa. Se elige para entender como
 funciona un juego por dentro o para construir una herramienta propia sin cargar con un motor entero.
 
 Y lo que no hace bien: todo lo que un motor hace por ti. No hay gestion de escenas, ni serializacion

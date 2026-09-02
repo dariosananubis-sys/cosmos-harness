@@ -26,7 +26,7 @@ paquete, para macOS ARM y para Linux x86 a la vez, sin ejecutar nada en la otra 
 Gana a `conda` con `environment.yml` (la alternativa clasica del nicho) en lo unico que decide aqui:
 alli el bloqueo es un paso extra, con `conda-lock`, que alguien olvida — y sin bloqueo,
 "reproducible" es una palabra. Ademas es un binario en Rust, sin el tiempo de ejecucion pesado de
-conda por debajo: en un Mac de 8 GB resuelve entornos en segundos donde `conda` se queda pensando
+conda por debajo: en una maquina justa de memoria resuelve entornos en segundos donde `conda` se queda pensando
 minutos. Frente a `uv`, que es mas rapido todavia, este cubre el ecosistema conda-forge —
 compiladores, BLAS, CUDA, R— que en ciencia no es opcional.
 

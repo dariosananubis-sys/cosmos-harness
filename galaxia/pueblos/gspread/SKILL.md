@@ -5,8 +5,7 @@ padre: analitica
 resumen: Lee y escribe hojas de calculo en la nube por su API oficial, como si fueran una tabla mas.
 ---
 
-https://github.com/burnash/gspread - MIT - 7.506 estrellas - ultimo push 2026-07-30 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/burnash/gspread · MIT · 7.506★ · último push 2026-07-30 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pip install gspread google-auth
@@ -37,9 +36,9 @@ defecto— gana en que se automatiza y en que puede escribir de vuelta.
 Descartado el servidor de herramientas para hojas de calculo de escritorio: resuelve el formato de
 oficina, pero un servidor de herramientas cuesta contexto en cada sesion y aqui la fuente esta en la
 nube. Queda anotado para cuando el fichero llegue por correo. De la cosecha propia no entran tres
-clientes del mismo proveedor: `cosecha/gsheet_sa.py` y `cosecha/gsheets.py` —el mismo trabajo por
+clientes del mismo proveedor: `scripts/gsheet_sa.py` y `scripts/gsheets.py` —el mismo trabajo por
 cuenta de servicio y por autorizacion de usuario, con menos mantenimiento detras que este— y
-`cosecha/gdoc-read.py`, que lee un documento de texto a plano: caso demasiado estrecho para ocupar
+`scripts/gdoc-read.py`, que lee un documento de texto a plano: caso demasiado estrecho para ocupar
 linea de catalogo.
 
 Y lo que no hace bien:

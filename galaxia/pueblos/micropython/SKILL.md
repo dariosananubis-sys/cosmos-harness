@@ -5,9 +5,7 @@ padre: embebidos
 resumen: Consola interactiva dentro del microcontrolador: se prueba un sensor sin recompilar ni volver a grabar.
 ---
 
-https://github.com/micropython/micropython - MIT segun su `LICENSE` (la API de GitHub la devuelve
-como `NOASSERTION` por variacion de cabeceras entre ficheros; revisar antes de redistribuir) -
-22.034 estrellas - ultimo push 2026-08-31 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/micropython/micropython · MIT segun su `LICENSE` (la API de GitHub la devuelve como `NOASSERTION` por variacion de cabeceras entre ficheros; revisar antes de redistribuir) · 22.034★ · último push 2026-08-31 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install python3

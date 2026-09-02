@@ -5,7 +5,7 @@ padre: ingenieria-datos
 resumen: Encadena modelos SQL en control de versiones con pruebas declarativas y documentacion generada.
 ---
 
-https://github.com/dbt-labs/dbt-core - Apache-2.0 - 13.756 estrellas - ultimo push 2026-09-01
+https://github.com/dbt-labs/dbt-core · Apache-2.0 · 13.756★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

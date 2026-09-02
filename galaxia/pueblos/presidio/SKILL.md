@@ -41,6 +41,6 @@ registro de tratamientos y no valida bases jurídicas.
 
 Ojo: los reconocedores en español son bastante peores que en inglés, y el de DNI/NIE español no
 valida la letra de control por defecto — hay que añadir un reconocedor propio o pasar el resultado
-por `cosecha/nif-cif-validator.js`. Un falso negativo aquí es un dato personal que sale de casa, así
+por `scripts/nif-cif-validator.js`. Un falso negativo aquí es un dato personal que sale de casa, así
 que la salida se revisa por muestreo antes de fiarse; nunca se declara «anonimizado» por haberlo
 ejecutado.

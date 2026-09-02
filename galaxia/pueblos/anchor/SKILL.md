@@ -5,7 +5,7 @@ padre: blockchain
 resumen: La otra cadena: genera la validacion de cuentas y el cliente desde la interfaz, que es donde esta el fallo tipico.
 ---
 
-https://github.com/otter-sec/anchor - Apache-2.0 - 5.125 estrellas - ultimo push 2026-09-01
+https://github.com/otter-sec/anchor · Apache-2.0 · 5.125★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). El repositorio cambio de organizacion: el antiguo
 `coral-xyz/anchor` redirige aqui.
 

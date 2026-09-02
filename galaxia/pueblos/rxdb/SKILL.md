@@ -5,8 +5,7 @@ padre: moviles
 resumen: Base de datos local primero que replica en segundo plano: la aplicacion lee y escribe sin esperar a la red.
 ---
 
-https://github.com/pubkey/rxdb - Apache-2.0 - 23.371 estrellas - ultimo push 2026-09-01 (comprobado
-por API de GitHub el 2026-09-01).
+https://github.com/pubkey/rxdb · Apache-2.0 · 23.371★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 npm install rxdb rxjs

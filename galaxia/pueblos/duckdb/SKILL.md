@@ -5,8 +5,7 @@ padre: ingenieria-datos/motor
 resumen: Consulta SQL sobre CSV y Parquet dentro del proceso, derramando a disco cuando no cabe en memoria.
 ---
 
-https://github.com/duckdb/duckdb - MIT - 40.897 estrellas - ultimo push 2026-09-01 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/duckdb/duckdb · MIT · 40.897★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install duckdb          # el binario de linea de comandos

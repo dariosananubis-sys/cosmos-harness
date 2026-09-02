@@ -5,7 +5,7 @@ padre: analitica/cuadros-de-mando
 resumen: Informes en Markdown con bloques SQL que se compilan a un sitio estatico publicable en cualquier sitio.
 ---
 
-https://github.com/evidence-dev/evidence - MIT - 6.898 estrellas - ultimo push 2026-08-31
+https://github.com/evidence-dev/evidence · MIT · 6.898★ · último push 2026-08-31 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

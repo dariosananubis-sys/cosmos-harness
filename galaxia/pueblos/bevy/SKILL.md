@@ -5,8 +5,7 @@ padre: juegos
 resumen: Motor sin editor: todo en codigo y con entidad-componente-sistema de fabrica.
 ---
 
-https://github.com/bevyengine/bevy - Apache-2.0 (dual con MIT, a eleccion) - 47.989 estrellas -
-ultimo push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/bevyengine/bevy · Apache-2.0 (dual con MIT, a eleccion) · 47.989★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install rust

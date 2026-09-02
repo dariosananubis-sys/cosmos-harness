@@ -5,7 +5,7 @@ padre: cientifico
 resumen: Compone la configuracion del experimento y deja registrada la de cada corrida, sobreescribible desde la consola.
 ---
 
-https://github.com/hydra-ecosystem/hydra - MIT - 10.626 estrellas - ultimo push 2026-09-01
+https://github.com/hydra-ecosystem/hydra · MIT · 10.626★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). Nacio en Facebook Research; hoy lo mantiene la
 comunidad en esta organizacion.
 

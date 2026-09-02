@@ -5,8 +5,7 @@ padre: juegos
 resumen: Motor 2D que corre en el navegador al abrir un HTML, sin instalar ni pisar una tienda.
 ---
 
-https://github.com/phaserjs/phaser - MIT - 40.246 estrellas - ultimo push 2026-08-21 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/phaserjs/phaser · MIT · 40.246★ · último push 2026-08-21 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 npm install phaser

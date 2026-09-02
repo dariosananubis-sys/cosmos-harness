@@ -5,8 +5,7 @@ padre: blockchain
 resumen: Analizador estatico de contratos con noventa detectores maduros y salida para tuberia.
 ---
 
-https://github.com/crytic/slither - AGPL-3.0 - 6.357 estrellas - ultimo push 2026-08-26 (comprobado
-por API de GitHub el 2026-09-01). De Trail of Bits.
+https://github.com/crytic/slither · AGPL-3.0 · 6.357★ · último push 2026-08-26 (comprobado por API de GitHub el 2026-09-01). De Trail of Bits.
 
 ```bash
 pipx install slither-analyzer

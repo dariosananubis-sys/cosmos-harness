@@ -5,8 +5,7 @@ padre: ingenieria-datos/motor
 resumen: Marcos de datos en Rust con modo perezoso: planifica antes de leer y evita cargar de mas.
 ---
 
-https://github.com/pola-rs/polars - MIT - 39.580 estrellas - ultimo push 2026-09-01 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/pola-rs/polars · MIT · 39.580★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pip install polars

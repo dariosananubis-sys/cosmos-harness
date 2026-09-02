@@ -5,15 +5,15 @@ padre: web/construccion-de-sitios
 resumen: Consola y SQL contra un gestor de contenidos remoto por conexion reutilizada, con el PHP ejecutado desde fichero.
 ---
 
-`cosecha/wp-ssh.sh`, `cosecha/wp_sql.py` y `cosecha/wpcli-remote.sh` — herramientas propias, no de
+`scripts/wp-ssh.sh`, `scripts/wp_sql.py` y `scripts/wpcli-remote.sh` — herramientas propias, no de
 GitHub. Requieren `sshpass` y, para el índice de sitios, `jq`.
 
 ```bash
-chmod +x cosecha/wp-ssh.sh cosecha/wpcli-remote.sh
+chmod +x scripts/wp-ssh.sh scripts/wpcli-remote.sh
 export WP_SITES_JSON="$HOME/.wp-sites/sites.json"      # { "sites": { "<slug>": { "ssh": {...} } } }
-cosecha/wp-ssh.sh --sitio <slug> plugin list --status=active
+scripts/wp-ssh.sh --sitio <slug> plugin list --status=active
 python3 -c "import sys;sys.path.insert(0,'cosecha');from wp_sql import sql;print(sql('<slug>','SELECT COUNT(*) FROM wp_posts'))"
-cosecha/wpcli-remote.sh <slug-de-servidor> /ruta/al/docroot -- core version
+scripts/wpcli-remote.sh <slug-de-servidor> /ruta/al/docroot -- core version
 ```
 
 Dos decisiones que se pagan caras si no se toman, y por eso `wp-ssh.sh` consolida seis guiones casi

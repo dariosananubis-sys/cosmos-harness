@@ -5,13 +5,13 @@ padre: web/construccion-de-sitios
 resumen: Crea, guarda y comprueba la clave de aplicacion del gestor, que solo se puede emitir desde su interfaz.
 ---
 
-`cosecha/bootstrap-app-pass.py`, `cosecha/save-app-pass.py` y `cosecha/wp-rest-base.js` —
+`scripts/bootstrap-app-pass.py`, `scripts/save-app-pass.py` y `scripts/wp-rest-base.js` —
 herramientas propias, no de GitHub.
 
 ```bash
 export BWS_ACCESS_TOKEN="<token>" BWS_PROJECT_ID="<id-de-proyecto>"
-python3 cosecha/bootstrap-app-pass.py <slug>                      # login headless, crea, guarda, verifica
-python3 cosecha/save-app-pass.py <slug> <usuario> /tmp/clave.txt  # si ya se creó a mano
+python3 scripts/bootstrap-app-pass.py <slug>                      # login headless, crea, guarda, verifica
+python3 scripts/save-app-pass.py <slug> <usuario> /tmp/clave.txt  # si ya se creó a mano
 curl -s -u "<usuario>:<clave-de-aplicacion>" https://example.com/wp-json/wp/v2/settings | head -c 200
 ```
 

@@ -5,12 +5,12 @@ padre: web/construccion-de-sitios
 resumen: Dice si un dominio esta libre cruzando tres fuentes publicas, y admite no saberlo en vez de inventarselo.
 ---
 
-`cosecha/domain-suggester.py` — herramienta propia, no de GitHub. Solo fuentes públicas, sin API de
+`scripts/domain-suggester.py` — herramienta propia, no de GitHub. Solo fuentes públicas, sin API de
 pago ni cuenta de registrador.
 
 ```bash
-python3 cosecha/domain-suggester.py ejemplo-de-marca.es      # dominio exacto -> LIBRE / PILLADO / ?
-python3 cosecha/domain-suggester.py "taller de bicicletas"   # base -> hasta 5 variantes .es/.com libres
+python3 scripts/domain-suggester.py ejemplo-de-marca.es      # dominio exacto -> LIBRE / PILLADO / ?
+python3 scripts/domain-suggester.py "taller de bicicletas"   # base -> hasta 5 variantes .es/.com libres
 ```
 
 Cruza tres fuentes —servidores de nombres publicados, RDAP y la consulta clásica de titularidad— y

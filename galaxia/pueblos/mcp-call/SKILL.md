@@ -5,14 +5,14 @@ padre: agentes-ia/herramientas
 resumen: Invoca una sola herramienta de un servidor externo desde la consola, sin levantar un anfitrion completo.
 ---
 
-`cosecha/mcp-call.py` — herramienta propia, no de GitHub. Cliente JSON-RPC por STDIN/STDOUT, sin
+`scripts/mcp-call.py` — herramienta propia, no de GitHub. Cliente JSON-RPC por STDIN/STDOUT, sin
 conexión persistente.
 
 ```bash
 export MCP_BRIDGE_CMD="npx -y @ejemplo/mcp-servidor --config /ruta/config.json"
-python3 cosecha/mcp-call.py --list
-python3 cosecha/mcp-call.py --schema herramienta_a,herramienta_b
-python3 cosecha/mcp-call.py herramienta_a '{"ruta": "/tmp/entrada.txt"}'
+python3 scripts/mcp-call.py --list
+python3 scripts/mcp-call.py --schema herramienta_a,herramienta_b
+python3 scripts/mcp-call.py herramienta_a '{"ruta": "/tmp/entrada.txt"}'
 ```
 
 Sirve para dos cosas que de otro modo cuestan una sesión entera: **comprobar que un servidor devuelve

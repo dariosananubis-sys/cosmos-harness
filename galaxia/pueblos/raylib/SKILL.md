@@ -5,8 +5,7 @@ padre: juegos
 resumen: Biblioteca en C minima, sin motor ni editor: arranca en segundos y sirve para aprender o para hacer herramientas.
 ---
 
-https://github.com/raysan5/raylib - Zlib - 34.547 estrellas - ultimo push 2026-08-29 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/raysan5/raylib · Zlib · 34.547★ · último push 2026-08-29 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install raylib

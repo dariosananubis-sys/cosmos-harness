@@ -5,7 +5,7 @@ padre: cientifico
 resumen: Empaqueta lo que la ejecucion uso de verdad rastreando sus llamadas al sistema, no lo que alguien declaro.
 ---
 
-https://github.com/VIDA-NYU/reprozip - BSD-3-Clause - 362 estrellas - ultimo push 2026-02-04
+https://github.com/VIDA-NYU/reprozip · BSD-3-Clause · 362★ · último push 2026-02-04 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01). Siete meses sin movimiento: es el mas pequeno y el
 menos activo de este nicho, y se dice.
 

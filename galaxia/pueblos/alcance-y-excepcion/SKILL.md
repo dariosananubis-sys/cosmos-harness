@@ -5,16 +5,16 @@ padre: agentes-ia
 resumen: Declara que se puede tocar y bloquea el resto; el permiso extra se pide con motivo y caduca solo.
 ---
 
-`cosecha/alcance.py` y `cosecha/excepcion-codigo.py` — herramientas propias, no de GitHub. Escriben en
+`scripts/alcance.py` y `scripts/excepcion-codigo.py` — herramientas propias, no de GitHub. Escriben en
 `progress/gates/`, que va gitignorado.
 
 ```bash
-python3 cosecha/alcance.py proyecto-a --tarea "footer de proyecto-a"
-python3 cosecha/alcance.py proyecto-a proyecto-b        # varias de una vez
-python3 cosecha/alcance.py --ver                        # qué hay declarado
-python3 cosecha/excepcion-codigo.py <slug> "Quitar el bloque heredado" \
+python3 scripts/alcance.py proyecto-a --tarea "footer de proyecto-a"
+python3 scripts/alcance.py proyecto-a proyecto-b        # varias de una vez
+python3 scripts/alcance.py --ver                        # qué hay declarado
+python3 scripts/excepcion-codigo.py <slug> "Quitar el bloque heredado" \
   --nativo-descartado "ninguno: esto es para BORRAR codigo, no para anadirlo"
-python3 cosecha/alcance.py --quitar                     # al terminar
+python3 scripts/alcance.py --quitar                     # al terminar
 ```
 
 Las dos piezas son el patrón entero: la puerta está cerrada por defecto, abrirla deja rastro, y se

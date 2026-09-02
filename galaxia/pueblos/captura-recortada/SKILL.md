@@ -5,12 +5,12 @@ padre: agentes-ia/coste
 resumen: Captura solo la ventana o la region que hace falta; una pantalla entera es la imagen mas cara que se puede meter.
 ---
 
-`cosecha/captura-ventana.py` — herramienta propia, no de GitHub. macOS, requiere `pyobjc` (Quartz) y
+`scripts/captura-ventana.py` — herramienta propia, no de GitHub. macOS, requiere `pyobjc` (Quartz) y
 permiso de Grabación de pantalla.
 
 ```bash
-python3 cosecha/captura-ventana.py --listar              # ver qué ventanas hay
-python3 cosecha/captura-ventana.py "code" /tmp/v.png     # captura esa ventana, aunque esté tapada
+python3 scripts/captura-ventana.py --listar              # ver qué ventanas hay
+python3 scripts/captura-ventana.py "code" /tmp/v.png     # captura esa ventana, aunque esté tapada
 screencapture -R 100,200,800,400 /tmp/region.png         # una región exacta, nativo, sin dependencias
 ```
 
@@ -24,5 +24,5 @@ sirve: no se puede recortar lo que no se ve. Para todo lo demás, el `-R` nativo
 pide dependencias — y en este arnés la pantalla entera está bloqueada por enganche.
 
 Ojo: si sale negra no está rota — es TCC. Concederle Grabación de pantalla al proceso que la lanza
-(Ajustes › Privacidad), no al guion. Y no confundirlo con `cosecha/foto-cuadrar.py`, que es otra cosa:
+(Ajustes › Privacidad), no al guion. Y no confundirlo con `scripts/foto-cuadrar.py`, que es otra cosa:
 re-encuadra fotos de producto a lienzo cuadrado, no recorta capturas.

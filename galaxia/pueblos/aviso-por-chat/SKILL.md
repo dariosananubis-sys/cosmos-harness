@@ -5,21 +5,21 @@ padre: automatizacion
 resumen: Avisa en el chat de trabajo donde ya esta la gente, por cuenta de servicio o por permiso de un usuario real.
 ---
 
-`cosecha/google-chat-dm.py` y `cosecha/google-chat-oauth-notify.js` — herramienta propia, no hay
+`scripts/google-chat-dm.py` y `scripts/google-chat-oauth-notify.js` — herramienta propia, no hay
 repositorio público. La ruta ES la referencia.
 
 ```bash
 # vía cuenta de servicio (la app de Chat necesita Receive 1:1 + Join spaces)
 export GOOGLE_CHAT_SA_JSON=~/.secrets/<cuenta-servicio>.json
-python3 cosecha/google-chat-dm.py list-spaces
-python3 cosecha/google-chat-dm.py send persona@ejemplo.test "Copia nocturna terminada"
+python3 scripts/google-chat-dm.py list-spaces
+python3 scripts/google-chat-dm.py send persona@ejemplo.test "Copia nocturna terminada"
 
 # vía OAuth de un usuario real (cuando la organizacion solo aprueba el flujo de usuario)
 export GCHAT_NOTIFY_RECIPIENTS="persona@ejemplo.test,otra@ejemplo.test"
 export GCHAT_CREDENTIALS_FILE=/run/secrets/gchat_credentials
 export GCHAT_TOKEN_FILE=/run/secrets/gchat_token
 node --input-type=module -e "
-import { notifyTeam } from './cosecha/google-chat-oauth-notify.js';
+import { notifyTeam } from './scripts/google-chat-oauth-notify.js';
 console.log(await notifyTeam({ status: 'ok', queue: 'copias', label: 'nocturna' }));"
 ```
 

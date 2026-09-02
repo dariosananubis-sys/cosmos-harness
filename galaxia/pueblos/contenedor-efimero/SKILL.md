@@ -5,7 +5,7 @@ padre: infraestructura
 resumen: Un trabajo es un contenedor que nace y muere: espera con limite, registro antes del borrado y progreso en vivo.
 ---
 
-`cosecha/docker-ephemeral-runner.js`, `docker-wait-with-timeout.js`, `docker-job-log-markers.js`,
+`scripts/docker-ephemeral-runner.js`, `docker-wait-with-timeout.js`, `docker-job-log-markers.js`,
 `docker-orphan-container-cleanup.js` y `pg-secret-file-connection.js` — herramientas propias, no hay
 repositorio público. Las rutas SON la referencia. Node 18+, sin dependencias salvo `dockerode` en el
 primero.
@@ -14,7 +14,7 @@ primero.
 npm install dockerode
 
 node --input-type=module -e "
-import { dockerClient, runEphemeralContainer } from './cosecha/docker-ephemeral-runner.js';
+import { dockerClient, runEphemeralContainer } from './scripts/docker-ephemeral-runner.js';
 const docker = dockerClient({ host: '127.0.0.1', port: 2375 });   // socket-proxy, no el socket real
 const r = await runEphemeralContainer(docker,
   { Image: 'alpine:3', Cmd: ['sh','-c','echo ::JOB_STEP::{\"paso\":1}; echo hecho'] },

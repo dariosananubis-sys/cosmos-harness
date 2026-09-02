@@ -5,14 +5,14 @@ padre: agentes-ia/construccion
 resumen: Un modelo redacta el encargo y otro teclea el fichero; el prompt se ve antes de correr y la cuota agotada reintenta.
 ---
 
-`cosecha/codex-delegate.sh` y `cosecha/codex-handler.sh` — herramientas propias, no de GitHub.
+`scripts/codex-delegate.sh` y `scripts/codex-handler.sh` — herramientas propias, no de GitHub.
 Requieren `claude` y `codex` en el PATH; los dos ficheros van en el mismo directorio.
 
 ```bash
-chmod +x cosecha/codex-delegate.sh cosecha/codex-handler.sh
-cosecha/codex-delegate.sh src/utilidades/normalizar.py \
+chmod +x scripts/codex-delegate.sh scripts/codex-handler.sh
+scripts/codex-delegate.sh src/utilidades/normalizar.py \
   "Funcion normalizar(texto) que quite acentos, pase a minusculas y colapse espacios. Sin dependencias externas. Con doctests."
-cosecha/codex-delegate.sh src/utilidades/normalizar.py "<descripcion>" --self-review   # si el output sale con avisos
+scripts/codex-delegate.sh src/utilidades/normalizar.py "<descripcion>" --self-review   # si el output sale con avisos
 ```
 
 El reparto es el que justifica el guion: `codex-delegate.sh` hace que un modelo redacte el encargo

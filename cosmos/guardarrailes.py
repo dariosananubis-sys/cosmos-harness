@@ -20,7 +20,24 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-CODIGOS_INVARIANTES = tuple(f"E{numero:02d}" for numero in range(20))
+def _invariantes_vigentes() -> tuple[str, ...]:
+    """Los códigos que el validador comprueba HOY, preguntándoselo a él.
+
+    Era `range(20)`, escrito a mano, y por eso E20 quedó **viva y sin válvula**: se añadió
+    la invariante y nadie tocó esta línea. `spec/GUARDARRAILES.md` dice de la válvula que
+    es «obligatoria, no opcional», porque «todo guardarraíl duro sin válvula de escape
+    acaba desactivado a la fuerza». Una invariante sin salida acotada es exactamente eso.
+
+    El import va aquí dentro a propósito: `validar` importa de este módulo, y al revés
+    sería un ciclo.
+    """
+
+    from .validar import codigos_comprobados
+
+    return codigos_comprobados()
+
+
+CODIGOS_INVARIANTES = _invariantes_vigentes()
 # Guardarraíles de sesión (`puente/sesion.py`). Tienen código propio porque la
 # válvula es obligatoria en TODO guardarraíl duro, no solo en el validador: uno
 # sin salida acotada acaba arrancado de raíz un viernes, y ya no vuelve.

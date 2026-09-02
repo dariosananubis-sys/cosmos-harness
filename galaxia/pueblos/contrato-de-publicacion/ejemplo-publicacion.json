@@ -1,0 +1,42 @@
+{
+  "now": "2026-09-02T10:00:00+00:00",
+  "manifest": {
+    "scope_id": "sitio-demo",
+    "source_origin": "https://staging.example.invalid",
+    "revision": "3f2a9c1d5e8b47a06c1f9d2b8e4a7c05d1938bf6",
+    "sealed_at": "2026-09-02T09:40:00+00:00",
+    "builder_receipt_id": "rc-0001",
+    "checks": [
+      "render_ok",
+      "enlaces_200",
+      "sin_desborde"
+    ]
+  },
+  "target": {
+    "scope_id": "sitio-demo",
+    "origin": "https://www.example.invalid",
+    "server_identity": "host-demo-01",
+    "backup_id": "bk-2026-09-02-0940",
+    "rollback_id": "rb-2026-09-02-0940"
+  },
+  "grant": {
+    "grant_id": "g-0001",
+    "scope_id": "sitio-demo",
+    "effect": "publish_release",
+    "target_origin": "https://www.example.invalid",
+    "revision": "3f2a9c1d5e8b47a06c1f9d2b8e4a7c05d1938bf6",
+    "issued_at": "2026-09-02T09:55:00+00:00",
+    "expires_at": "2026-09-02T10:25:00+00:00",
+    "single_use": true
+  },
+  "gates_passed": [
+    "scope_confirmed",
+    "candidate_verified",
+    "read_only_preflight_passed",
+    "backup_verified",
+    "rollback_verified",
+    "authorization_verified",
+    "exact_target_verified",
+    "target_identity_verified"
+  ]
+}

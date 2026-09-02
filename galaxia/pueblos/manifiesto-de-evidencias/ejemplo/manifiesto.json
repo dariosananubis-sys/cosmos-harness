@@ -1,0 +1,37 @@
+{
+  "now": "2026-09-02T10:00:00+00:00",
+  "max_age_days": 30,
+  "scope_id": "sitio-demo",
+  "release_fingerprint": "3f2a9c1d5e8b47a06c1f9d2b8e4a7c05d1938bf6",
+  "declared_origins": [
+    "https://www.example.invalid"
+  ],
+  "required_kinds": [
+    "accesibilidad",
+    "captura"
+  ],
+  "attestation_id": "att-0001",
+  "attestation_actor_id": "revisor-humano-01",
+  "items": [
+    {
+      "item_id": "ev-001",
+      "scope_id": "sitio-demo",
+      "kind": "accesibilidad",
+      "origin": "https://www.example.invalid",
+      "collected_at": "2026-09-02T09:30:00+00:00",
+      "sha256": "318deed4d573457541b9332121882a29b2514aad86301bdd45db42cd990ea937",
+      "path": "artefactos/a11y.txt",
+      "draft": false,
+      "requires_attestation": true
+    },
+    {
+      "item_id": "ev-002",
+      "scope_id": "sitio-demo",
+      "kind": "captura",
+      "origin": "https://www.example.invalid",
+      "collected_at": "2026-09-02T09:35:00+00:00",
+      "sha256": "51d4496a48e7fc440a0dc76a8484f7aee84107adaf2f72dbc0a57ef82d2c5b33",
+      "path": "artefactos/portada.txt"
+    }
+  ]
+}

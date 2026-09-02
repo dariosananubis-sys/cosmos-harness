@@ -19,7 +19,9 @@ from .guardarrailes import (
     analizar_duracion,
     anotar_salida,
     desenganchar,
+    desenganchar_sesion,
     enganchar,
+    enganchar_sesion,
     estado_saltos,
     normalizar_codigo,
     registrar_salto,
@@ -77,12 +79,17 @@ def _parser() -> argparse.ArgumentParser:
     engancha = subparsers.add_parser("enganchar", help="instala el gate de pre-commit en este repositorio")
     engancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     engancha.add_argument("--sin-pruebas", action="store_true", help="el hook omitirá las suites de tests")
+    engancha.add_argument(
+        "--sesion",
+        action="store_true",
+        help="además, cablea los guardarraíles de sesión (SessionStart, Stop, PreToolUse...)",
+    )
 
     desengancha = subparsers.add_parser("desenganchar", help="quita el gate de pre-commit")
     desengancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
 
     saltar = subparsers.add_parser("saltar", help="válvula de escape acotada, con motivo y caducidad")
-    saltar.add_argument("codigo", nargs="?", help="código concreto a saltar (E00..E19)")
+    saltar.add_argument("codigo", nargs="?", help="código concreto a saltar (E00..E19, G01..G05)")
     saltar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     saltar.add_argument("--motivo", help="obligatorio: por qué se salta")
     saltar.add_argument("--caduca", help="obligatorio: días de vigencia, como '7d' (máximo 30d)")
@@ -286,21 +293,40 @@ def _saltar(args: argparse.Namespace, config: Configuracion) -> int:
 
 
 def _enganchar(args: argparse.Namespace, config: Configuracion) -> int:
-    ruta, estado = enganchar(_base_repositorio(config), con_pruebas=not args.sin_pruebas)
+    base = _base_repositorio(config)
+    ruta, estado = enganchar(base, con_pruebas=not args.sin_pruebas)
     sys.stdout.write(
         f"COSMOS  enganchar  verde\n\nHook de pre-commit {estado} en {ruta}\n"
         "Cada commit correrá 'puente.gate' sobre la instantánea del índice.\n"
-        "Se quita con 'cosmos desenganchar'.\n"
     )
+    if args.sesion:
+        ajustes, estado_sesion = enganchar_sesion(base)
+        sys.stdout.write(
+            f"\nGuardarraíles de sesión {estado_sesion} en {ajustes}\n"
+            "Durante la sesión: entrada medida al arrancar, no se cierra en rojo, y no se\n"
+            "escribe a mano sobre las rutas de veredicto. Válvula: 'cosmos saltar G0x'.\n"
+        )
+    sys.stdout.write("\nSe quita todo con 'cosmos desenganchar'.\n")
     return 0
 
 
 def _desenganchar(args: argparse.Namespace, config: Configuracion) -> int:
-    ruta, estado = desenganchar(_base_repositorio(config))
+    base = _base_repositorio(config)
+    ruta, estado = desenganchar(base)
     if estado == "ausente":
         sys.stdout.write(f"COSMOS  desenganchar  verde\n\nNo había hook en {ruta}; nada que quitar.\n")
+    else:
+        sys.stdout.write(f"COSMOS  desenganchar  verde\n\nHook {estado} de {ruta}\n")
+    ajustes, estado_sesion = desenganchar_sesion(base)
+    if estado_sesion == "ausente":
         return 0
-    sys.stdout.write(f"COSMOS  desenganchar  verde\n\nHook {estado} de {ruta}\n")
+    explicacion = {
+        "restaurado": "devuelto byte a byte al estado anterior",
+        "eliminado": "eliminado: no existía antes de enganchar",
+        "podado": "sin las entradas de COSMOS (el resto lo había cambiado alguien, se conserva)",
+        "ilegible": "no es JSON legible; NO se ha tocado",
+    }[estado_sesion]
+    sys.stdout.write(f"Cableado de sesión: {ajustes} {explicacion}\n")
     return 0
 
 

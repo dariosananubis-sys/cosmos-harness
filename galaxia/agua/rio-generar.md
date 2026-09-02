@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: generar
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos generar
 resumen: Reescribe el indice desde el arbol para que no pueda mentir sobre el.
 ---

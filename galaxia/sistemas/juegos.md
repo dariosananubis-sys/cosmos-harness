@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: juegos
 padre: ""
-resumen: Motores, bucle de juego, fisica, activos y publicacion.
+resumen: Videojuegos 2D y 3D: motor, bucle, fisica, activos y publicacion.
 usa:
   - audiovisual
   - rendimiento

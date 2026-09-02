@@ -40,11 +40,27 @@ palabras y signos ignora que un tokenizador BPE parte las palabras largas y trat
 piezas aparte — y el castellano tiene de las dos cosas más que el inglés, que es para lo que están
 afinados esos tokenizadores.
 
-Aplicando `FACTOR_CALIBRACION = 1.204`:
+Aplicando `FACTOR_CALIBRACION` = 1.204:
 
 ```
 error medio 5,2 %   ·   peor caso 33,6 %
 ```
+
+## El segundo factor: lo generado no es prosa
+
+Aquella medición usó 78 ficheros de **prosa** y ni una muestra del índice ni del catálogo, que son
+justo los dos bloques que forman la entrada. Una lista de `ruta: resumen` no se parece a un párrafo:
+cada barra, cada guion y cada acento es una pieza aparte para un tokenizador BPE. Usar ahí el factor
+de la prosa fue el fallo **F01**, y no era un matiz — ponía verde un árbol que estaba en rojo.
+
+Medido el 2026-09-02 sobre el índice y el catálogo de los dos árboles del repositorio:
+
+```
+`FACTOR_GENERADO` = 1.381        (prosa: 1.204)
+```
+
+`cosmos/medir.py` aplica `contar_generado` al índice y al catálogo, y `contar_aprox` a todo lo
+demás. Con `--metodo exacto` no hay factores que valgan: cuenta el tokenizador.
 
 ## Por qué importaba, y no era cosmético
 
@@ -83,6 +99,44 @@ print(f"n={len(ratios)}  ratio={statistics.mean(ratios):.4f}")
 PY
 ```
 
-Si el ratio se aleja de 1,0, el factor se ha quedado viejo: el corpus cambió, o el tokenizador de
-referencia. **Se actualiza el factor y se actualiza este fichero con su fecha**, nunca uno sin el
-otro.
+El guion deshace el factor antes de dividir, así que `ratio` **es** el factor que el corpus pide
+hoy: por construcción sale ≈ `FACTOR_CALIBRACION` cuando el factor está sano, no ≈ 1,0. Comparar
+con 1,0 —como decía esta sección hasta el 2026-09-02— daba alarma **siempre** (`n=258 ratio=1.2274`
+sobre un factor correcto), y un procedimiento que siempre grita no se usa dos veces.
+
+El criterio es:
+
+```
+abs(ratio / FACTOR_CALIBRACION - 1) > 0.05   ->  recalibrar
+```
+
+**Se actualiza el factor y se actualiza este fichero con su fecha**, nunca uno sin el otro.
+`tests/test_medidor.py` ata los tres números publicados aquí a los del módulo, así que un factor
+cambiado sin tocar este fichero (o al revés) sale en rojo.
+
+## Verificar el margen de verdad: hace falta el tokenizador
+
+`test_aproximado_y_exacto_respetan_margen_publicado` es la única prueba de la métrica principal, y
+**se salta si no hay `tiktoken`**. Durante un día estuvo en verde solo por eso, comparando siete
+líneas de juguete que divergían un 19,05 % contra el 5,2 % publicado (fallo **F03**). Ahora el
+corpus es el árbol real y el aviso del salto es ruidoso. Para exigir que falle en vez de saltarse:
+
+```bash
+python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
+COSMOS_EXIGE_TOKENIZADOR=1 /tmp/calib/bin/python -m unittest discover -s tests -t .
+```
+
+### Pendiente: el veredicto exacto sigue en rojo (residuo de F01)
+
+Medido el 2026-09-02 sobre la galaxia, con los factores de arriba:
+
+```
+aprox    entrada=2.644  agua=1.346  con_agua=3.990   OK, quedan 10
+exacto   entrada=2.778  agua=1.545  con_agua=4.323   ROJO, excede en 323
+```
+
+Los dos factores redujeron el error pero no lo cerraron: la prosa real tokeniza hoy a **1,243** y
+los bloques generados a **≈1,455**. El árbol **no cabe** en 4.000 con el tokenizador de referencia,
+y eso no se arregla calibrando —se arregla decidiendo qué contenido sale, o qué presupuesto es el
+bueno—. `tests/test_medidor.py::test_canario_f01_el_veredicto_exacto_sigue_en_rojo` lo vigila: el
+día que se cierre, esa prueba se pone roja y se borra con el arreglo.

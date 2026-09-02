@@ -93,6 +93,12 @@ NIVELES_APLANADOS = frozenset({"pueblo"})
 # (spec/COMPOSICION.md): un nodo sin vecinos es perfectamente válido, y forzarlo
 # llenaría el árbol de relaciones inventadas para rellenar un campo.
 CAMPOS_OPCIONALES = {nivel: {"usa"} for nivel in NIVELES_SOLIDOS}
+# 'momento' separa el verbo que resuelve el encargo del que cuida el repositorio.
+# Los dos existen igual y los dos se abren igual; lo que cambia es si su resumen se paga
+# en cada sesión. Sin este campo, `enganchar` o `proyectar` cobraban su línea en todos
+# los turnos de la vida del proyecto para ejecutarse una vez.
+CAMPOS_OPCIONALES["rio"] = {"momento"}
+MOMENTOS_DE_RIO = frozenset({"trabajo", "mantenimiento"})
 
 
 @dataclass(frozen=True)
@@ -164,6 +170,12 @@ def _comprobar_e00(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
                 errores.append(_error("E00", nodo, f"falta el campo obligatorio {campo!r}", f"Añade {campo!r} al frontmatter."))
             elif not isinstance(nodo.datos[campo], str):
                 errores.append(_error("E00", nodo, f"{campo!r} debe ser texto", f"Escribe {campo!r} como un escalar de texto.", campo=campo))
+        momento = nodo.datos.get("momento")
+        if momento is not None and momento not in MOMENTOS_DE_RIO:
+            errores.append(_error(
+                "E00", nodo, f"'momento' inválido: {momento!r}",
+                f"Usa uno de {sorted(MOMENTOS_DE_RIO)}, o quita el campo (por defecto 'trabajo').",
+                campo="momento"))
         if isinstance(nodo.datos.get("nombre"), str) and not PATRON_NOMBRE.fullmatch(nodo.nombre):
             errores.append(_error("E00", nodo, f"nombre inválido: {nodo.nombre!r}", "Usa solo minúsculas ASCII, dígitos y guiones.", campo="nombre"))
         if nivel in NIVELES_VALIDOS:
@@ -604,6 +616,24 @@ COMPROBACIONES: tuple[Comprobacion, ...] = (
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,
     _comprobar_e19, _comprobar_e20,
 )
+
+
+def codigos_comprobados() -> tuple[str, ...]:
+    """Los códigos que `validar` recorre, sacados de las propias comprobaciones.
+
+    La ayuda del CLI y el README decían «E00-E19» con E20 ya existiendo, y el
+    desfase estaba anotado en un parte de commit desde hacía días sin cerrarse
+    (F14). Un número copiado a mano envejece en silencio: se genera.
+    """
+
+    return tuple(sorted(f"E{c.__name__.removeprefix('_comprobar_e')}" for c in COMPROBACIONES))
+
+
+def rango_comprobado() -> str:
+    """`E00–E20`: el intervalo que la ayuda muestra, sin escribirlo a mano."""
+
+    codigos = codigos_comprobados()
+    return f"{codigos[0]}–{codigos[-1]}"
 
 
 def validar_arbol(

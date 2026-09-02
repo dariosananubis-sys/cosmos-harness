@@ -4,24 +4,24 @@ Veintiun oficios, seis mares que los cruzan y cinco oceanos siempre presentes; n
 
 ## Sistemas solares
 
-- agentes-ia: Agentes con herramientas, memoria y evaluacion.
+- agentes-ia: Agentes y chatbots con herramientas, memoria y evaluacion; MCP.
 - analitica: Cuadros de mando, informes y prevision de ventas o demanda.
-- audiovisual: Video y voz a escala: cortar, subtitular, transcribir, doblar.
-- automatizacion: Que lo repetitivo se haga solo: flujos, integraciones y tareas programadas.
-- blockchain: Contratos inteligentes, su auditoria y la infraestructura de cadena.
-- ciberseguridad: Ofensiva autorizada, defensa, forense, malware, criptografia y el codigo de todo eso.
-- cientifico: Calculo numerico, simulacion, analisis cientifico y reproducibilidad.
-- cumplimiento: RGPD, accesibilidad legal y licencias.
-- documentos: Informes, manuales y diagramas que se generan solos.
-- embebidos: Hardware, firmware, sensores y protocolos de dispositivo.
-- extraccion: Sacar datos del mundo: web, documentos, reconocimiento optico y normalizacion.
-- infraestructura: Que corra: contenedores, despliegue, nube, redes, copias y monitorizacion.
+- audiovisual: Video, audio y voz: cortar, subtitular, transcribir y doblar.
+- automatizacion: Que lo repetitivo se haga solo: flujos entre servicios y avisos.
+- blockchain: Contratos inteligentes en solidity: auditar, desplegar y leer la cadena.
+- ciberseguridad: Ofensiva autorizada, defensa, forense, malware y criptografia.
+- cientifico: Calculo, simulacion, modelos que clasifican o predicen, repetibles.
+- cumplimiento: RGPD, cookies, aviso legal, accesibilidad legal y licencias.
+- documentos: Informes, manuales, PDF y diagramas generados desde datos o codigo.
+- embebidos: Placas, firmware y sensores: leer dispositivos y sus protocolos.
+- extraccion: Sacar datos del mundo: webs, PDF e imagenes escaneadas.
+- infraestructura: Que corra y no se caiga: contenedores, despliegue, nube y copias.
 - ingenieria-datos: Pipelines que validan antes de cargar y avisan al romperse.
-- juegos: Motores, bucle de juego, fisica, activos y publicacion.
-- modelos-locales: IA en tu maquina: privada y sin coste por uso.
-- moviles: Aplicaciones para movil y escritorio, publicacion y tiendas de aplicaciones.
-- rendimiento: Trabajar sobre codigo que ya existe: medir por que va lento, depurar lo raro y subir su calidad.
+- juegos: Videojuegos 2D y 3D: motor, bucle, fisica, activos y publicacion.
+- modelos-locales: IA en tu maquina: lenguaje y voz, sin internet ni coste por uso.
+- moviles: Apps para iphone, android y escritorio: un codigo, publicacion y tiendas.
+- rendimiento: Codigo que ya existe: medir por que va lento, depurar lo raro y su calidad.
 - saas: Producto vendible: identidad, pagos, suscripciones y multi-cliente.
-- trading: Bots que operan: exchanges, ejecucion, backtest honesto, riesgo y operacion continua.
-- visibilidad: Que te encuentren: SEO tecnico, buscadores con IA y contenido.
-- web: Sitios y tiendas: gestor de contenidos, maquetacion, comercio electronico y conversion.
+- trading: Bots que operan solos: exchanges, ejecucion, backtest honesto y riesgo.
+- visibilidad: Que te encuentren: SEO tecnico, chatgpt y buscadores con IA.
+- web: Sitios y tiendas: gestor de contenidos, maquetacion, comercio y conversion.

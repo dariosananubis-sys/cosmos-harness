@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: modelos-locales
 padre: ""
-resumen: IA en tu maquina: privada y sin coste por uso.
+resumen: IA en tu maquina: lenguaje y voz, sin internet ni coste por uso.
 usa:
   - agentes-ia
   - rendimiento

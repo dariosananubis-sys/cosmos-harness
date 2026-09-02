@@ -2,6 +2,7 @@
 cosmos: rio
 nombre: desenganchar
 moja: []
+momento: mantenimiento
 invoca: python3 -m cosmos desenganchar
 resumen: Retira esa verificacion y deja el repositorio como estaba.
 ---

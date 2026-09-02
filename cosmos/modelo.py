@@ -460,6 +460,17 @@ def escribir_atomico(ruta: Path, contenido: str) -> None:
     """
 
     ruta.parent.mkdir(parents=True, exist_ok=True)
+    # `mkstemp` crea en 0600 por seguridad, y como el temporal SUSTITUYE al destino, el
+    # índice pasaba de 644 a 600 cada vez que se regeneraba: la escritura atómica cambiaba
+    # en silencio quién puede leer el fichero. Se conservan los permisos que tenía; si no
+    # existía, los que daría una creación normal con la máscara del proceso.
+    try:
+        permisos = ruta.stat().st_mode & 0o777
+    except OSError:
+        mascara = os.umask(0)
+        os.umask(mascara)
+        permisos = 0o666 & ~mascara
+
     descriptor, temporal = tempfile.mkstemp(prefix=f".{ruta.name}.", dir=ruta.parent)
     temporal_path = Path(temporal)
     try:
@@ -467,6 +478,7 @@ def escribir_atomico(ruta: Path, contenido: str) -> None:
             fichero.write(contenido)
             fichero.flush()
             os.fsync(fichero.fileno())
+        os.chmod(temporal_path, permisos)
         os.replace(temporal_path, ruta)
     finally:
         if temporal_path.exists():

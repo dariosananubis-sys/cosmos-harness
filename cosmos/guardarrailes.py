@@ -112,7 +112,10 @@ def normalizar_codigo(codigo: str) -> str:
         raise ErrorSalto("un salto acota un código concreto; 'todo' no es un salto, es apagar COSMOS")
     if limpio not in CODIGOS:
         raise ErrorSalto(
-            f"código desconocido: {codigo!r}; se esperaba una invariante (E00..E19)"
+            # Las que EXISTEN, no un rango: la numeración tiene huecos a propósito
+            # (E04 se retiró) y anunciar «E00..E20» manda a probar códigos que no hay.
+            f"código desconocido: {codigo!r}; se esperaba una invariante "
+            f"({', '.join(CODIGOS_INVARIANTES)})"
             f" o un guardarraíl de sesión ({'/'.join(CODIGOS_SESION)})"
         )
     return limpio

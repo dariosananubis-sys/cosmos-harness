@@ -482,11 +482,13 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         if evaluada.descarga == "no_definida"
         else f"{float(evaluada.descarga) * 100:.1f} %".replace(".", ",")
     )
-    evaluado = evaluada.entrada_con_agua
-    if evaluado <= evaluada.presupuesto:
-        estado = f"OK, quedan {_numero(evaluada.presupuesto - evaluado)} tokens"
-    else:
-        estado = f"ROJO, excede en {_numero(evaluado - evaluada.presupuesto)} tokens"
+    # La cuarta comparación, y la única que lee una persona. El commit «un solo juez»
+    # unificó E16, el código de salida y los guards, y dejó ESTA calculándose aparte y
+    # sobre `evaluada` (el nicho activo) en vez de sobre el peor caso: con nichos activos,
+    # la salida decía «OK, quedan 93» y el mismo comando salía con 1.
+    veredicto = veredicto_de_presupuesto(resultado, evaluada.presupuesto)
+    evaluado = veredicto.evaluado
+    estado = veredicto.como_linea()
     peor_nombre = resultado.peor_nicho or "sin nichos"
     lineas = [
         "COSMOS  medir",
@@ -501,18 +503,21 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         lineas.append(
             f"  {etiqueta} {_numero(resultado.seleccion.entrada)} tokens   ({nombres}; {resultado.seleccion.pueblos_visibles} pueblos)"
         )
+    # La cifra que se juzga es SIEMPRE el peor caso, elija quien elija los nichos activos.
+    # Decir «el nicho activo» encima de un número que es el del peor caso era la última
+    # etiqueta que quedaba mintiendo, y el veredicto ya trae dentro de qué nicho habla.
     if resultado.seleccion is None:
-        ambito = "el peor caso"
+        nota_seleccion = ""
     elif len(resultado.seleccion_nichos) == 1:
-        ambito = "el nicho activo"
+        nota_seleccion = f"; nicho activo: {resultado.seleccion_nichos[0]}"
     else:
-        ambito = "la combinación"
+        nota_seleccion = f"; activos: {', '.join(resultado.seleccion_nichos)}"
     lineas.extend(
         [
-            f"  Peor con agua ... {_numero(evaluado)} tokens   ({ambito} + agua condicional)",
+            f"  Peor con agua ... {_numero(evaluado)} tokens   (el peor caso + agua condicional{nota_seleccion})",
             f"  Universo ........ {_numero(evaluada.universo)} tokens   ({metodo})",
             f"  Descarga ........ {descarga}",
-            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado} en {ambito} con agua",
+            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado}",
             "",
             "  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)",
             "",

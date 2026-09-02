@@ -1002,18 +1002,39 @@ def decidir(entrada: dict, *, config_path: Path | None = None) -> tuple[Decision
         return PASAR, evento
 
     if config_path:
-        ruta: Path | None = Path(config_path)
+        rutas = [Path(config_path)]
     else:
-        ruta = next((c for p in _rutas_del_evento(entrada) if (c := _subiendo(p))), None)
+        # TODOS los árboles implicados, no el primero que aparezca. Quedarse con el
+        # primero era un bypass: un comando que nombra una ruta de otro repositorio
+        # COSMOS antes que la propia se evaluaba contra ESE árbol, y G03 se apagaba en
+        # silencio para el que de verdad se estaba tocando. El comentario que lo
+        # acompañaba —«una de más solo hace mirar un directorio de más»— era falso
+        # justamente porque las demás no se miraban nunca.
+        vistas: list[Path] = []
+        for punto in _rutas_del_evento(entrada):
+            encontrada = _subiendo(punto)
+            if encontrada is not None and encontrada not in vistas:
+                vistas.append(encontrada)
+        rutas = vistas
 
+    ruta = rutas[0] if rutas else None
     if ruta is None or not ruta.is_file():
         # Enganchado sobre un repositorio que no usa COSMOS: silencio. Escanear
         # el directorio de trabajo «por si acaso» sería caro y además mentiría.
         raise SinCosmos(f"no hay cosmos.toml para {entrada.get('cwd') or Path.cwd()}")
-    config = cargar_configuracion(ruta)
-    if not config.arbol.is_dir():
-        raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")
-    return manejador(entrada, config, base_de(entrada, config)), evento
+    # Se evalúa contra cada árbol implicado y **gana la respuesta más restrictiva**: si
+    # cualquiera de ellos dice que no, es que no. Proteger «el árbol que mencionó primero
+    # el comando» no protege nada, porque quien escribe el comando elige el orden.
+    decisiones = []
+    for candidata in rutas:
+        config = cargar_configuracion(candidata)
+        if not config.arbol.is_dir():
+            raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")
+        decisiones.append(manejador(entrada, config, base_de(entrada, config)))
+
+    orden = {"denegar": 0, "bloquear": 1, "reescribir": 2, "informar": 3, "pasar": 4}
+    decisiones.sort(key=lambda d: orden.get(d.accion, 5))
+    return decisiones[0], evento
 
 
 def _anotar_fallo(entrada: dict, fallo: BaseException) -> None:

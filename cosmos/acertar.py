@@ -15,6 +15,13 @@ Darío lo dijo antes de que existiera este fichero, corrigiendo el principio rec
 innecesarios, que es distinto»*. El coste mínimo lo gana un árbol vacío. Esto mide
 la otra mitad.
 
+**El control contra uno mismo.** Una métrica que se mira mientras se retoca el contenido
+deja de medir el contenido y empieza a medir el retoque. Por eso hay dos conjuntos de
+encargos: uno de **ajuste**, que se mira al trabajar, y uno de **validación**, escrito
+aparte y que no guía ninguna decisión. Cuando la brecha entre ambos crece, lo que ha
+mejorado no es el árbol: es la puntería sobre las preguntas conocidas. La salida publica
+las dos cifras y dice cuál vale.
+
 **Qué es y qué no es.** Se puntúa con BM25 sobre **las líneas del catálogo**, que es
 exactamente lo que un agente ve antes de decidir. Es léxico y determinista: cero red,
 cero modelo, cero dinero. Y por eso mismo **no es un agente**: mide si el resumen
@@ -90,23 +97,66 @@ class Puntuacion:
         }
 
 
+# Sufijos del castellano, del más largo al más corto: el orden importa, porque
+# «encuentren» tiene que perder «-en» y no quedarse a medias en «-n».
+SUFIJOS = (
+    "aciones", "amientos", "imientos", "acion", "amiento", "imiento",
+    "andose", "endose", "arse", "erse", "irse",
+    "ando", "endo", "ados", "idos", "adas", "idas",
+    "aban", "ian", "aba", "ado", "ido", "ada", "ida",
+    "ares", "eres", "ires", "amos", "emos", "imos",
+    "aran", "eran", "iran", "aria", "eria", "iria",
+    "an", "en", "es", "ar", "er", "ir", "as", "os", "a", "e", "o", "s",
+)
+RAIZ_MINIMA = 4
+
+
+def _raiz(palabra: str) -> str:
+    """Recorte de sufijos, no lematización: barato, sin diccionario y sin red.
+
+    El catálogo y el encargo casi nunca coinciden en la forma exacta —«que google
+    **encuentre** mi web» contra «que te **encuentren**»— y una comparación de palabras
+    enteras cuenta eso como cero parecido. No es un defecto del árbol sino del medidor:
+    lo que separa a esas dos palabras es una `n`.
+
+    Conservador a propósito: nunca deja una raíz de menos de cuatro letras, así que
+    «casa» o «sitio» quedan intactos y no se funden con vecinos que no son.
+    """
+
+    for sufijo in SUFIJOS:
+        if palabra.endswith(sufijo) and len(palabra) - len(sufijo) >= RAIZ_MINIMA:
+            return palabra[: -len(sufijo)]
+    return palabra
+
+
 def _normalizar(texto: str) -> list[str]:
     plano = unicodedata.normalize("NFKD", texto.lower())
     plano = "".join(c for c in plano if not unicodedata.combining(c))
-    return re.findall(r"[a-z0-9]{2,}", plano)
+    return [_raiz(p) for p in re.findall(r"[a-z0-9]{2,}", plano)]
 
 
 def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
-    """(ruta, texto puntuable) por cada línea del catálogo, con todos los oficios activos.
+    """(ruta, texto puntuable) por cada línea que el agente tiene delante al elegir.
 
     Se puntúa con **todos** los nichos, no con el caso base. La pregunta que responde
     esta métrica es «¿el árbol lleva a la herramienta correcta?», y quien pregunta
     todavía no sabe en qué oficio está — si lo supiera, ya habría encontrado la mitad
     del camino. Medir solo el caso base daría 0 % siempre y no diría nada.
+
+    Y se puntúa sobre el **índice más el catálogo**, no sobre el catálogo solo. La
+    primera versión de esta función se dejaba fuera los 21 oficios, que viven en el
+    índice y no en el catálogo: 309 líneas de candidatos y ni una de profundidad cero.
+    Con eso, los quince encargos cuya respuesta es un oficio —«que google encuentre mi
+    web»— solo podían acertar de rebote, por un nieto, compitiendo contra el catálogo
+    entero. No medía el árbol: medía un recorte del árbol que ningún agente ve.
     """
 
-    todos = [n.nombre for n in arbol.nodos if n.cosmos == "sistema-solar"]
-    lineas = []
+    lineas = [
+        (nodo.nombre, f"{nodo.nombre} {nodo.resumen}")
+        for nodo in arbol.nodos
+        if nodo.cosmos == "sistema-solar"
+    ]
+    todos = [nombre for nombre, _ in lineas]
     for linea in catalogo_visible(arbol, todos).splitlines():
         if not linea.strip():
             continue
@@ -217,3 +267,70 @@ def formatear(p: Puntuacion, *, detalle: bool = False) -> str:
 
 def puntuacion_json(p: Puntuacion) -> str:
     return json.dumps(p.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+@dataclass
+class Contraste:
+    """Las dos puntuaciones, y la distancia entre ellas."""
+
+    ajuste: Puntuacion
+    validacion: Puntuacion | None
+
+    @property
+    def brecha(self) -> float | None:
+        """Puntos porcentuales de más que saca el conjunto que sí se miró."""
+
+        if not self.validacion or not self.validacion.total:
+            return None
+        return (100 * self.ajuste.aciertos / self.ajuste.total
+                - 100 * self.validacion.aciertos / self.validacion.total)
+
+    def como_dict(self) -> dict[str, object]:
+        return {
+            "ajuste": self.ajuste.como_dict(),
+            "validacion": self.validacion.como_dict() if self.validacion else None,
+            "brecha_puntos": self.brecha,
+            "cifra_honesta": (
+                round(100 * self.validacion.aciertos / self.validacion.total, 1)
+                if self.validacion and self.validacion.total
+                else None
+            ),
+        }
+
+
+def formatear_contraste(c: Contraste) -> str:
+    if not c.validacion:
+        return formatear(c.ajuste)
+
+    aj = 100 * c.ajuste.aciertos / c.ajuste.total
+    va = 100 * c.validacion.aciertos / c.validacion.total
+    lineas = [
+        "COSMOS  acertar",
+        "",
+        f"  Ajuste ......... {c.ajuste.aciertos}/{c.ajuste.total} ({aj:.0f} %)   "
+        "los encargos que SÍ se miran al trabajar",
+        f"  Validación ..... {c.validacion.aciertos}/{c.validacion.total} ({va:.0f} %)   "
+        "escritos aparte; no guían ninguna decisión",
+        "",
+        f"  La cifra que vale es {va:.0f} %.",
+    ]
+
+    brecha = c.brecha or 0.0
+    if brecha >= 10:
+        lineas += [
+            f"  Y la brecha es de {brecha:.0f} puntos: parte de lo ganado es puntería sobre",
+            "  las preguntas conocidas, no un árbol que lleve mejor. Se corrige mejorando",
+            "  resúmenes en general, no los que salen en esta lista.",
+        ]
+    elif brecha <= -5:
+        lineas.append("  La validación va por delante: el conjunto de ajuste se ha quedado corto.")
+    else:
+        lineas.append(f"  Brecha de {brecha:.0f} puntos: lo ganado generaliza.")
+
+    lineas += [
+        "",
+        "  Método ......... BM25 léxico con recorte de sufijos, sobre índice + catálogo.",
+        "                   NO es un agente: mide si el resumen contiene las palabras del",
+        "                   encargo, no si un modelo elegiría bien. Necesario, no suficiente.",
+    ]
+    return "\n".join(lineas) + "\n"

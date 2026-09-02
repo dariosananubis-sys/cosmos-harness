@@ -1,61 +1,204 @@
 [
-{"peticion": "quiero saber por que esta API va lenta", "espera": "rendimiento/velocidad/perfilado"},
-{"peticion": "necesito reproducir un fallo que solo pasa a veces", "espera": "rendimiento/velocidad/depuracion"},
-{"peticion": "hay codigo duplicado por todo el proyecto", "espera": "rendimiento/calidad"},
-{"peticion": "quiero cambiar una funcion en cuatrocientos ficheros a la vez", "espera": "rendimiento/calidad"},
-{"peticion": "mis tests pasan pero no me fio de ellos", "espera": "rendimiento/calidad"},
-
-{"peticion": "montar un bot que opere solo en un exchange", "espera": "trading"},
-{"peticion": "el backtest sale precioso y en real pierdo dinero", "espera": "trading/backtesting"},
-{"peticion": "conectarme a binance para leer precios", "espera": "trading/conectividad"},
-{"peticion": "cuanto arriesgo en cada operacion", "espera": "trading/riesgo"},
-{"peticion": "que el bot aguante un reinicio con posicion abierta", "espera": "trading/codigo-de-bot"},
-
-{"peticion": "auditar la seguridad de una web con permiso del cliente", "espera": "ciberseguridad"},
-{"peticion": "buscar secretos filtrados en un repositorio", "espera": "ciberseguridad/analisis"},
-{"peticion": "analizar un binario sospechoso", "espera": "ciberseguridad/analisis/malware"},
-{"peticion": "detectar intrusiones en los registros del servidor", "espera": "ciberseguridad/defensiva"},
-{"peticion": "escribir reglas para detectar un ataque conocido", "espera": "ciberseguridad/defensiva"},
-
-{"peticion": "montar una tienda online que cargue rapido", "espera": "web"},
-{"peticion": "optimizar las fotos de producto para la web", "espera": "web/imagenes"},
-{"peticion": "comprobar que mi web se puede usar con teclado", "espera": "web"},
-{"peticion": "cobrar suscripciones mensuales en mi producto", "espera": "saas"},
-{"peticion": "emitir facturas validas en espana", "espera": "saas/facturacion"},
-
-{"peticion": "que un modelo de IA corra en mi portatil sin pagar por uso", "espera": "modelos-locales"},
-{"peticion": "buscar por significado en mis propios documentos", "espera": "modelos-locales/recuperacion"},
-{"peticion": "construir un agente con herramientas y memoria", "espera": "agentes-ia"},
-{"peticion": "saber si mi agente mejora o solo cambia", "espera": "agentes-ia/evaluacion"},
-{"peticion": "que el agente recuerde entre sesiones", "espera": "agentes-ia/memoria"},
-
-{"peticion": "sacar los datos de mil paginas web", "espera": "extraccion"},
-{"peticion": "extraer las tablas de un PDF escaneado", "espera": "extraccion"},
-{"peticion": "un pipeline que avise cuando los datos vienen mal", "espera": "ingenieria-datos"},
-{"peticion": "un panel con las metricas del negocio", "espera": "analitica"},
-{"peticion": "predecir las ventas del proximo trimestre", "espera": "analitica"},
-
-{"peticion": "desplegar en un servidor y que no se caiga", "espera": "infraestructura"},
-{"peticion": "copias de seguridad que de verdad se puedan restaurar", "espera": "infraestructura"},
-{"peticion": "que me avise si el servidor deja de responder", "espera": "infraestructura"},
-{"peticion": "automatizar una tarea repetitiva entre dos servicios", "espera": "automatizacion"},
-{"peticion": "firmar documentos electronicamente sin pagar una plataforma", "espera": "automatizacion/firma"},
-
-{"peticion": "cortar y subtitular doscientos videos", "espera": "audiovisual"},
-{"peticion": "transcribir horas de audio a texto", "espera": "audiovisual/voz"},
-{"peticion": "generar un informe en PDF desde datos", "espera": "documentos"},
-{"peticion": "documentacion que se actualice sola con el codigo", "espera": "documentos"},
-{"peticion": "dibujar un diagrama desde texto", "espera": "documentos/diagramas"},
-
-{"peticion": "que google encuentre mi web", "espera": "visibilidad"},
-{"peticion": "aparecer citado en las respuestas de los buscadores con IA", "espera": "visibilidad"},
-{"peticion": "cumplir el RGPD con los datos de mis clientes", "espera": "cumplimiento"},
-{"peticion": "saber que licencias trae mi proyecto y si chocan", "espera": "cumplimiento/licencias"},
-{"peticion": "detectar datos personales antes de exportar una base", "espera": "cumplimiento/datos-personales"},
-
-{"peticion": "publicar una aplicacion en la tienda de moviles", "espera": "moviles"},
-{"peticion": "hacer un juego y publicarlo", "espera": "juegos"},
-{"peticion": "programar un microcontrolador con sensores", "espera": "embebidos"},
-{"peticion": "auditar un contrato inteligente antes de desplegarlo", "espera": "blockchain"},
-{"peticion": "que mi simulacion cientifica se pueda repetir igual", "espera": "cientifico"}
+  {
+    "peticion": "quiero saber por que esta API va lenta",
+    "espera": "rendimiento/velocidad/perfilado"
+  },
+  {
+    "peticion": "necesito reproducir un fallo que solo pasa a veces",
+    "espera": "rendimiento/velocidad/depuracion"
+  },
+  {
+    "peticion": "hay codigo duplicado por todo el proyecto",
+    "espera": "rendimiento/calidad"
+  },
+  {
+    "peticion": "quiero cambiar una funcion en cuatrocientos ficheros a la vez",
+    "espera": "rendimiento/calidad"
+  },
+  {
+    "peticion": "mis tests pasan pero no me fio de ellos",
+    "espera": "rendimiento/calidad"
+  },
+  {
+    "peticion": "montar un bot que opere solo en un exchange",
+    "espera": "trading"
+  },
+  {
+    "peticion": "el backtest sale precioso y en real pierdo dinero",
+    "espera": "trading/backtesting"
+  },
+  {
+    "peticion": "conectarme a binance para leer precios",
+    "espera": "trading/conectividad"
+  },
+  {
+    "peticion": "cuanto arriesgo en cada operacion",
+    "espera": "trading/riesgo"
+  },
+  {
+    "peticion": "que el bot aguante un reinicio con posicion abierta",
+    "espera": "trading/codigo-de-bot"
+  },
+  {
+    "peticion": "auditar la seguridad de una web con permiso del cliente",
+    "espera": "ciberseguridad"
+  },
+  {
+    "peticion": "buscar secretos filtrados en un repositorio",
+    "espera": "ciberseguridad/analisis"
+  },
+  {
+    "peticion": "analizar un binario sospechoso",
+    "espera": "ciberseguridad/analisis/malware"
+  },
+  {
+    "peticion": "detectar intrusiones en los registros del servidor",
+    "espera": "ciberseguridad/defensiva"
+  },
+  {
+    "peticion": "escribir reglas para detectar un ataque conocido",
+    "espera": "ciberseguridad/defensiva"
+  },
+  {
+    "peticion": "montar una tienda online que cargue rapido",
+    "espera": "web"
+  },
+  {
+    "peticion": "optimizar las fotos de producto para la web",
+    "espera": "web/imagenes"
+  },
+  {
+    "peticion": "comprobar que mi web se puede usar con teclado",
+    "espera": "web"
+  },
+  {
+    "peticion": "cobrar suscripciones mensuales en mi producto",
+    "espera": "saas"
+  },
+  {
+    "peticion": "emitir facturas validas en espana",
+    "espera": "saas/gobl",
+    "nota": "Escrito esperando un pais 'saas/facturacion' que no existe: gobl es el unico de su hueco y un nivel con un solo hijo no agrupa, solo cobra su resumen (spec/TAXONOMIA.md). El arbol lleva bien; el encargo pedia una ruta que no debe existir."
+  },
+  {
+    "peticion": "que un modelo de IA corra en mi portatil sin pagar por uso",
+    "espera": "modelos-locales"
+  },
+  {
+    "peticion": "buscar por significado en mis propios documentos",
+    "espera": "modelos-locales/recuperacion"
+  },
+  {
+    "peticion": "construir un agente con herramientas y memoria",
+    "espera": "agentes-ia"
+  },
+  {
+    "peticion": "saber si mi agente mejora o solo cambia",
+    "espera": "agentes-ia/evaluacion"
+  },
+  {
+    "peticion": "que el agente recuerde entre sesiones",
+    "espera": "agentes-ia/memoria"
+  },
+  {
+    "peticion": "sacar los datos de mil paginas web",
+    "espera": "extraccion"
+  },
+  {
+    "peticion": "extraer las tablas de un PDF escaneado",
+    "espera": "extraccion"
+  },
+  {
+    "peticion": "un pipeline que avise cuando los datos vienen mal",
+    "espera": "ingenieria-datos"
+  },
+  {
+    "peticion": "un panel con las metricas del negocio",
+    "espera": "analitica"
+  },
+  {
+    "peticion": "predecir las ventas del proximo trimestre",
+    "espera": "analitica"
+  },
+  {
+    "peticion": "desplegar en un servidor y que no se caiga",
+    "espera": "infraestructura"
+  },
+  {
+    "peticion": "copias de seguridad que de verdad se puedan restaurar",
+    "espera": "infraestructura"
+  },
+  {
+    "peticion": "que me avise si el servidor deja de responder",
+    "espera": "infraestructura"
+  },
+  {
+    "peticion": "automatizar una tarea repetitiva entre dos servicios",
+    "espera": "automatizacion"
+  },
+  {
+    "peticion": "firmar documentos electronicamente sin pagar una plataforma",
+    "espera": "automatizacion/docuseal",
+    "nota": "Mismo caso que la facturacion: docuseal esta bajo 'automatizacion' sin pais intermedio."
+  },
+  {
+    "peticion": "cortar y subtitular doscientos videos",
+    "espera": "audiovisual"
+  },
+  {
+    "peticion": "transcribir horas de audio a texto",
+    "espera": "audiovisual/voz"
+  },
+  {
+    "peticion": "generar un informe en PDF desde datos",
+    "espera": "documentos"
+  },
+  {
+    "peticion": "documentacion que se actualice sola con el codigo",
+    "espera": "documentos"
+  },
+  {
+    "peticion": "dibujar un diagrama desde texto",
+    "espera": "documentos/diagramas"
+  },
+  {
+    "peticion": "que google encuentre mi web",
+    "espera": "visibilidad"
+  },
+  {
+    "peticion": "aparecer citado en las respuestas de los buscadores con IA",
+    "espera": "visibilidad"
+  },
+  {
+    "peticion": "cumplir el RGPD con los datos de mis clientes",
+    "espera": "cumplimiento"
+  },
+  {
+    "peticion": "saber que licencias trae mi proyecto y si chocan",
+    "espera": "cumplimiento/licencias"
+  },
+  {
+    "peticion": "detectar datos personales antes de exportar una base",
+    "espera": "cumplimiento/datos-personales"
+  },
+  {
+    "peticion": "publicar una aplicacion en la tienda de moviles",
+    "espera": "moviles"
+  },
+  {
+    "peticion": "hacer un juego y publicarlo",
+    "espera": "juegos"
+  },
+  {
+    "peticion": "programar un microcontrolador con sensores",
+    "espera": "embebidos"
+  },
+  {
+    "peticion": "auditar un contrato inteligente antes de desplegarlo",
+    "espera": "blockchain"
+  },
+  {
+    "peticion": "que mi simulacion cientifica se pueda repetir igual",
+    "espera": "cientifico"
+  }
 ]

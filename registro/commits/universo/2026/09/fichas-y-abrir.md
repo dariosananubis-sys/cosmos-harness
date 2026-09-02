@@ -81,3 +81,69 @@ Tres canarios nuevos, los tres vistos fallar:
 
 Es la lección de siempre en este repositorio: **lo que se escribe a mano se desincroniza**.
 Donde no se puede generar, se compara.
+
+---
+
+# Segunda tanda: la métrica se estaba mintiendo, y luego yo a ella
+
+## El resumen raíz decía 20 oficios y 5 aguas
+
+Son 21 y 6. Es la **primera línea que lee cualquier agente**, y llevaba semanas
+equivocada — anotada en un parte anterior y no arreglada. Ahora la escribe un recuento,
+no la memoria de nadie.
+
+## La contra-métrica puntuaba sobre menos árbol del que existe
+
+`_lineas_del_catalogo` armaba los candidatos con `catalogo_visible`, que **no incluye los
+sistemas solares**: 309 líneas de profundidad 1, 2 y 3, y ni una de profundidad 0. Los 21
+oficios viven en el índice, que el agente tiene delante igual. Los quince encargos cuya
+respuesta es un oficio solo podían acertar de rebote, por un nieto, compitiendo contra el
+catálogo entero: «que google encuentre mi web» salía en el puesto **83**.
+
+No medía el árbol. Medía un recorte que ningún agente ve. Arreglado, y sin tocar una sola
+ficha: **44 % → 62 %**.
+
+## Y dos encargos pedían rutas que no deben existir
+
+`saas/facturacion` y `automatizacion/firma` no están en el árbol: `gobl` y `docuseal`
+cuelgan directamente de su oficio. Crear el país intermedio para que la prueba pasara
+habría sido un nivel de un solo hijo — el que `cosmos estado` marca como relleno porque no
+agrupa y cobra su resumen. Se corrigió el encargo, que era lo que estaba mal.
+
+## Lo que no funcionó, y por qué se dice
+
+Dos intentos de mejorar el ordenador de resultados:
+
+- **Recorte de sufijos** (`encuentre`/`encuentren` son la misma palabra menos una `n`):
+  +4 puntos. Se queda.
+- **Factor de cobertura de la consulta**, para que casar un término genérico en una línea
+  corta no ganara —«una app para iphone y android» llevaba a un motor de trading—: la
+  hipótesis era buena y **el resultado fue peor** (validación 50 % → 45 %). Revertido. Se
+  anota aquí para no volver a intentarlo sin datos nuevos.
+
+## Lo importante: la métrica ahora se vigila a sí misma
+
+Al mejorar tres resúmenes el acierto subió a 68 %. Sonaba bien hasta que lo medí contra
+**veinte encargos escritos aparte, que no guiaron ninguna decisión**: 50 %.
+
+| | Antes | Después |
+|---|---:|---:|
+| Encargos de ajuste (los que se miran) | 48 % | **66 %** |
+| Encargos de validación (los que no) | 45 % | **50 %** |
+
+Dieciocho puntos donde miraba, cinco donde no. Eso no es un árbol que lleve mejor: es
+puntería sobre las preguntas conocidas — el mismo Goodhart contra el que se escribió
+`acertar`, un piso más arriba.
+
+Así que el contraste va **dentro del comando**: `cosmos acertar` publica las dos cifras,
+dice que la que vale es la de validación, y denuncia la brecha cuando pasa de diez puntos.
+`--minimo` se cobra sobre la validación: dejar que el listón lo mida el conjunto que se
+mira al trabajar es dejar que el examinando escriba su propio examen.
+
+**La cifra honesta de COSMOS hoy es 50 %**, no 66 %. Y el techo del método léxico está
+cerca: los diez fallos de validación están todos en la lista, la mayoría en los diez
+primeros. Subirlo de verdad pide mejores resúmenes en general —no los de esta lista— o un
+ordenador que entienda sinónimos, que necesita un modelo y cuesta dinero (`GOAL.md` §5).
+
+Cinco sabotajes más vistos fallar, incluido el del `--minimo` cobrado sobre el conjunto
+equivocado.

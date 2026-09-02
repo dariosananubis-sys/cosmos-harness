@@ -2,7 +2,7 @@
 cosmos: pais
 nombre: backtesting
 padre: trading
-resumen: Probar una idea contra el pasado sin mentirse: cada motor simula unas cosas y calla otras.
+resumen: Probar la estrategia contra el pasado sin mentirse: por que el backtest gana y en real se pierde.
 ---
 
 Un motor no es honesto o deshonesto: modela unas cosas y no otras, y el fallo es no saber cuales.

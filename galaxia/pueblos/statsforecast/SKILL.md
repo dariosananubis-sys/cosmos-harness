@@ -2,7 +2,7 @@
 cosmos: pueblo
 nombre: statsforecast
 padre: analitica
-resumen: Prevision con modelos estadisticos clasicos, rapidos y explicables, sin redes neuronales.
+resumen: Predecir ventas o demanda con modelos estadisticos clasicos: rapidos, explicables y sin redes neuronales.
 ---
 
 https://github.com/Nixtla/statsforecast · Apache-2.0 · 4.892★ · último push 2026-09-01 (comprobado 2026-09-01)

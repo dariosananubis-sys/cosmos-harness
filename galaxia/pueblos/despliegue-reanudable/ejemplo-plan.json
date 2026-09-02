@@ -1,0 +1,8 @@
+{
+  "phases": [
+    {"name": "preflight",  "mutates": false},
+    {"name": "backup",     "deps": ["preflight"], "has_probe": true, "idempotent": true, "retryable": true, "max_attempts": 3},
+    {"name": "publicar",   "deps": ["backup"],    "has_probe": true, "gate": "irreversible_decision"},
+    {"name": "verificar",  "deps": ["publicar"],  "mutates": false}
+  ]
+}

@@ -5,12 +5,12 @@ padre: web/comercio-electronico
 resumen: Recorre la tienda publicada y dice que ficha no tiene precio, foto, categoria o variacion que se pueda comprar.
 ---
 
-`cosecha/woocommerce-verificar-catalogo.py` — herramienta propia, no de GitHub. Se apoya en
-`cosecha/wp_sql.py` → `cosecha/wp-ssh.sh --sitio <slug>` (ver el pueblo `wp-remoto`).
+`scripts/woocommerce-verificar-catalogo.py` — herramienta propia, no de GitHub. Se apoya en
+`scripts/wp_sql.py` → `scripts/wp-ssh.sh --sitio <slug>` (ver el pueblo `wp-remoto`).
 
 ```bash
-python3 cosecha/woocommerce-verificar-catalogo.py <slug>
-python3 cosecha/woocommerce-verificar-catalogo.py <slug> --json > /tmp/fallos.json
+python3 scripts/woocommerce-verificar-catalogo.py <slug>
+python3 scripts/woocommerce-verificar-catalogo.py <slug> --json > /tmp/fallos.json
 echo $?    # 0 catalogo limpio · 1 hay productos defectuosos
 ```
 

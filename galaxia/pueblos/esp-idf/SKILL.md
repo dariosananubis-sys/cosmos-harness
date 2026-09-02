@@ -5,7 +5,7 @@ padre: embebidos
 resumen: Framework del fabricante para el microcontrolador mas usado, con radio y bluetooth.
 ---
 
-https://github.com/espressif/esp-idf - Apache-2.0 - 18.916 estrellas - ultimo push 2026-08-31
+https://github.com/espressif/esp-idf · Apache-2.0 · 18.916★ · último push 2026-08-31 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

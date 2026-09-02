@@ -5,13 +5,13 @@ padre: agentes-ia/coste
 resumen: Dar codigo a un modelo: el fragmento que pide la intencion, o el repositorio entero si no puede abrir ficheros.
 ---
 
-`cosecha/semble-doctor.sh` y `cosecha/repomix-pack.sh` — herramientas propias, no de GitHub.
+`scripts/semble-doctor.sh` y `scripts/repomix-pack.sh` — herramientas propias, no de GitHub.
 
 ```bash
-chmod +x cosecha/semble-doctor.sh cosecha/repomix-pack.sh
-cosecha/semble-doctor.sh --warm ./src ./tools     # instala semble y pre-indexa
+chmod +x scripts/semble-doctor.sh scripts/repomix-pack.sh
+scripts/semble-doctor.sh --warm ./src ./tools     # instala semble y pre-indexa
 semble search "flujo de autenticacion" ./src --top-k 5 --max-snippet-lines 10
-cosecha/repomix-pack.sh ./src/mi-proyecto         # -> repomix-output.md, para el otro caso
+scripts/repomix-pack.sh ./src/mi-proyecto         # -> repomix-output.md, para el otro caso
 ```
 
 La regla de elección es una y no otra: **si el que lee puede abrir ficheros, fragmento; si no puede,

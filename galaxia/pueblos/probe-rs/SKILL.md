@@ -5,7 +5,7 @@ padre: embebidos
 resumen: Graba y depura por sonda desde el mismo comando de compilacion, con mensajes de error legibles.
 ---
 
-https://github.com/probe-rs/probe-rs - Apache-2.0 - 2.924 estrellas - ultimo push 2026-09-01
+https://github.com/probe-rs/probe-rs · Apache-2.0 · 2.924★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

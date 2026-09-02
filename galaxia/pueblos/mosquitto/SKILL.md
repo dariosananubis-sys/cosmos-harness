@@ -5,9 +5,7 @@ padre: embebidos
 resumen: Servidor de mensajeria ligero para dispositivos: cabe en una placa pequena y no pide agrupacion.
 ---
 
-https://github.com/eclipse-mosquitto/mosquitto - licencia dual EPL-2.0 / EDL-1.0 (la API de GitHub
-la devuelve como `NOASSERTION` precisamente por ser dual) - 11.172 estrellas - ultimo push
-2026-08-27 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/eclipse-mosquitto/mosquitto · licencia dual EPL-2.0 / EDL-1.0 (la API de GitHub la devuelve como `NOASSERTION` precisamente por ser dual) · 11.172★ · último push 2026-08-27 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install mosquitto

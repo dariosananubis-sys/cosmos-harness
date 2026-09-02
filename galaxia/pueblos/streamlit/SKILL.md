@@ -5,7 +5,7 @@ padre: analitica/cuadros-de-mando
 resumen: Convierte un guion en una aplicacion web con controles, sin escribir nada de interfaz.
 ---
 
-https://github.com/streamlit/streamlit - Apache-2.0 - 45.655 estrellas - ultimo push 2026-09-01
+https://github.com/streamlit/streamlit · Apache-2.0 · 45.655★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

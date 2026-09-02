@@ -5,14 +5,14 @@ padre: automatizacion
 resumen: Envia correo por su protocolo y ademas lo copia a Enviados, que muchos proveedores no hacen por su cuenta.
 ---
 
-`cosecha/enviar-correo-smtp.py` — herramienta propia, no hay repositorio público. La ruta ES la
+`scripts/enviar-correo-smtp.py` — herramienta propia, no hay repositorio público. La ruta ES la
 referencia.
 
 ```bash
 # credenciales en ~/.secrets/mail-cuenta.env: MAIL_EMAIL, MAIL_PASSWORD,
 # MAIL_SMTP_HOST, MAIL_SMTP_PORT, MAIL_SMTP_ENC, MAIL_IMAP_*   (nunca en el repo)
 
-python3 cosecha/enviar-correo-smtp.py \
+python3 scripts/enviar-correo-smtp.py \
   --to persona@ejemplo.test --cc otra@ejemplo.test \
   --asunto "Informe mensual" \
   --cuerpo-fichero cuerpo.txt \

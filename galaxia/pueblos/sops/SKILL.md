@@ -26,9 +26,9 @@ aquí no hay servicio que levantar, ni que vigilar, ni que pagar. Y gana a `git-
 **solo los valores** —las claves siguen en claro—, así que el `git diff` de un cambio de
 configuración sigue siendo legible y revisable en vez de un bloque binario.
 
-De la cosecha propia quedan fuera tres clientes de gestores alojados: `cosecha/bws-token-set.sh`
-(guarda y rota el testigo comprobando antes que funciona), `cosecha/bws-secret-get.js` (busca un
-secreto por clave en varios proyectos) y `cosecha/gh-token-set.sh` (deja el testigo del repositorio
+De la cosecha propia quedan fuera tres clientes de gestores alojados: `scripts/bws-token-set.sh`
+(guarda y rota el testigo comprobando antes que funciona), `scripts/bws-secret-get.js` (busca un
+secreto por clave en varios proyectos) y `scripts/gh-token-set.sh` (deja el testigo del repositorio
 en el ayudante de credenciales del sistema). Son clientes de un servicio concreto, con su cuenta y su
 plan; esto cubre el hueco sin depender de ninguno.
 

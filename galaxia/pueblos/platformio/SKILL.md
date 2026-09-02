@@ -5,8 +5,7 @@ padre: embebidos
 resumen: Un solo comando compila para cuarenta plataformas y resuelve librerias por proyecto.
 ---
 
-https://github.com/platformio/platformio-core - Apache-2.0 - 9.431 estrellas - ultimo push
-2026-08-28 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/platformio/platformio-core · Apache-2.0 · 9.431★ · último push 2026-08-28 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pipx install platformio

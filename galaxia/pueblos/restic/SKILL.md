@@ -29,7 +29,7 @@ no un proyecto. `borgbackup` tiene `check` pero su repositorio no admite dos cli
 cadena entera.
 
 Descartado también el respaldo propio por sincronización remota en modo solo añadir
-(`cosecha/backup-rsync-configs.sh`): resuelve el mismo problema sin cifrado, sin deduplicación y sin
+(`scripts/backup-rsync-configs.sh`): resuelve el mismo problema sin cifrado, sin deduplicación y sin
 comando de verificación. Conserva una idea que sí vale y queda recogida aquí: **los permisos se
 aplican DESPUÉS de copiar**, porque copiar los reescribe.
 

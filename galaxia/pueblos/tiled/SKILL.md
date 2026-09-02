@@ -5,10 +5,7 @@ padre: juegos
 resumen: Editor de mapas y conjuntos de baldosas cuyo formato importan casi todos los motores por complemento.
 ---
 
-https://github.com/mapeditor/tiled - GPL-2.0 segun el `COPYING` del repositorio para el editor, con
-la biblioteca `libtiled` bajo BSD-2-Clause (la API de GitHub devuelve `NOASSERTION` por ser doble;
-leer el fichero antes de redistribuir) - 12.860 estrellas - ultimo push 2026-08-27 (comprobado por
-API de GitHub el 2026-09-01).
+https://github.com/mapeditor/tiled · GPL-2.0 segun el `COPYING` del repositorio para el editor, con la biblioteca `libtiled` bajo BSD-2-Clause (la API de GitHub devuelve `NOASSERTION` por ser doble; leer el fichero antes de redistribuir) · 12.860★ · último push 2026-08-27 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install --cask tiled

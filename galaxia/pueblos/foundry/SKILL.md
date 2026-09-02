@@ -5,7 +5,7 @@ padre: blockchain
 resumen: Compila, prueba y hace fuzzing de contratos, y levanta un nodo bifurcado al instante.
 ---
 
-https://github.com/foundry-rs/foundry - Apache-2.0 - 10.577 estrellas - ultimo push 2026-09-01
+https://github.com/foundry-rs/foundry · Apache-2.0 · 10.577★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

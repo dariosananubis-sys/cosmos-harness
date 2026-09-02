@@ -5,8 +5,7 @@ padre: moviles
 resumen: Escritorio con el motor web del sistema: binarios de megas donde otros gastan cientos.
 ---
 
-https://github.com/tauri-apps/tauri - Apache-2.0 (dual con MIT) - 110.725 estrellas - ultimo push
-2026-09-01 (comprobado por API de GitHub el 2026-09-01).
+https://github.com/tauri-apps/tauri · Apache-2.0 (dual con MIT) · 110.725★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 brew install rust

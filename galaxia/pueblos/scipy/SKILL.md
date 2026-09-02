@@ -5,7 +5,7 @@ padre: cientifico
 resumen: Optimizacion, integracion de ecuaciones y algebra dispersa sobre el array de referencia.
 ---
 
-https://github.com/scipy/scipy - BSD-3-Clause - 14.976 estrellas - ultimo push 2026-09-01
+https://github.com/scipy/scipy · BSD-3-Clause · 14.976★ · último push 2026-09-01 (comprobado 2026-09-01)
 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash

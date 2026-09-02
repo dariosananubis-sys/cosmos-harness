@@ -5,9 +5,7 @@ padre: embebidos
 resumen: Un YAML se convierte en firmware que se anuncia solo en el concentrador domestico.
 ---
 
-https://github.com/esphome/esphome - GPL-3.0 segun el `LICENSE` del repo (la API de GitHub la
-devuelve como `NOASSERTION`, sin verificar por que) - 11.623 estrellas - ultimo push 2026-09-01
-(comprobado por API de GitHub el 2026-09-01).
+https://github.com/esphome/esphome · GPL-3.0 segun el `LICENSE` del repo (la API de GitHub la devuelve como `NOASSERTION`, sin verificar por que) · 11.623★ · último push 2026-09-01 (comprobado por API de GitHub el 2026-09-01).
 
 ```bash
 pipx install esphome

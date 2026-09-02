@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: flutter
-padre: moviles
+padre: moviles/marcos
 resumen: Un solo codigo compilado a binario nativo que dibuja cada pixel con su propio motor.
 ---
 

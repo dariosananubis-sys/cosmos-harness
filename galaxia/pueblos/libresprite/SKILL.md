@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: libresprite
-padre: juegos
+padre: juegos/activos
 resumen: Editor de sprites y animacion con binarios gratis de verdad, no solo el codigo.
 ---
 

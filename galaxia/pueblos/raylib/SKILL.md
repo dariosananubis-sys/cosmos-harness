@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: raylib
-padre: juegos
+padre: juegos/motores
 resumen: Biblioteca en C minima, sin motor ni editor: arranca en segundos y sirve para aprender o para hacer herramientas.
 ---
 

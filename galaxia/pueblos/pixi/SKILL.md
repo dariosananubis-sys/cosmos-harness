@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: pixi
-padre: cientifico
+padre: cientifico/reproducible
 resumen: Entorno reproducible con fichero de bloqueo multiplataforma de serie, en un solo binario.
 ---
 

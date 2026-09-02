@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: squawk
-padre: saas
+padre: saas/contrato
 resumen: Revisa la migracion antes de aplicarla y para la que bloquea la tabla o borra sin retorno.
 ---
 

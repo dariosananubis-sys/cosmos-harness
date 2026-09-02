@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: restic
-padre: infraestructura
+padre: infraestructura/custodia
 resumen: Copias cifradas, deduplicadas e incrementales, con verificacion y restauracion de prueba.
 ---
 

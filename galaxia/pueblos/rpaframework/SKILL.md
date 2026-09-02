@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: rpaframework
-padre: automatizacion
+padre: automatizacion/escritorio
 resumen: Automatiza aplicaciones de escritorio y ficheros de oficina como codigo versionado, no como aplicacion aparte.
 ---
 

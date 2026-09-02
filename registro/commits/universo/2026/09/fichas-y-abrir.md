@@ -249,3 +249,69 @@ recortar o un presupuesto que subir, y las dos cosas son decisión de Darío, no
 Tres sabotajes más vistos fallar, y dos que **sobrevivieron a la primera** y obligaron a
 reescribir sus pruebas: el test miraba solo el árbol bueno, así que quitarle el campo a un
 río o admitir un `momento` inventado no ponía nada rojo.
+
+---
+
+# Quinta tanda: un oficio no es una lista de herramientas
+
+Lo vio Darío mirando `trading`: *«has entrado mucho en lo que es bots; tiene que ser
+trading y dentro de él pues bots»*. Su resumen decía **«Bots que operan solos»** — el
+oficio entero llamado por una de sus ramas — y sus siete países colgaban en plano.
+
+Al medirlo resultó ser sistémico: **14 de los 21 oficios estaban planos**, y ocho de ellos
+tenían TODAS sus herramientas colgando directamente del oficio, sin un solo nivel
+intermedio. Solo `ciberseguridad` y `rendimiento` tenían estructura.
+
+## trading, como pedía
+
+    trading — Operar en mercados: datos, senal, riesgo, ejecucion y los bots que lo automatizan.
+      mercado     datos-de-mercado · investigacion
+      estrategia  backtesting · riesgo
+      bots        motores · codigo-de-bot
+      ejecucion   conectividad · (rotki)
+
+Cuatro continentes que siguen el flujo real —de dónde salen los precios, qué se opera y
+cuánto se arriesga, cómo se automatiza, dónde está el dinero— con los bots dentro, que es
+donde van.
+
+## Y los otros trece
+
+31 países nuevos, todos con **dos hijos o más**: agrupar con un solo hijo no organiza
+nada, solo cobra su resumen. `automatizacion` pasó de 12 herramientas sueltas a cuatro
+países; `saas` de 9 a tres; `blockchain`, `cientifico`, `embebidos`, `juegos`, `moviles`,
+`visibilidad`, `analitica`, `cumplimiento`, `documentos`, `infraestructura` e
+`ingenieria-datos`, igual.
+
+Resultado: **73 países y 10 continentes**, cero niveles de relleno, y ningún oficio con más
+de dos herramientas sueltas. El presupuesto no se movió (65 tokens de margen) porque el
+catálogo se paga por nicho activo, y el peor sigue siendo `ciberseguridad`.
+
+## Contraste con la otra historia, que era lo primero que pedía
+
+El remoto tenía 15 ficheros que esta rama no: 14 países y `QUEDA.md`. Medidos uno a uno,
+**los 14 tienen un solo hijo** — `saas/facturacion` con solo `gobl`, `automatizacion/firma`
+con solo `docuseal`, y así. Son el relleno que esta rama había quitado a propósito.
+
+Lo interesante es que la idea era buena y la ejecución no: hoy existen `saas/cobro` (con
+pasarela, consumo y factura) y `automatizacion/gestion` (clientes, proyectos y firma). El
+país estaba bien pensado, mal poblado.
+
+## Lo que impide que vuelva a pasar
+
+`tests/test_oficios_estructurados.py`, con dos sabotajes vistos fallar: devolver tres
+herramientas al oficio, y dejar un país con un solo hijo.
+
+Y una comprobación que **se quitó tras medirla**: «el resumen del oficio no puede abrir con
+el nombre de una de sus ramas». Marcaba en rojo a `audiovisual`, `blockchain` y
+`ciberseguridad`, que no reducen nada sino que **enumeran** sus ramas — y no cazaba el caso
+real, porque «Bots que operan solos: exchanges, ejecucion…» menciona dos de las cuatro.
+Distinguir «enumera sus partes» de «llama al todo por una parte» es semántica, y la
+semántica cuesta un modelo (`GOAL.md` §5). Se declara el límite en vez de publicar un
+canario que miente.
+
+## Un error propio que casi cuesta el trabajo
+
+Al construir un sabotaje se restauró con `git checkout -- galaxia/` y eso **revirtió 108
+repadrados sin commitear**. Los ficheros nuevos sobrevivieron (son untracked), los
+modificados no. Se rehízo entero. La regla: para deshacer un sabotaje se guarda y se
+restaura **solo el fichero tocado**, nunca un directorio con trabajo vivo dentro.

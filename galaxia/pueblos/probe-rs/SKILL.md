@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: probe-rs
-padre: embebidos
+padre: embebidos/taller
 resumen: Graba y depura por sonda desde el mismo comando de compilacion, con mensajes de error legibles.
 ---
 

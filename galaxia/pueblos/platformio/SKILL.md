@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: platformio
-padre: embebidos
+padre: embebidos/taller
 resumen: Un solo comando compila para cuarenta plataformas y resuelve librerias por proyecto.
 ---
 

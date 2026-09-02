@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: search-console
-padre: visibilidad
+padre: visibilidad/buscadores
 resumen: Da de alta y verifica el sitio en el buscador, envia el mapa y pregunta por que una URL no esta indexada.
 ---
 

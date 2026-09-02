@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: eventsourcing
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: Registro que solo crece: el estado se reconstruye repitiendo lo ocurrido, no se guarda digerido.
 ---
 

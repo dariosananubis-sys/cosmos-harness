@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: reprozip
-padre: cientifico
+padre: cientifico/reproducible
 resumen: Empaqueta lo que la ejecucion uso de verdad rastreando sus llamadas al sistema, no lo que alguien declaro.
 ---
 

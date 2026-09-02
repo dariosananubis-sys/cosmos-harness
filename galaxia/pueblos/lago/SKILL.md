@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: lago
-padre: saas
+padre: saas/cobro
 resumen: Medicion de consumo y facturacion por uso, autoalojada, para cobrar por lo que se gasta de verdad.
 ---
 

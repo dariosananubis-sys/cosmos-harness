@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: geo-optimizer
-padre: visibilidad
+padre: visibilidad/buscadores
 resumen: Comprueba si los buscadores con IA pueden leerte y citarte, y si sus rastreadores tienen paso.
 ---
 

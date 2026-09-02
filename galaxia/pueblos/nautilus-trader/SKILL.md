@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: nautilus-trader
-padre: trading/motores
+padre: trading/bots/motores
 resumen: Motor de eventos con nucleo en Rust: el mismo codigo corre en simulacion y en vivo sin tocarlo.
 ---
 

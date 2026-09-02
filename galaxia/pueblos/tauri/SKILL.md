@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tauri
-padre: moviles
+padre: moviles/marcos
 resumen: Escritorio con el motor web del sistema: binarios de megas donde otros gastan cientos.
 ---
 

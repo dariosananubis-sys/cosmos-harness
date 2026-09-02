@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: foundry
-padre: blockchain
+padre: blockchain/contratos
 resumen: Compila, prueba y hace fuzzing de contratos, y levanta un nodo bifurcado al instante.
 ---
 

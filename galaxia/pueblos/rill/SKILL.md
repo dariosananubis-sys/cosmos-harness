@@ -48,7 +48,7 @@ Y lo que no hace bien:
 - **La capa de métricas es el trabajo, y hay que hacerlo.** Sin los ficheros de definición esto es un
   visor bonito de tablas; el valor entero está en escribirlos, y eso lleva tiempo.
 - **La exploración carga la vista en memoria.** Con DuckDB por debajo aguanta mucho más de lo que
-  parece, pero un modelo sin filtro de fechas sobre años de datos se nota en 8 GB — se acota en el
+  parece, pero un modelo sin filtro de fechas sobre años de datos se nota cuando la memoria anda justa — se acota en el
   modelo, no en el panel.
 - **`rill deploy` sube a la nube del fabricante, que es su producto de pago.** Todo lo de arriba corre
   en local sin cuenta ni tarjeta; el despliegue alojado es otra cosa y no se contrata sin orden.

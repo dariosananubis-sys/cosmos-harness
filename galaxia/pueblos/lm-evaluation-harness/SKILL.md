@@ -19,7 +19,7 @@ Es el motor real que hay detrás de la tabla pública de resultados que todo el 
 **el único camino para que un número propio signifique algo fuera de casa**: mismos prompts, mismas
 tareas, comparable con lo que publica cualquiera.
 
-**En 8 GB**: el propio arnés de evaluación es ligero; el coste es el modelo evaluado más el conjunto de
+**Memoria**: el propio arnés de evaluación es ligero; el coste es el modelo evaluado más el conjunto de
 datos, así que valen las mismas reglas que servirlo (4-bit, ≤7B). El `--limit` no es un atajo, es lo
 que hace la evaluación viable aquí — con la salvedad de abajo.
 

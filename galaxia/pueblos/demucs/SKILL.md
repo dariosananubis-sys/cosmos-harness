@@ -20,7 +20,7 @@ pip install demucs      # arrastra PyTorch
 # dos pistas: voz y todo lo demas. Es lo que hace falta el 90 % de las veces
 python -m demucs --two-stems=vocals -n htdemucs entrada.wav -o salida/
 
-# en un portatil de 8 GB, trocear para no llenar la memoria
+# con memoria justa, trocear para no llenar la memoria
 python -m demucs --two-stems=vocals --segment 10 -d cpu entrada.wav -o salida/
 ```
 
@@ -36,7 +36,7 @@ música.
 
 Y lo que no hace bien:
 
-- **En 8 GB y sin gráfica dedicada es lento**: del orden de minutos de proceso por minuto de audio, y
+- **Sin gráfica dedicada es lento**: del orden de minutos de proceso por minuto de audio, y
   sin `--segment` el consumo crece con la duración de la pista hasta llenar la memoria. Con
   `--segment 10` va, a costa de más tiempo. Estos números no se han medido en esta máquina: son la
   guía del propio proyecto y hay que comprobarlos antes de prometer un plazo.

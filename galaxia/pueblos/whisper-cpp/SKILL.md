@@ -40,5 +40,5 @@ no es una fuente.
 
 Y no separa hablantes ni da marcas de tiempo por palabra: para eso, `m-bain/whisperX`, mas pesado.
 
-Aviso de maquina: `large-v3` son unos 3 GB de pesos y en un Mac de 8 GB deja poco margen para nada
+Aviso de maquina: `large-v3` son unos 3 GB de pesos y en una maquina justa de memoria deja poco margen para nada
 mas. `small` es el punto de equilibrio razonable aqui; `base` solo para material limpio.

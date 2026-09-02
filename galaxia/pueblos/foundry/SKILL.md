@@ -24,7 +24,7 @@ anvil --fork-url https://<tu-rpc>/<tu-clave> --fork-block-number 20000000 &
 
 Gana a `NomicFoundation/hardhat` (8,5k estrellas) en velocidad: las pruebas se escriben en Solidity
 y corren en un motor en Rust, asi que un proyecto mediano pasa de minutos a segundos — que en un Mac
-de 8 GB, donde no sobra CPU para esperar a un tiempo de ejecucion de JavaScript, se nota en cada
+sin holgura, donde no sobra CPU para esperar a un tiempo de ejecucion de JavaScript, se nota en cada
 iteracion. Hardhat sigue siendo lo correcto si el equipo ya vive en JS/TS, quiere su catalogo de
 complementos o depende del `console.log()` dentro de Solidity.
 

@@ -44,7 +44,7 @@ npm run dev        # indexa y sirve GraphQL/SQL en http://localhost:42069
 
 Gana a `graphprotocol/graph-node` (3,1k estrellas, Apache-2.0) por huella de recursos, no por cuota
 de mercado: aquel exige levantar Postgres, IPFS y el propio nodo como tres servicios separados, lo
-que en un Mac de 8 GB con Docker es viable pero pesado; este es un proceso que arranca y reindexa en
+que en una maquina justa de memoria con Docker es viable pero pesado; este es un proceso que arranca y reindexa en
 caliente. Para un contrato propio, la eleccion sensata; para un indice publico compartido, el
 estandar sigue siendo el otro.
 

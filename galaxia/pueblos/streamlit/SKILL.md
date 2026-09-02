@@ -41,7 +41,7 @@ Para el caso en que hace falta que alguien toque un filtro y vea el resultado, s
 interfaz. Descartados `metabase/metabase` y `apache/superset`, las dos plataformas de inteligencia
 de negocio con servidor: Metabase tiene licencia doble —AGPL fuera de `enterprise/`, comercial
 dentro— y corre sobre JVM, y Superset necesita varios servicios; ninguna de las dos cabe comoda en
-un Mac de 8 GB, y las dos anaden un proceso permanente que mantener.
+una maquina justa de memoria, y las dos anaden un proceso permanente que mantener.
 
 Y lo que no hace bien, que es la trampa clasica: **reejecuta el guion entero en cada interaccion**.
 Un `pandas.read_csv()` de 5 GB dentro del guion se vuelve a cargar cada vez que alguien mueve el

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: bevy
-padre: juegos
+padre: juegos/motores
 resumen: Motor sin editor: todo en codigo y con entidad-componente-sistema de fabrica.
 ---
 

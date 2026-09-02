@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: echidna
-padre: blockchain
+padre: blockchain/auditoria
 resumen: Se le declara la invariante y genera llamadas hasta romperla, ejecutando de verdad.
 ---
 

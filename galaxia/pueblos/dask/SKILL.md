@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: dask
-padre: cientifico
+padre: cientifico/computo
 resumen: Paraleliza con la interfaz de siempre y no reserva memoria por adelantado al arrancar.
 ---
 

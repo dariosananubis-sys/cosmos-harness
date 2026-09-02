@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: serpbear
-padre: visibilidad
+padre: visibilidad/medicion
 resumen: Sigue la posicion de cada palabra clave dia a dia en tu propio servidor y avisa de las caidas.
 ---
 

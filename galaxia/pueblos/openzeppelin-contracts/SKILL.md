@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: openzeppelin-contracts
-padre: blockchain
+padre: blockchain/contratos
 resumen: Los estandares ya auditados: reescribirlos es como se mete un fallo evitable.
 ---
 

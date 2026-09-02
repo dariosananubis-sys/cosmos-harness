@@ -22,6 +22,6 @@ Veintiun oficios, seis mares que los cruzan y cinco oceanos siempre presentes; n
 - moviles: Apps para iphone, android y escritorio: un codigo, publicacion y tiendas.
 - rendimiento: Codigo que ya existe: medir por que va lento, depurar lo raro y su calidad.
 - saas: Producto vendible: identidad, pagos, suscripciones y multi-cliente.
-- trading: Bots que operan solos: exchanges, ejecucion, backtest honesto y riesgo.
+- trading: Operar en mercados: datos, senal, riesgo, ejecucion y los bots que lo automatizan.
 - visibilidad: Que te encuentren: SEO tecnico, chatgpt y buscadores con IA.
 - web: Sitios y tiendas: gestor de contenidos, maquetacion, comercio y conversion.

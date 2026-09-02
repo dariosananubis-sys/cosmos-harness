@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: rotki
-padre: trading
+padre: trading/ejecucion
 resumen: Cuadra lo que dice el mercado con lo que dice tu registro, y calcula lo que hay que declarar.
 ---
 

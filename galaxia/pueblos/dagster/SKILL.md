@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: dagster
-padre: ingenieria-datos
+padre: ingenieria-datos/orquestacion
 resumen: Orquesta por tabla producida, no por tarea, y avisa de cual esta vieja o rota antes de usarla.
 ---
 

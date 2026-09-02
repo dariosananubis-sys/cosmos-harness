@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: esphome
-padre: embebidos
+padre: embebidos/conectado
 resumen: Un YAML se convierte en firmware que se anuncia solo en el concentrador domestico.
 ---
 

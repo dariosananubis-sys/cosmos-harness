@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: godot
-padre: juegos
+padre: juegos/motores
 resumen: Motor 2D y 3D con editor visual, gratis sin regalias ni umbral de ingresos.
 ---
 

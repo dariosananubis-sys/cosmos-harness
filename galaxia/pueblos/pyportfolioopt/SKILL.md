@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: pyportfolioopt
-padre: trading/riesgo
+padre: trading/estrategia/riesgo
 resumen: Reparte capital entre activos con frontera eficiente, CVaR y paridad de riesgo jerarquica.
 ---
 

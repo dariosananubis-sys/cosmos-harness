@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: fastlane
-padre: moviles
+padre: moviles/publicacion
 resumen: Automatiza firma, compilacion y subida a las tiendas sea cual sea el framework.
 ---
 

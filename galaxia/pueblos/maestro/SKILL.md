@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: maestro
-padre: moviles
+padre: moviles/publicacion
 resumen: Prueba la aplicacion en el aparato con flujos en YAML que esperan solos, sin importar el marco.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: correo-smtp
-padre: automatizacion
+padre: automatizacion/avisos
 resumen: Envia correo por su protocolo y ademas lo copia a Enviados, que muchos proveedores no hacen por su cuenta.
 ---
 

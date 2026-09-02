@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: panel-auth-cookie
-padre: saas
+padre: saas/identidad
 resumen: Entrada por cookie a un panel interno con sesion aleatoria revocable, sin montar un servidor de identidad.
 ---
 

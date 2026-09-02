@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: validadores-frontera
-padre: saas
+padre: saas/contrato
 resumen: Validadores puros de entrada: identificador, slug, URL segura, subcarpeta sin travesia e identidad fiscal.
 ---
 

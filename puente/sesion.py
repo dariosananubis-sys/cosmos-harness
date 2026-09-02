@@ -977,6 +977,13 @@ def _rutas_del_evento(entrada: dict) -> list[Path]:
             valor = datos.get(campo)
             if isinstance(valor, str) and valor:
                 puntos.append(Path(valor).parent)
+        # `Bash` no trae la ruta en un campo: la lleva dentro del comando. Sin esto,
+        # `echo x > /ruta/al/repo/galaxia/COSMOS.md` con el `cwd` fuera del repositorio
+        # pasaba en silencio, mientras el mismo comando desde la raíz denegaba. Se sacan
+        # las rutas absolutas del texto; una de más solo hace mirar un directorio de más.
+        orden = datos.get("command")
+        if isinstance(orden, str):
+            puntos.extend(Path(t).parent for t in re.findall(r"/[\w./-]+", orden))
     cwd = entrada.get("cwd")
     puntos.append(Path(cwd) if isinstance(cwd, str) and cwd else Path.cwd())
     return puntos

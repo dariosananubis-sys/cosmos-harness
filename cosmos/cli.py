@@ -445,7 +445,12 @@ def ejecutar(argv: list[str] | None = None) -> int:
                 if args.validacion and args.validacion.exists()
                 else None
             )
-            contraste = Contraste(ajuste=pun, validacion=val)
+            marca = args.validacion.with_suffix(".QUEMADO") if args.validacion else None
+            contraste = Contraste(
+                ajuste=pun,
+                validacion=val,
+                quemado=marca.read_text(encoding="utf-8") if marca and marca.exists() else None,
+            )
 
             if args.json:
                 sys.stdout.write(

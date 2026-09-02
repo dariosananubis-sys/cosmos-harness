@@ -87,6 +87,38 @@ class ElGuardNoSeApagaPorElDirectorio(unittest.TestCase):
             self.assertEqual((codigo, _decision(salida)), (0, "mudo"))
 
 
+class LaRutaDeBashTambienCuenta(unittest.TestCase):
+    """El agujero que el revisor adversarial encontró en el arreglo de F19.
+
+    `Bash` no trae la ruta en un campo del `tool_input`: la lleva dentro del texto del
+    comando. El primer arreglo miraba `file_path`, `notebook_path` y `path`, así que
+    `echo x > <repo>/galaxia/COSMOS.md` lanzado desde fuera del repositorio pasaba en
+    silencio — mientras el mismo comando desde la raíz denegaba. Arreglar el caso que se
+    prueba y dejar el hermano abierto es la forma más común de un fix incompleto.
+    """
+
+    def test_un_redirect_a_la_ruta_de_veredicto_deniega_desde_fuera(self) -> None:
+        evento = {
+            "hook_event_name": "PreToolUse",
+            "cwd": str(RAIZ.parent),
+            "tool_name": "Bash",
+            "tool_input": {"command": f"echo x > {RAIZ}/galaxia/COSMOS.md"},
+        }
+        _, salida = _lanzar(evento)
+        self.assertEqual(_decision(salida), "deny")
+
+    def test_un_comando_fuera_de_todo_repositorio_sigue_mudo(self) -> None:
+        with TemporaryDirectory() as fuera:
+            evento = {
+                "hook_event_name": "PreToolUse",
+                "cwd": fuera,
+                "tool_name": "Bash",
+                "tool_input": {"command": f"echo x > {fuera}/x.md"},
+            }
+            codigo, salida = _lanzar(evento)
+            self.assertEqual((codigo, _decision(salida)), (0, "mudo"))
+
+
 class UnGuardQueRevientaNoAprueba(unittest.TestCase):
     """F19b: fallar abierto y callar es lo peor de los dos mundos."""
 

@@ -78,13 +78,23 @@ MAX_BYTES = 50_000
 MAX_LINEAS = 2_000
 
 HERRAMIENTAS_ESCRITURA = ("Write", "Edit", "MultiEdit", "NotebookEdit")
+# G05 mira todo lo que devuelve texto al contexto, no solo el shell: un `.env`
+# leído, un `grep` sobre él o el informe de un subagente entran igual de enteros.
+# Qué eventos llegan de verdad hasta aquí lo decide el cableado, y el límite
+# realmente cubierto se declara en `spec/GUARDARRAILES.md`.
+HERRAMIENTAS_VIGILADAS = ("Bash", "Read", "Grep", "Glob", "Task")
 DIRECTORIO_SESION = "sesion"
 NOMBRE_LOG_CIERRES = "cierres.log"
 
-_REDIRECCION = re.compile(r"^(?P<descriptor>[0-9]*)>>?(?P<destino>.*)$")
+# Los operadores compuestos (`&>`, `&>>`, `>|`, `>&`) son redirecciones aunque
+# lleven dentro un carácter separador. Sin el `&?` y el `[|&]?`, `echo x &> ruta`
+# no declaraba ningún destino y la escritura pasaba.
+_REDIRECCION = re.compile(r"^(?P<descriptor>[0-9]*&?)>>?(?P<modo>[|&]?)(?P<destino>.*)$")
+# `2>&1` copia un descriptor sobre otro: no abre ningún fichero.
+_DUPLICA_DESCRIPTOR = re.compile(r"^[0-9]*>&[0-9]+$")
 _ASIGNACION = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
-# Quien produce los artefactos de veredicto es COSMOS, no una redirección a mano.
-_PRODUCTOR = re.compile(r"^(?:python[0-9.]*|py)$|^cosmos$")
+# Un destino que se calcula al ejecutar no se puede comprobar antes de ejecutar.
+_NO_RESOLUBLE = re.compile(r"[$`]")
 _ESCRIBE_EN_EL_ULTIMO = frozenset({"cp", "mv", "install", "ln", "rsync"})
 _ESCRIBE_EN_TODOS = frozenset({"tee", "truncate"})
 
@@ -110,6 +120,7 @@ class Decision:
     salida: str | None = None
     codigo_salida: int = 0
     contexto: str = ""
+    canales: tuple[str, ...] = ()
 
     @property
     def bloquea(self) -> bool:
@@ -133,12 +144,17 @@ def como_json(decision: Decision, evento: str) -> str:
     elif decision.accion == "bloquear":
         cuerpo = {"decision": "block", "reason": decision.motivo}
     elif decision.accion == "reescribir":
+        salida = decision.salida or ""
+        actualizado: dict[str, object] = {"output": salida, "exit_code": decision.codigo_salida}
+        # El texto ya redactado vuelve por los mismos canales que lo trajeron: si
+        # el runtime entrega `stdout` y `stderr` por separado, sustituir solo
+        # `output` deja el valor crudo entrando por el otro. El primero lleva el
+        # texto y los demás se vacían, para que nada sin redactar sobreviva.
+        for posicion, canal in enumerate(decision.canales):
+            actualizado[canal] = salida if posicion == 0 else ""
         especifico: dict[str, object] = {
             "hookEventName": evento,
-            "updatedToolOutput": {
-                "output": decision.salida or "",
-                "exit_code": decision.codigo_salida,
-            },
+            "updatedToolOutput": actualizado,
         }
         if decision.contexto:
             especifico["additionalContext"] = decision.contexto
@@ -282,24 +298,52 @@ def ordenes(comando: str) -> list[str]:
 
     Se respeta el entrecomillado en vez de borrarlo: borrar las comillas antes de
     partir hace que un `;` dentro de un mensaje parta la orden en dos.
+
+    Y se respetan los operadores compuestos, que llevan un carácter separador
+    dentro sin serlo: `&>`, `&>>`, `>|`, `>&`. Partiendo por `&` y por `|` a
+    secas, `echo x &> indice` quedaba en dos trozos —`echo x` y `> indice`— y
+    ninguno declaraba destino, así que la escritura pasaba. Lo mismo la
+    continuación de línea: un `\\` al final de una línea la une con la siguiente,
+    no la termina.
     """
 
+    texto = comando.replace("\\\n", " ")
     piezas: list[str] = []
     actual: list[str] = []
     comilla = ""
-    for caracter in comando:
+    indice = 0
+    total = len(texto)
+    while indice < total:
+        caracter = texto[indice]
+        indice += 1
         if comilla:
             actual.append(caracter)
             if caracter == comilla:
                 comilla = ""
             continue
+        if caracter == "\\" and indice < total:
+            actual.append(caracter)
+            actual.append(texto[indice])
+            indice += 1
+            continue
         if caracter in "'\"":
             comilla = caracter
+            actual.append(caracter)
+            continue
+        if caracter in "<>":
+            actual.append(caracter)
+            while indice < total and texto[indice] in ">&|":
+                actual.append(texto[indice])
+                indice += 1
+            continue
+        if caracter == "&" and indice < total and texto[indice] == ">":
             actual.append(caracter)
             continue
         if caracter in ";&|\n":
             piezas.append("".join(actual))
             actual = []
+            if caracter == "|" and indice < total and texto[indice] == "&":
+                indice += 1
             continue
         actual.append(caracter)
     piezas.append("".join(actual))
@@ -323,27 +367,31 @@ def programa(orden: str) -> str:
     return ""
 
 
-def es_productor_autorizado(orden: str) -> bool:
-    """`cosmos generar` SÍ escribe el índice; una redirección a mano, no.
-
-    Sin esta excepción el guard bloquearía al único proceso que tiene derecho a
-    producir esos ficheros, y lo primero que haría cualquiera es desinstalarlo.
-    """
-
-    piezas = _piezas(orden)
-    nombre = programa(orden)
-    if not _PRODUCTOR.match(nombre):
-        return False
-    if nombre == "cosmos":
-        return True
-    return "cosmos" in piezas or "puente.gate" in piezas or "puente.sesion" in piezas
+# `es_productor_autorizado` se retiró, y su hueco NO se rellena con otro criterio.
+# Decidía por el nombre del programa que arranca la orden más la palabra `cosmos`
+# suelta entre sus piezas, así que `python3 x.py cosmos` —o un ejecutable llamado
+# `cosmos` en el PATH, o una función de shell con ese nombre— se llevaba permiso
+# de escritura sobre TODAS las rutas de veredicto. Y no hay criterio robusto que
+# poner en su lugar: lo único que el guard ve es una cadena de shell, y todo lo
+# que se puede escribir en una cadena de shell se puede falsificar. Un permiso
+# adivinable no es un permiso.
+#
+# La excepción tampoco hacía falta. `objetivos_de_escritura` solo declara las
+# escrituras del propio shell; lo que COSMOS escribe lo escribe desde dentro de
+# Python y nunca aparece ahí, así que `python3 -m cosmos generar` pasa por no
+# declarar ningún destino, no por un permiso. Lo único que la excepción añadía
+# era dejar pasar `python3 -m cosmos medir > galaxia/COSMOS.md`, que es
+# exactamente la autocertificación que G03 existe para impedir.
 
 
 def objetivos_de_escritura(orden: str) -> list[str]:
     """Rutas que ESTA orden escribe. Alcance declarado, no una regex que crece.
 
-    Se reconocen: redirecciones (`>`, `>>`, `2>`), `tee`, `truncate`, `sed -i`,
-    y el destino de `cp`/`mv`/`install`/`ln`/`rsync`. **No** se persigue lo que
+    Se reconocen: redirecciones (`>`, `>>`, `2>`, `&>`, `&>>`, `>|`, `>&`, y la
+    forma POSIX `> fichero orden`, con la redirección delante), `tee`, `truncate`,
+    `sed -i`, `dd of=`, y el destino de `cp`/`mv`/`install`/`ln`/`rsync`. Un
+    destino que se calcula al ejecutar (`$(...)`, `` ` ` ``, `$VAR`) se devuelve
+    tal cual: quien decide no puede resolverlo y lo deniega. **No** se persigue lo que
     escribe un intérprete que la orden arranca (`python -c "open(...)"`): eso es
     indecidible sin ejecutar el programa, y perseguirlo con más regex es
     exactamente el montón de parches que este proyecto documentó como antipatrón.
@@ -359,8 +407,6 @@ def objetivos_de_escritura(orden: str) -> list[str]:
         if saltar_siguiente:
             saltar_siguiente = False
             continue
-        if indice == 0 or _ASIGNACION.match(pieza):
-            continue
         if pieza.startswith("<"):
             # Entrada, no salida. Sin esto `tee fichero < origen` declaraba el
             # origen como escrito, y `<` mismo como si fuera una ruta.
@@ -369,6 +415,11 @@ def objetivos_de_escritura(orden: str) -> list[str]:
             continue
         redireccion = _REDIRECCION.match(pieza)
         if redireccion is not None and (">" in pieza):
+            # Antes del salto del índice 0: el primero se salta por ser el
+            # programa, no por ser el primero. `> fichero orden` es POSIX válido
+            # y ahí lo que va delante es justamente la escritura.
+            if _DUPLICA_DESCRIPTOR.match(pieza):
+                continue
             destino = redireccion.group("destino")
             if destino:
                 objetivos.append(destino)
@@ -376,8 +427,11 @@ def objetivos_de_escritura(orden: str) -> list[str]:
                 objetivos.append(piezas[indice + 1])
                 saltar_siguiente = True
             continue
+        # Antes de `_ASIGNACION`, que casa con `of=` y se comía el destino de `dd`.
         if pieza.startswith("of="):
             objetivos.append(pieza[3:])
+            continue
+        if indice == 0 or _ASIGNACION.match(pieza):
             continue
         if pieza.startswith("-"):
             continue
@@ -599,19 +653,30 @@ def _ruta_de_herramienta(datos: dict) -> Path | None:
     return None
 
 
-def _lectura_completa(datos: dict, ruta: Path) -> bool:
-    """Una lectura parcial no es una lectura: el trozo que falta es justo el que importa."""
+# Lo que lee el runtime cuando nadie le pide un número. Claude Code lee 2.000 líneas
+# por defecto y **no lo pone en `tool_input`**, así que una lectura sin `limit` no es
+# una lectura sin límite: es una lectura con el límite implícito.
+LINEAS_POR_LECTURA = 2000
+
+
+def _lectura_completa(datos: dict, ruta: Path, tope_implicito: int = LINEAS_POR_LECTURA) -> bool:
+    """Una lectura parcial no es una lectura: el trozo que falta es justo el que importa.
+
+    La versión anterior daba por completa toda lectura sin `limit`, y con eso un fichero
+    de 5.000 líneas quedaba marcado como leído entero habiendo entrado el 40 %. El
+    docstring ya decía lo correcto; el código decía otra cosa. Ausencia de `limit` se
+    trata ahora como «leyó como mucho el tope del runtime».
+    """
 
     desplazamiento = datos.get("offset")
     if desplazamiento not in (None, "", 0, 1, "0", "1"):
         return False
     limite = datos.get("limit")
-    if limite in (None, ""):
-        return True
     try:
         with ruta.open(encoding="utf-8", errors="replace") as fichero:
             lineas = sum(1 for _ in fichero)
-        return int(limite) >= lineas
+        efectivo = tope_implicito if limite in (None, "") else int(limite)
+        return efectivo >= lineas
     except (OSError, TypeError, ValueError):
         return False
 
@@ -635,6 +700,7 @@ def antes_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
         return ruta if ruta.is_absolute() else directorio / ruta
 
     objetivos: list[Path] = []
+    calculados: list[str] = []
     if herramienta in HERRAMIENTAS_ESCRITURA:
         ruta = _ruta_de_herramienta(datos)
         if ruta is not None:
@@ -642,10 +708,12 @@ def antes_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
     elif herramienta == "Bash":
         comando = str(datos.get("command") or "")
         for orden in ordenes(comando):
-            if es_productor_autorizado(orden):
-                continue
-            objetivos.extend(_resolver(objetivo) for objetivo in objetivos_de_escritura(orden))
-    if not objetivos:
+            for objetivo in objetivos_de_escritura(orden):
+                if _NO_RESOLUBLE.search(objetivo):
+                    calculados.append(objetivo)
+                else:
+                    objetivos.append(_resolver(objetivo))
+    if not objetivos and not calculados:
         return PASAR
 
     if CODIGO_VEREDICTO not in saltados:
@@ -666,6 +734,21 @@ def antes_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
                             caducados,
                         ),
                     )
+        if calculados:
+            return Decision(
+                "denegar",
+                _con_valvula(
+                    "COSMOS  sesion  rojo  el destino de la escritura se calcula al ejecutar\n"
+                    f"  {calculados[0]}\n"
+                    "Una sustitución de órdenes o una variable no se puede resolver antes de "
+                    "ejecutar, así que no se puede saber si escribe una ruta de veredicto. Se "
+                    "deniega en vez de fingir cobertura: era la séptima forma de esquivar G03.\n"
+                    "Escribe la ruta literal, o abre la válvula:\n"
+                    f"  cosmos saltar {CODIGO_VEREDICTO} --motivo \"...\" --caduca 7d",
+                    activos,
+                    caducados,
+                ),
+            )
 
     if CODIGO_LECTURA in saltados:
         return PASAR
@@ -691,23 +774,53 @@ def antes_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
     )
 
 
-def _respuesta(entrada: dict) -> tuple[str, int]:
+# Canales que llegan como cadena suelta: son los que G05 puede además REESCRIBIR.
+_CANALES = ("output", "stdout", "stderr", "content")
+
+
+def _texto_anidado(valor: object) -> str:
+    """Texto de una respuesta con forma propia: `Read` la anida, `Task` la trocea."""
+
+    if isinstance(valor, str):
+        return valor
+    if isinstance(valor, dict):
+        trozos = [_texto_anidado(valor[clave]) for clave in ("file", "content", "text", "output") if clave in valor]
+        return "\n".join(trozo for trozo in trozos if trozo)
+    if isinstance(valor, list):
+        return "\n".join(trozo for trozo in (_texto_anidado(x) for x in valor) if trozo)
+    return ""
+
+
+def _respuesta(entrada: dict) -> tuple[str, int, tuple[str, ...]]:
+    """Todo el texto que la herramienta devuelve, y por qué claves se puede reescribir.
+
+    Leía `output` y, a falta de él, `stdout`. `stderr` —que es justo donde salen
+    las fugas típicas: `curl -v`, un `git push` con el token en la URL del remoto,
+    una traza con el entorno volcado— entraba en el contexto sin pasar por la
+    redacción y sin contar para el desvío de salidas enormes.
+    """
+
     respuesta = entrada.get("tool_response")
     if isinstance(respuesta, str):
-        return respuesta, 0
+        return respuesta, 0, ()
     if not isinstance(respuesta, dict):
-        return "", 0
-    salida = respuesta.get("output")
-    if not isinstance(salida, str):
-        salida = respuesta.get("stdout")
-    if not isinstance(salida, str):
-        salida = ""
+        return "", 0, ()
+    canales = tuple(
+        clave for clave in _CANALES if isinstance(respuesta.get(clave), str) and respuesta[clave]
+    )
+    partes = [respuesta[clave] for clave in canales]
+    if not partes:
+        # Forma anidada (`Read`, `Task`): se puede LEER para decidir, no sustituir
+        # clave a clave. El límite está declarado en `spec/GUARDARRAILES.md`.
+        anidado = _texto_anidado(respuesta)
+        if anidado:
+            partes.append(anidado)
     bruto = respuesta.get("exit_code", respuesta.get("exitCode", 0))
     try:
         codigo = int(bruto or 0)
     except (TypeError, ValueError):
         codigo = 0
-    return salida, codigo
+    return "\n".join(partes), codigo, canales
 
 
 def apartar_salida(base: Path, texto: str) -> Path:
@@ -730,14 +843,19 @@ def despues_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
     """
 
     saltados, activos, caducados = _saltados(base)
-    if CODIGO_REDACCION in saltados:
-        return PASAR
     herramienta = str(entrada.get("tool_name") or "")
+    # La marca de lectura es G04 y va FUERA del cortacircuitos de G05. Estaba
+    # detrás, así que abrir la válvula de la redacción dejaba a G04 sin poder
+    # crear ni una marca —y, con `lecturas_exigidas` puesto, denegando TODA
+    # escritura para siempre—. Un salto sobre un guardarraíl no puede arrancar
+    # otro distinto: la válvula es acotada o no es válvula. Se marca incluso con
+    # G04 saltado, porque registrar el hecho no cuesta nada y el salto caduca
+    # antes que la sesión; quien decide si la marca hace falta es `PreToolUse`.
     if herramienta == "Read":
-        return _marcar_si_procede(entrada, config, base)
-    if herramienta != "Bash":
+        _marcar_si_procede(entrada, config, base)
+    if CODIGO_REDACCION in saltados or herramienta not in HERRAMIENTAS_VIGILADAS:
         return PASAR
-    texto, codigo = _respuesta(entrada)
+    texto, codigo, canales = _respuesta(entrada)
     if not texto:
         return PASAR
 
@@ -753,7 +871,9 @@ def despues_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
             f"Últimas líneas:\n{cola}"
         )
         contexto = f"[COSMOS G05] {tapados} valor(es) tapado(s) antes de entrar al contexto." if tapados else ""
-        return Decision("reescribir", salida=aviso, codigo_salida=codigo, contexto=contexto)
+        return Decision(
+            "reescribir", salida=aviso, codigo_salida=codigo, contexto=contexto, canales=canales
+        )
     if tapados:
         return Decision(
             "reescribir",
@@ -764,6 +884,7 @@ def despues_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
                 "al contexto. Los valores reales no llegaron aquí; si crees que se filtraron antes, "
                 "rota esas credenciales."
             ),
+            canales=canales,
         )
     return PASAR
 
@@ -817,6 +938,50 @@ def base_de(entrada: dict, config) -> Path:
     return config.ruta.parent if config.ruta is not None else config.arbol
 
 
+class SinCosmos(ErrorSesion):
+    """Aquí no hay un árbol COSMOS. No es un fallo: es que esto no va con nosotros."""
+
+
+def _subiendo(inicio: Path) -> Path | None:
+    """`cosmos.toml` buscado hacia arriba, como hace `git` con su `.git`.
+
+    Antes se miraba **solo** en `cwd`, y con eso los cinco guards se apagaban desde
+    cualquier subdirectorio sin decir una palabra: el mismo evento de escritura sobre el
+    índice daba `deny` desde la raíz y pasaba desde `galaxia/`. Un guard que no está no se
+    distingue de uno que aprobó.
+    """
+
+    try:
+        actual = inicio.expanduser().resolve()
+    except (OSError, RuntimeError):
+        return None
+    for directorio in (actual, *actual.parents):
+        candidato = directorio / "cosmos.toml"
+        if candidato.is_file():
+            return candidato
+    return None
+
+
+def _rutas_del_evento(entrada: dict) -> list[Path]:
+    """Por dónde empezar a buscar: el `cwd` y **el fichero que se va a tocar**.
+
+    El `cwd` solo no basta. Un evento que escribe en `<repo>/galaxia/COSMOS.md` con el
+    directorio de trabajo en `/tmp` no lo protegía nadie, y es exactamente el caso que
+    importa: lo que hay que mirar es dónde cae el daño, no desde dónde se lanza.
+    """
+
+    puntos: list[Path] = []
+    datos = entrada.get("tool_input")
+    if isinstance(datos, dict):
+        for campo in ("file_path", "notebook_path", "path"):
+            valor = datos.get(campo)
+            if isinstance(valor, str) and valor:
+                puntos.append(Path(valor).parent)
+    cwd = entrada.get("cwd")
+    puntos.append(Path(cwd) if isinstance(cwd, str) and cwd else Path.cwd())
+    return puntos
+
+
 def decidir(entrada: dict, *, config_path: Path | None = None) -> tuple[Decision, str]:
     """Punto único: evento dentro, decisión fuera. Sin efectos sobre el runtime."""
 
@@ -824,15 +989,40 @@ def decidir(entrada: dict, *, config_path: Path | None = None) -> tuple[Decision
     manejador = MANEJADORES.get(evento)
     if manejador is None:
         return PASAR, evento
-    ruta = Path(config_path) if config_path else Path(entrada.get("cwd") or Path.cwd()) / "cosmos.toml"
-    if not ruta.is_file():
+
+    if config_path:
+        ruta: Path | None = Path(config_path)
+    else:
+        ruta = next((c for p in _rutas_del_evento(entrada) if (c := _subiendo(p))), None)
+
+    if ruta is None or not ruta.is_file():
         # Enganchado sobre un repositorio que no usa COSMOS: silencio. Escanear
         # el directorio de trabajo «por si acaso» sería caro y además mentiría.
-        raise ErrorSesion(f"no hay cosmos.toml en {ruta}")
+        raise SinCosmos(f"no hay cosmos.toml para {entrada.get('cwd') or Path.cwd()}")
     config = cargar_configuracion(ruta)
     if not config.arbol.is_dir():
         raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")
     return manejador(entrada, config, base_de(entrada, config)), evento
+
+
+def _anotar_fallo(entrada: dict, fallo: BaseException) -> None:
+    """Una línea en `.cosmos/cierres.log`. Nunca revienta: es el registro del que revienta."""
+
+    try:
+        base = _subiendo(Path(str(entrada.get("cwd") or Path.cwd())))
+        if base is None:
+            return
+        destino = base.parent / ".cosmos"
+        destino.mkdir(exist_ok=True)
+        linea = (
+            f"{datetime.now(timezone.utc).isoformat(timespec='seconds')}  "
+            f"{entrada.get('hook_event_name')}  {entrada.get('tool_name')}  "
+            f"{type(fallo).__name__}: {fallo}\n"
+        )
+        with (destino / "cierres.log").open("a", encoding="utf-8") as registro:
+            registro.write(linea)
+    except (OSError, ValueError, TypeError):
+        return
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -848,10 +1038,35 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     try:
         decision, evento = decidir(entrada, config_path=args.config)
-    except (ErrorSesion, ErrorConfiguracion, ErrorNicho, OSError, ValueError, RecursionError):
-        # Un guard de sesión que revienta rompe la herramienta que vigilaba. Ante
-        # la duda calla: el gate de pre-commit y el CI siguen ahí abajo.
+    except SinCosmos:
+        # Esto no es un repositorio COSMOS. Silencio de verdad, sin rastro: no hay
+        # nada que vigilar y escribir un log en el repositorio de otro sería peor.
         return 0
+    except (ErrorSesion, ErrorConfiguracion, ErrorNicho, OSError, ValueError, RecursionError) as fallo:
+        # Aquí SÍ hay un COSMOS y el guard no ha podido evaluar. Fallar abierto y
+        # callar es lo peor de los dos mundos: quien mira no distingue un guard que
+        # aprobó de uno que no llegó a mirar.
+        #
+        # Así que se parte por lo que el guard hace. `PreToolUse` existe para denegar
+        # —G03 protege lo generado, G04 el playbook—, y si no puede decidir, deniega
+        # diciendo por qué. Los demás (aviso, resumen, tapado de secretos) fallan
+        # abiertos, porque romper la herramienta que vigilan es peor que no avisar;
+        # pero dejan la línea escrita.
+        _anotar_fallo(entrada, fallo)
+        if str(entrada.get("hook_event_name") or "") == "PreToolUse":
+            decision = Decision(
+                accion="denegar",
+                motivo=(
+                    "COSMOS  sesion  rojo  el guard no pudo evaluar este evento\n"
+                    f"  {type(fallo).__name__}: {fallo}\n"
+                    "No se deniega por lo que hace la herramienta, sino porque el guard que\n"
+                    "debía mirarla no ha podido. Arregla el árbol o pasa --config; si de verdad\n"
+                    "hace falta seguir, abre la válvula con 'cosmos saltar'."
+                ),
+            )
+            evento = "PreToolUse"
+        else:
+            return 0
     if args.formato == "exit2":
         texto, codigo = como_exit2(decision)
         if texto:

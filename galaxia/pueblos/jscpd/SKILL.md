@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: jscpd
-padre: rendimiento/calidad
+padre: refactorizacion/reglas
 resumen: Encuentra bloques copiados con el mismo umbral en 224 formatos, asi que mide un monorepo entero de una vez.
 ---
 

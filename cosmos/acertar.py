@@ -7,7 +7,7 @@ Goodhart en su forma más pura, con el camino ya pavimentado:
 > **La manera más barata de pasar el presupuesto es escribir resúmenes peores.**
 
 Recortar un resumen baja la entrada, pone verde E16 y no dispara ninguna invariante
-— degradando justo aquello por lo que se paga el resumen. Con 21 oficios se nota
+— degradando justo aquello por lo que se paga el resumen. Con una veintena de oficios se nota
 poco; con cincuenta sería el modo de fallo dominante.
 
 Darío lo dijo antes de que existiera este fichero, corrigiendo el principio rector:
@@ -153,7 +153,7 @@ def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
     del camino. Medir solo el caso base daría 0 % siempre y no diría nada.
 
     Y se puntúa sobre el **índice más el catálogo**, no sobre el catálogo solo. La
-    primera versión de esta función se dejaba fuera los 21 oficios, que viven en el
+    primera versión de esta función se dejaba fuera los oficios, que viven en el
     índice y no en el catálogo: 309 líneas de candidatos y ni una de profundidad cero.
     Con eso, los quince encargos cuya respuesta es un oficio —«que google encuentre mi
     web»— solo podían acertar de rebote, por un nieto, compitiendo contra el catálogo

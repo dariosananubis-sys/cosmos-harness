@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mimalloc
-padre: rendimiento/velocidad
+padre: rendimiento
 resumen: Reservador de memoria de sustitucion directa: se enlaza o se precarga y se nota, sin tocar el codigo.
 ---
 

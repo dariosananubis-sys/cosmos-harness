@@ -23,7 +23,7 @@ Un modelo no puede garantizar consistencia en cuatrocientos ficheros. Una regla 
 eso el criterio dice que se use la regla y no la paciencia.
 
 Que herramienta ejecuta cada una de estas comprobaciones en cada lenguaje se decide en
-`rendimiento/calidad`, no aqui: un mar fija la politica y no el catalogo.
+`refactorizacion`, no aqui: un mar fija la politica y no el catalogo.
 
 Antes de empezar se escribe la lista de ficheros que el encargo puede tocar, y lo que caiga fuera
 se para y pide permiso en vez de ampliarse solo: sin esa lista, un ayudante edito un fichero de

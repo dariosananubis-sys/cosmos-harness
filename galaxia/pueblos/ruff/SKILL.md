@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ruff
-padre: rendimiento/calidad
+padre: refactorizacion/reglas
 resumen: Un solo binario hace de linter y de formateador de Python, y sustituye a media docena de herramientas.
 ---
 

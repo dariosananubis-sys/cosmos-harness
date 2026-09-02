@@ -271,10 +271,17 @@ def puntuacion_json(p: Puntuacion) -> str:
 
 @dataclass
 class Contraste:
-    """Las dos puntuaciones, y la distancia entre ellas."""
+    """Las dos puntuaciones, y la distancia entre ellas.
+
+    `quemado` lleva el motivo cuando el conjunto de validación **ya se ha mirado**. Un
+    holdout es de un solo uso: en cuanto alguien lee su lista de fallos y escribe hacia
+    ella, mide un examen visto y su cifra deja de significar lo que dice. Pasó aquí el
+    mismo día que se creó, y no por mala fe — basta con abrir el `--detalle` una vez.
+    """
 
     ajuste: Puntuacion
     validacion: Puntuacion | None
+    quemado: str | None = None
 
     @property
     def brecha(self) -> float | None:
@@ -290,9 +297,10 @@ class Contraste:
             "ajuste": self.ajuste.como_dict(),
             "validacion": self.validacion.como_dict() if self.validacion else None,
             "brecha_puntos": self.brecha,
+            "quemado": self.quemado,
             "cifra_honesta": (
                 round(100 * self.validacion.aciertos / self.validacion.total, 1)
-                if self.validacion and self.validacion.total
+                if self.validacion and self.validacion.total and not self.quemado
                 else None
             ),
         }
@@ -312,8 +320,17 @@ def formatear_contraste(c: Contraste) -> str:
         f"  Validación ..... {c.validacion.aciertos}/{c.validacion.total} ({va:.0f} %)   "
         "escritos aparte; no guían ninguna decisión",
         "",
-        f"  La cifra que vale es {va:.0f} %.",
+        f"  La cifra que vale es {va:.0f} %."
+        if not c.quemado
+        else f"  {va:.0f} %, pero ESTE CONJUNTO YA SE MIRÓ y un holdout es de un solo uso:",
     ]
+
+    if c.quemado:
+        lineas.extend(
+            [f"    {linea}" for linea in c.quemado.strip().splitlines()[:3]]
+            + ["  Mientras no haya un conjunto nuevo sin estrenar, la cifra honesta es DESCONOCIDA."]
+        )
+        return "\n".join(lineas) + "\n"
 
     brecha = c.brecha or 0.0
     if brecha >= 10:

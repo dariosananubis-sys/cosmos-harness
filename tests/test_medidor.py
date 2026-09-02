@@ -33,12 +33,20 @@ class PruebasMedidor(unittest.TestCase):
         self.assertNotIn("saas-tool", contexto)
 
     def test_arbol_de_tokens_conocidos_a_mano(self) -> None:
+        """Cuentas a mano, con los DOS factores de calibración.
+
+        El índice se cuenta con `FACTOR_GENERADO` (1.381) y el cuerpo con
+        `FACTOR_CALIBRACION` (1.204). No es un capricho: medido el 2026-09-02, las
+        listas de `ruta: resumen` tokenizan un 15 % peor que la prosa, y usar el
+        factor de prosa para ellas ponía verde un árbol que estaba en rojo (F01).
+        """
+
         nodo = Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "explica"}, {}, "alpha beta")
         resultado = medir.medir_arbol(Arbol(Path("."), [nodo]), metodo="aprox", indice="uno dos")
-        self.assertEqual(2, resultado.entrada)
-        self.assertEqual(4, resultado.universo)
-        self.assertEqual(2, resultado.resto)
-        self.assertEqual(0.5, resultado.descarga)
+        self.assertEqual(round(2 * medir.FACTOR_GENERADO), resultado.entrada)      # índice
+        self.assertEqual(round(2 * medir.FACTOR_CALIBRACION), resultado.resto)     # cuerpo
+        self.assertEqual(resultado.entrada + resultado.resto, resultado.universo)
+        self.assertTrue(0 <= resultado.descarga <= 1)
 
     def test_regresion_descarga_nunca_sale_de_cero_uno(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:

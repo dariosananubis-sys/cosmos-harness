@@ -1,0 +1,25 @@
+COSMOS — avisos de atribución
+
+COSMOS — Copyright 2026 Darío Satiño. Licencia Apache-2.0 (fichero LICENSE; decidida por su
+autor el 2026-09-03). Es un producto de Darío, no de ninguna organización: dentro no hay datos de
+ninguna agencia ni de ningún cliente (GOAL §5).
+
+Este repositorio redistribuye o se apoya en trabajo ajeno en los puntos que siguen.
+
+1. galaxia/pueblos/auditor-de-skills — cataloga la skill `skill-security-auditor` de
+   https://github.com/alirezarezvani/claude-skills (autor: Alireza Rezvani, MIT). Hasta el
+   2026-09-03 este repositorio redistribuía su guion y su modelo de amenazas (1.337 líneas); ese día
+   se retiraron por decisión del autor de COSMOS: la ficha enlaza la ruta exacta en el origen y no
+   redistribuye nada.
+
+2. galaxia/pueblos/consola-interactiva-tmux — cataloga `tmux-wrapper.sh` de la skill
+   `using-tmux-for-interactive-commands` de https://github.com/obra/superpowers-lab (autor: Jesse
+   Vincent, MIT). Misma situación que el punto 1: redistribuido hasta el 2026-09-03, hoy solo
+   enlazado.
+
+3. cosmos/medir.py — la idea del catálogo en árbol indentado bajo presupuesto de tokens viene del
+   «repo-map» de aider (https://github.com/Aider-AI/aider, Apache-2.0). Es idea, no código: la
+   implementación es propia y no usa su grafo de referencias.
+
+Los pueblos del catálogo (galaxia/pueblos/*) enlazan herramientas de terceros con su URL, licencia,
+estrellas y fecha de comprobación en la primera línea de cada ficha; ninguno redistribuye su código.

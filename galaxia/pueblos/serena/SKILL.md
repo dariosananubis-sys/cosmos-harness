@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: serena
-padre: rendimiento/calidad
+padre: refactorizacion
 resumen: Da al agente busqueda por simbolo y por referencia via LSP, para no leer ficheros enteros a ciegas.
 ---
 

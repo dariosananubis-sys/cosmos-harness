@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: twenty
-padre: automatizacion
+padre: automatizacion/gestion
 resumen: Relacion con clientes autoalojada con API REST y de grafo para engancharla a lo demas.
 ---
 

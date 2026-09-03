@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: pandera
-padre: ingenieria-datos
+padre: ingenieria-datos/calidad
 resumen: Declara tipo, rango y unicidad de cada columna y falla justo donde el dato se rompe.
 ---
 
@@ -33,7 +33,7 @@ except pa.errors.SchemaErrors as e:
 Ligera y dentro del proceso, sin servidor de documentacion ni dependencias pesadas: encaja con
 `duckdb` y `polars` en el mismo guion. Gana a `fivetran/great_expectations` —el estandar mas
 conocido de validacion de datos, y el rival real— en este entorno concreto: aquel es mas completo y
-trae su propia web de informes, pero es infraestructura para un equipo, no para un portatil de 8 GB.
+trae su propia web de informes, pero es infraestructura para un equipo, no para un portatil justo de memoria.
 Si lo que hace falta es que un guion pare cuando el dato viene mal, esto son quince lineas.
 
 Prioridad de este nicho: detectar que el dato esta mal, antes que pintarlo bonito. Por eso este

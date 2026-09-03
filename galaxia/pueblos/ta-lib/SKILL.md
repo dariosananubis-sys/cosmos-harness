@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: ta-lib
-padre: trading/investigacion
+padre: trading/mercado/investigacion
 resumen: El vocabulario comun: nucleo en C, decadas de uso y el mismo resultado que espera todo el mundo.
 ---
 

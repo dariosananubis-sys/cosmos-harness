@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: windmill
-padre: automatizacion
+padre: automatizacion/flujos
 resumen: Convierte un guion en webhook, flujo e interfaz sin dibujar nodos: el automatismo es codigo.
 ---
 

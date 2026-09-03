@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: celery
-padre: automatizacion
+padre: automatizacion/flujos
 resumen: Cola distribuida con reintento, retroceso exponencial y confirmacion tardia.
 ---
 

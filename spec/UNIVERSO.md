@@ -1,4 +1,4 @@
-# El universo — 21 oficios
+# El universo — 22 oficios
 
 Encargo de Darío, en tres correcciones sucesivas que llevan al mismo sitio:
 
@@ -18,7 +18,12 @@ La versión anterior de este documento fallaba esa prueba en cinco casos: `datos
 `medios`, `sistemas` y `conocimiento` eran **categorías temáticas**, no oficios. Se han partido en
 los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 
-## Los 21
+La misma prueba partió `rendimiento` el 2026-09-02: «que mi código vaya rápido» y «entra en mi
+código y déjalo mejor» son dos contratos con herramientas disjuntas (medido: 8 y 10, cero
+solapamiento), y de los diez vecinos que citaban al nicho, nueve venían por la velocidad. El que
+venía por lo otro (`agentes-ia`) apunta ahora a `refactorizacion`.
+
+## Los 22
 
 | # | Nicho | El trabajo por el que te contratan |
 |---|---|---|
@@ -42,7 +47,8 @@ los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 | 18 | `embebidos` | Hardware que habla: firmware, sensores, protocolos de dispositivo |
 | 19 | `cientifico` | Cálculo y simulación **reproducibles**: si no se repite, no es resultado |
 | 20 | `cumplimiento` | RGPD, accesibilidad legal, licencias: lo que evita la multa |
-| 21 | `rendimiento` | Entrar en código ajeno y dejarlo mejor: perfilado, calidad, deuda |
+| 21 | `rendimiento` | Que el código vaya rápido: perfilado, depuración de lo raro, memoria |
+| 22 | `refactorizacion` | Entrar en código ajeno y dejarlo mejor: cambio en masa seguro, deuda, duplicación |
 
 ### Qué salió, y por qué
 
@@ -58,7 +64,7 @@ los trabajos reales que contenían, y lo que no pasaba la prueba ha salido.
 
 ## Los mares — lo transversal, que no es un nicho
 
-Seis aguas que mojan los 21 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
+Seis aguas que mojan los 22 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
 terreno.
 
 | Mar | Qué impone |
@@ -128,14 +134,14 @@ python3 -m cosmos estado    # cuántas herramientas tiene cada oficio
 ```
 
 Eso cambia el límite de sitio: **ya no lo marca el total, lo marca el nicho más grande**. Añadir
-cinco herramientas a `juegos` no le cuesta nada a quien trabaja en `web`. El techo práctico está en
-unas 25 por nicho, que es donde vive hoy el mayor.
+cinco herramientas a `juegos` no le cuesta nada a quien trabaja en `web`. El techo práctico lo marca el nicho
+más grande, que es el que fija el peor caso del presupuesto: `cosmos estado` lo dice.
 
 Lo que no cambia: el criterio 2 sigue siendo eliminatorio. El presupuesto impide que un nicho
 engorde sin freno, pero **no impide meter basura repartida** — eso solo lo impide elegir bien.
 
 Esta es la restricción que convierte «lo mejor del mundo» en una decisión y no en una acumulación.
-Sin ella, «llenar 21 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
+Sin ella, «llenar 22 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
 que COSMOS existe para resolver.
 
 ## Ciberseguridad: el límite que no se cruza

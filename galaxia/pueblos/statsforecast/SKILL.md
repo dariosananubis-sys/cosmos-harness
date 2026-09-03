@@ -31,7 +31,7 @@ print(pred.head())
 cv = sf.cross_validation(df=df, h=12, step_size=12, n_windows=3)
 ```
 
-En una maquina de ocho gigas los modelos estadisticos ganan por goleada a cualquier red neuronal: se
+Con memoria acotada los modelos estadisticos ganan por goleada a cualquier red neuronal: se
 ajustan en segundos, no necesitan GPU ni un tiempo de ejecucion de aprendizaje profundo cargado en
 memoria, y se puede explicar por que dan lo que dan. Descartado `facebook/prophet` —el modelo de
 prevision mas famoso del sector, y el rival real—: arrastra un motor de inferencia bayesiana pesado,

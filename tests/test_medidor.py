@@ -32,8 +32,12 @@ class PruebasMedidor(unittest.TestCase):
         self.assertNotIn("saas-tool", contexto)
 
     def test_catalogo_web_contiene_solo_pueblos_de_web(self) -> None:
+        # Formato de arbol indentado (2026-09-02): el pueblo paga su nombre bajo su
+        # familia, no la ruta entera — el ancla del nicho la pone el hijo del sistema.
         contexto = medir.contexto_inicial(self.arbol_dos_nichos(), nichos=["web"], indice="")
-        self.assertIn("web/calidad-web/web-tool: Comprueba una interfaz web.", contexto)
+        self.assertIn("web/calidad-web: Agrupa controles web.", contexto)
+        self.assertIn("\n  web-tool: Comprueba una interfaz web.", contexto)
+        self.assertNotIn("web/calidad-web/web-tool", contexto, "volvio la ruta completa por linea")
         self.assertNotIn("saas-tool", contexto)
 
     def test_arbol_de_tokens_conocidos_a_mano(self) -> None:

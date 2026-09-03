@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: reprozip
-padre: cientifico
+padre: cientifico/reproducible
 resumen: Empaqueta lo que la ejecucion uso de verdad rastreando sus llamadas al sistema, no lo que alguien declaro.
 ---
 
@@ -31,7 +31,7 @@ correr en otra maquina algo que ya funciono una vez, es la via corta.
 
 Y lo que no hace bien, que es mucho y hay que decirlo entero:
 
-- El trazado usa `ptrace`, asi que **solo traza en Linux**. En un Mac de 8 GB no se puede empaquetar
+- El trazado usa `ptrace`, asi que **solo traza en Linux**. En una maquina justa de memoria no se puede empaquetar
   nada nativamente: hay que trazar dentro de un contenedor o en una maquina Linux. `reprounzip`
   —la mitad que reproduce— si corre en el Mac.
 - No captura la red. Si el guion descarga algo, el paquete grabara la llamada y no el servidor: el

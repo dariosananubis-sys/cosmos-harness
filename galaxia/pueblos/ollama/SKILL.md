@@ -16,8 +16,8 @@ curl http://localhost:11434/v1/chat/completions -H 'Content-Type: application/js
   -d '{"model":"qwen3:4b-q4_K_M","messages":[{"role":"user","content":"hola"}]}'
 ```
 
-**En 8 GB**: mismas reglas que el motor que lleva debajo — un 7B en `Q4_K_M` ronda 4-4,5 GB y cabe con
-margen justo; un 13B en Q4 ronda 7-8 GB y **no es recomendable** con el sistema abierto encima. La
+**Memoria**: mismas reglas que el motor que lleva debajo — un 7B en `Q4_K_M` ronda 4-4,5 GB y un 13B
+en Q4 ronda 7-8 GB: **se compara con la memoria libre real**, con el sistema abierto encima. La
 ventaja propia aquí es la gestión de memoria: descarga el modelo de la RAM tras un rato de inactividad
 (`keep_alive`), así que entre usos no compite con el resto de la máquina.
 

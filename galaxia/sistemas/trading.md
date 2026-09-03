@@ -2,7 +2,7 @@
 cosmos: sistema-solar
 nombre: trading
 padre: ""
-resumen: Bots que operan solos: exchanges, ejecucion, backtest honesto y riesgo.
+resumen: Operar en mercados: datos, senal, riesgo, ejecucion y los bots que lo automatizan.
 usa:
   - ingenieria-datos
   - infraestructura

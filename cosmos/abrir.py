@@ -18,7 +18,9 @@ Un mapa que da direcciones que no se pueden seguir no es un mapa.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
+from pathlib import Path, PurePosixPath
 
 from .modelo import Arbol, NIVELES_AGUA, NIVELES_SOLIDOS, Nodo, cuerpo
 from .validar import _glob_a_regex
@@ -110,7 +112,31 @@ def agua_que_moja(arbol: Arbol, ruta_fichero: str | None) -> list[Nodo]:
     if not ruta_fichero:
         return []
 
-    relativa = ruta_fichero[2:] if ruta_fichero.startswith("./") else ruta_fichero
+    # Una ruta absoluta devolvía agua vacía en silencio, porque los `moja` casan contra
+    # rutas relativas al proyecto. Devolver «ninguna» ante algo que no se supo interpretar
+    # es el mismo defecto que tenía el filtro por nicho al revés: aquí no se distingue
+    # «este fichero no lo moja nada» de «no entendí lo que me diste».
+    # Canonizar ANTES de casar. `tests//test_x.py` perdía tres de sus cuatro mares y
+    # devolvía una respuesta creíble en vez de vacía —el componente vacío impide que
+    # `[^/]*` llegue al final del patrón, así que se caían justo los criterios de código—
+    # y `~/x.py`, al no empezar por `/`, recibía el agua del proyecto siendo del HOME.
+    # Una respuesta plausible y equivocada es peor que ninguna: no se nota.
+    relativa = str(PurePosixPath(os.path.expanduser(ruta_fichero)))
+    if relativa.startswith("/"):
+        candidata = Path(relativa)
+        raices = [arbol.raiz, arbol.raiz.parent]
+        for raiz in raices:
+            try:
+                relativa = str(candidata.relative_to(raiz))
+                break
+            except ValueError:
+                continue
+        else:
+            raise NodoNoEncontrado(
+                f"'{ruta_fichero}' está fuera del proyecto ({arbol.raiz.parent}): el agua se "
+                f"decide por la ruta relativa a la raíz, así que una de fuera no moja nada. "
+                f"Pásala relativa."
+            )
     alcanzadas = []
     for nodo in arbol.nodos:
         if nodo.cosmos not in NIVELES_AGUA or nodo.cosmos == "oceano":

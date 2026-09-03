@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mosquitto
-padre: embebidos
+padre: embebidos/conectado
 resumen: Servidor de mensajeria ligero para dispositivos: cabe en una placa pequena y no pide agrupacion.
 ---
 

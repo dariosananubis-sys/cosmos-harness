@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: golangci-lint
-padre: rendimiento/calidad
+padre: refactorizacion/reglas
 resumen: Corre un centenar de analizadores de Go compartiendo un solo parseo, y cachea: por eso cabe en cada commit.
 ---
 

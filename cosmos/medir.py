@@ -24,6 +24,7 @@ HEURISTICA = "heurística v3"
 # Medido el 2026-09-02 contra tiktoken/cl100k_base. Ver docs/CALIBRACION.md.
 FACTOR_CALIBRACION = 1.204          # prosa: specs, fichas, código, agua
 FACTOR_GENERADO = 1.381             # índice y catálogo: densos en símbolos
+FACTOR_ESTRUCTURA = 1.314           # agua, estrellas y ríos: prosa española densa
 MARGEN_ERROR: float | None = 0.052
 PATRON_TOKEN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
 
@@ -128,6 +129,26 @@ def contar_generado(texto: str) -> int:
     return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_GENERADO)
 
 
+def contar_estructura(texto: str) -> int:
+    """Cuenta el agua, las estrellas y los ríos, que van un 9 % por encima de una ficha.
+
+    Tercera clase de contenido y tercer factor, por la misma razón que hubo un segundo:
+    **una calibración solo vale para el corpus con el que se hizo**. `FACTOR_CALIBRACION`
+    salió de un corpus donde 264 de 312 muestras son fichas de herramienta, y las fichas
+    tokenizan bien —llevan URLs, nombres propios e inglés, que es lo que `cl100k_base`
+    conoce—. Los mares son prosa española densa y sin nada de eso:
+
+        ficha            n=264   media 1.015x    <- manda en la media global
+        agua/estructura  n= 48   media 1.091x    <- y es lo que se paga SIEMPRE
+
+    El global decía 1.026x mientras el bloque caro iba a 1.091x, y por eso el árbol daba
+    verde con el contador aproximado y rojo con el tokenizador real. La media de un corpus
+    desequilibrado es la media de su clase mayoritaria con otro nombre.
+    """
+
+    return round(len(PATRON_TOKEN.findall(texto)) * FACTOR_ESTRUCTURA)
+
+
 def _contador_exacto() -> tuple[Callable[[str], int], str] | None:
     try:
         import tiktoken  # type: ignore[import-not-found]
@@ -172,41 +193,64 @@ def agua_condicional(arbol: Arbol) -> list[Nodo]:
     ]
 
 
-def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
-    """Materializa exactamente los nombres/resúmenes visibles antes de bajar."""
+def nodos_de_catalogo(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> list[Nodo]:
+    """Los nodos con línea propia en el catálogo, en su orden. UNA selección para todos.
+
+    La comparten el renderizado (`catalogo_visible`) y la contra-métrica
+    (`acertar._lineas_del_catalogo`): si divergieran, la métrica volvería a puntuar
+    sobre un recorte del árbol que ningún agente ve — el fallo que ya ocurrió una vez.
+    Orden: el mapa del nicho en profundidad (alfabético por ruta = cada familia junta),
+    después los ríos. Los de mantenimiento no llevan línea propia: los agrupa el render.
+    """
 
     seleccion = normalizar_nichos(arbol, nichos)
-    con_resumen = {"pueblo", "rio"}
-    intermedios = {"planeta", "continente", "pais", "provincia"}
-    orden_agua = {"rio": len(RANGOS) + 1}
+    solidos = sorted(
+        (
+            nodo
+            for nodo in arbol.nodos
+            if nodo.cosmos in {"planeta", "continente", "pais", "provincia", "pueblo"}
+            and seleccion is not None
+            and nicho_de_nodo(arbol, nodo) in seleccion
+        ),
+        key=lambda nodo: nodo.ruta_cosmos,
+    )
+    rios = sorted(
+        (nodo for nodo in arbol.nodos if nodo.cosmos == "rio"),
+        key=lambda nodo: nodo.referencia,
+    )
+    return solidos + rios
 
-    def clave(nodo: Nodo) -> tuple[int, str]:
-        return RANGOS.get(nodo.cosmos, orden_agua.get(nodo.cosmos, len(RANGOS) + 2)), nodo.referencia
+
+def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
+    """Materializa exactamente los nombres/resúmenes visibles antes de bajar.
+
+    **Árbol indentado, no lista de rutas** (2026-09-02). El formato anterior pagaba la
+    ruta completa en cada línea: en el peor nicho, el 40 % del coste eran prefijos
+    repetidos («ciberseguridad/analisis/cadena-de-suministro/» delante de cinco pueblos),
+    medido con tiktoken. Un pueblo paga ahora su nombre y su sitio lo dice la
+    indentación — E18 garantiza que el nombre es único en toda la galaxia y
+    `cosmos abrir <nombre>` resuelve. Los hijos directos del sistema conservan el
+    prefijo `<nicho>/` porque son el ancla del árbol (y con varios nichos activos,
+    la única forma de saber de cuál cuelga cada mapa).
+
+    La idea viene del repo-map de aider (jerarquía comprimida bajo presupuesto de
+    tokens); aquí sin grafo de referencias porque el árbol ya declara la jerarquía.
+    """
 
     lineas: list[str] = []
     de_mantenimiento: list[str] = []
-    for nodo in sorted(arbol.nodos, key=clave):
-        del_nicho = seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion
-        if nodo.cosmos in intermedios:
-            # Los intermedios son el mapa de descenso, y un mapa sin leyenda no
-            # sirve: sin su resumen, «ciberseguridad/analisis» obliga a adivinar.
-            # Medido el 2026-09-02 con la contra-métrica: con solo la ruta, el
-            # catálogo acertaba el 10 % de 50 encargos reales.
-            #
-            # Pero solo los del oficio activo. Antes se listaban los 48 de los 21
-            # oficios siempre, que es incoherente con el catálogo por nicho: quien
-            # trabaja en `web` no necesita el mapa interno de `embebidos`, y el
-            # índice ya nombra los 21 para saber que existen.
-            if del_nicho:
-                lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
-        elif nodo.cosmos == "pueblo":
-            if del_nicho:
-                lineas.append(f"{nodo.referencia}: {nodo.resumen}")
-        elif nodo.cosmos in con_resumen:
-            if nodo.cosmos == "rio" and nodo.datos.get("momento") == "mantenimiento":
+    for nodo in nodos_de_catalogo(arbol, nichos):
+        if nodo.cosmos == "rio":
+            if nodo.datos.get("momento") == "mantenimiento":
                 de_mantenimiento.append(nodo.nombre)
             else:
                 lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+            continue
+        profundidad = nodo.ruta_cosmos.count("/")
+        if profundidad <= 1:
+            lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
+        else:
+            lineas.append("  " * (profundidad - 1) + f"{nodo.nombre}: {nodo.resumen}")
 
     # Los verbos de cuidar el repositorio se nombran, no se describen. `enganchar`,
     # `proyectar` o `generar` no resuelven el encargo de nadie y su resumen se pagaba en
@@ -284,6 +328,54 @@ def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
     ]
 
 
+@dataclass(frozen=True)
+class Veredicto:
+    """Un solo juez del presupuesto, para que no haya tres verdades.
+
+    Había tres comparaciones distintas sobre el mismo árbol y las tres se publicaban con
+    la misma etiqueta: E16 medía el peor caso con agua, `cosmos medir` el nicho activo
+    con agua, y los guards de sesión el nicho activo **sin agua**. Con `[nichos] activos`
+    puesto, `medir` decía «quedan 325» donde E16 vigilaba 119; el guard, más alto todavía.
+
+    Lo que garantiza el presupuesto es que **cualquier sesión quepa**, así que el juez es
+    siempre el peor nicho con toda su agua. El nicho activo se sigue enseñando, pero como
+    dato, no como veredicto.
+    """
+
+    # Trivalente: `True` cabe, `False` no cabe, `None` = NO HABÍA NADA QUE MEDIR.
+    # Sobre un árbol vacío —o un `--config` cuyo `arbol` resuelve a un directorio
+    # que no está— el juez decía «OK, quedan 4.000 tokens»: `0 <= presupuesto` es
+    # verdad, pero un cero que sale de no haber observado nada no es un verde, es
+    # «no lo sé». Es el mismo patrón que `descarga` ya publica como `no_definida`.
+    cabe: bool | None
+    evaluado: int
+    presupuesto: int
+    nicho: str
+
+    @property
+    def margen(self) -> int:
+        return self.presupuesto - self.evaluado
+
+    def como_linea(self) -> str:
+        if self.cabe is None:
+            return "SIN MEDIR: el árbol no aporta ni un token; un veredicto sobre nada no es un OK"
+        if self.cabe:
+            return f"OK, quedan {self.margen} tokens en el peor caso con agua ({self.nicho})"
+        return f"ROJO, excede en {-self.margen} tokens en el peor caso con agua ({self.nicho})"
+
+
+def veredicto_de_presupuesto(casos: "ResumenMedicion", presupuesto: int) -> Veredicto:
+    """El único sitio donde se decide si un árbol cabe. Los tres llamantes usan esto."""
+
+    peor = casos.peor
+    return Veredicto(
+        cabe=None if peor.universo == 0 else peor.entrada_con_agua <= presupuesto,
+        evaluado=peor.entrada_con_agua,
+        presupuesto=presupuesto,
+        nicho=casos.peor_nicho or "sin nichos",
+    )
+
+
 def medir_arbol(
     arbol: Arbol,
     *,
@@ -296,17 +388,33 @@ def medir_arbol(
     seleccion = normalizar_nichos(arbol, nichos)
     partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion)
 
-    # El índice y el catálogo se cuentan con su propio factor: son listas densas en
-    # símbolos, no prosa, y tokenizan un 15 % peor (fallo F01). Con `exacto` no hay
-    # dos factores que valgan — el tokenizador ya cuenta lo que hay.
+    # Tres clases de contenido, tres factores. El índice y el catálogo son listas densas
+    # en símbolos y tokenizan un 15 % peor que una ficha (fallo F01); el agua y los
+    # océanos son prosa española densa y van un 9 % por encima. Usar el de las fichas
+    # para todo era lo que ponía verde un árbol que estaba en rojo — dos veces, y la
+    # segunda con el arreglo de la primera ya puesto. Con `exacto` no hay factor que
+    # valga: el tokenizador ya cuenta lo que hay.
     def _cuenta(nombre: str, texto: str) -> int:
-        if metodo_real == "aprox" and ("índice" in nombre or "catálogo" in nombre):
+        if metodo_real != "aprox":
+            return contador(texto)
+        if "índice" in nombre or "catálogo" in nombre:
             return contar_generado(texto)
+        if nombre.startswith(("oceano/", "mar/", "lago/", "estrella/", "rio/")):
+            return contar_estructura(texto)
         return contador(texto)
 
     detalle_entrada = [ParteMedida(nombre, _cuenta(nombre, texto)) for nombre, texto in partes_entrada]
     entrada = sum(parte.tokens for parte in detalle_entrada)
-    nodos_resto = [nodo for nodo in arbol.nodos if nodo.cosmos != "oceano"]
+    # El universo es lo que un agente PODRÍA cargar trabajando. Los océanos quedan fuera
+    # porque ya están dentro de `entrada`; la lluvia también, y por otra razón: son los
+    # partes de commit del propio COSMOS, su historia interna. Nadie los carga para
+    # resolver un encargo — `rio/memoria` los busca y devuelve dónde mirar, nunca el
+    # cuerpo. Contarlos inflaba la descarga (98,42 % con ellos, 98,24 % sin ellos) y,
+    # peor, la inflaba **sola**: cada parte nuevo mejoraba la cifra sin que el sistema
+    # descargara nada. Una métrica que sube sola por escribir documentación no mide nada.
+    nodos_resto = [
+        nodo for nodo in arbol.nodos if nodo.cosmos not in {"oceano", "lluvia"}
+    ]
     detalle_arbol = [
         ParteMedida(nodo.referencia, contador(cuerpo(nodo)))
         for nodo in sorted(nodos_resto, key=lambda n: (RANGOS.get(n.cosmos, 99), n.referencia, n.ruta_relativa))
@@ -314,7 +422,8 @@ def medir_arbol(
     resto = sum(parte.tokens for parte in detalle_arbol)
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
-    detalle_agua = _detalle_agua(arbol, contador)
+    contador_agua = contar_estructura if metodo_real == "aprox" else contador
+    detalle_agua = _detalle_agua(arbol, contador_agua)
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,
@@ -432,11 +541,13 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         if evaluada.descarga == "no_definida"
         else f"{float(evaluada.descarga) * 100:.1f} %".replace(".", ",")
     )
-    evaluado = evaluada.entrada_con_agua
-    if evaluado <= evaluada.presupuesto:
-        estado = f"OK, quedan {_numero(evaluada.presupuesto - evaluado)} tokens"
-    else:
-        estado = f"ROJO, excede en {_numero(evaluado - evaluada.presupuesto)} tokens"
+    # La cuarta comparación, y la única que lee una persona. El commit «un solo juez»
+    # unificó E16, el código de salida y los guards, y dejó ESTA calculándose aparte y
+    # sobre `evaluada` (el nicho activo) en vez de sobre el peor caso: con nichos activos,
+    # la salida decía «OK, quedan 93» y el mismo comando salía con 1.
+    veredicto = veredicto_de_presupuesto(resultado, evaluada.presupuesto)
+    evaluado = veredicto.evaluado
+    estado = veredicto.como_linea()
     peor_nombre = resultado.peor_nicho or "sin nichos"
     lineas = [
         "COSMOS  medir",
@@ -451,18 +562,21 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         lineas.append(
             f"  {etiqueta} {_numero(resultado.seleccion.entrada)} tokens   ({nombres}; {resultado.seleccion.pueblos_visibles} pueblos)"
         )
+    # La cifra que se juzga es SIEMPRE el peor caso, elija quien elija los nichos activos.
+    # Decir «el nicho activo» encima de un número que es el del peor caso era la última
+    # etiqueta que quedaba mintiendo, y el veredicto ya trae dentro de qué nicho habla.
     if resultado.seleccion is None:
-        ambito = "el peor caso"
+        nota_seleccion = ""
     elif len(resultado.seleccion_nichos) == 1:
-        ambito = "el nicho activo"
+        nota_seleccion = f"; nicho activo: {resultado.seleccion_nichos[0]}"
     else:
-        ambito = "la combinación"
+        nota_seleccion = f"; activos: {', '.join(resultado.seleccion_nichos)}"
     lineas.extend(
         [
-            f"  Peor con agua ... {_numero(evaluado)} tokens   ({ambito} + agua condicional)",
+            f"  Peor con agua ... {_numero(evaluado)} tokens   (el peor caso + agua condicional{nota_seleccion})",
             f"  Universo ........ {_numero(evaluada.universo)} tokens   ({metodo})",
             f"  Descarga ........ {descarga}",
-            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado} en {ambito} con agua",
+            f"  Presupuesto ..... {_numero(evaluada.presupuesto)}     {estado}",
             "",
             "  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)",
             "",

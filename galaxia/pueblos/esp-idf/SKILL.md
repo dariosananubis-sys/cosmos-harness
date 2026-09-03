@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: esp-idf
-padre: embebidos
+padre: embebidos/firmware
 resumen: Framework del fabricante para el microcontrolador mas usado, con radio y bluetooth.
 ---
 
@@ -32,4 +32,4 @@ compila: `flash` y `monitor` fallan, y un `build` verde no dice absolutamente na
 firmware funciona. Es el falso verde clasico del nicho.
 
 Aviso de maquina: `install.sh` se baja la cadena de compilacion completa y deja del orden de varios
-gigas en `~/.espressif`. En un Mac de 8 GB cabe, pero no es una instalacion que se hace por curiosidad.
+gigas en `~/.espressif`. En una maquina justa de memoria cabe, pero no es una instalacion que se hace por curiosidad.

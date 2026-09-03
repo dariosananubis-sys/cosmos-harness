@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: stripe-agent-toolkit
-padre: saas
+padre: saas/cobro
 resumen: Kit oficial de la pasarela para cobrar, suscribir y atender avisos desde codigo o desde un agente.
 ---
 

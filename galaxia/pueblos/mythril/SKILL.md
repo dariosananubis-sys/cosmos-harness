@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: mythril
-padre: blockchain
+padre: blockchain/auditoria
 resumen: Ejecucion simbolica sobre el codigo maquina: sirve cuando del contrato ajeno solo hay lo que esta desplegado.
 ---
 

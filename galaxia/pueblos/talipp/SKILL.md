@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: talipp
-padre: trading/investigacion
+padre: trading/mercado/investigacion
 resumen: Recalcula solo el ultimo valor al llegar un precio nuevo, sin rehacer la serie en cada tick.
 ---
 

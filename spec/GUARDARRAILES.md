@@ -215,6 +215,42 @@ del envoltorio JSON y la ruta del fichero de ajustes son del runtime que llame a
 los aísla en `bloque_sesion` y en `como_json`; el resto del módulo son funciones puras sobre rutas y
 texto, que es lo que sobrevive a un cambio de runtime.
 
+## Toda puerta tiene salida — y se comprueba abriéndola
+
+Decisión de Darío (2026-09-02): **en COSMOS, todo guardarraíl tiene siempre vía de escape.**
+Sin excepciones y sin «este es tan importante que no».
+
+No es una preferencia de estilo, es lo que mantiene vivo al resto del sistema. Un guardarraíl
+del que no se puede salir de forma acotada no se respeta: se rodea. Y cuando alguien lo rodea,
+el sistema pierde las dos cosas a la vez — la protección y el registro de que se saltó.
+
+Dos casos medidos el mismo día, y por eso esto deja de ser costumbre:
+
+1. **E20 estuvo viva y sin válvula.** La lista de códigos que la válvula aceptaba era un
+   `range(20)` escrito a mano: se añadió la invariante y esa línea no se tocó. Nada lo dijo
+   durante días; lo encontró una persona leyendo. Ahora la lista se **deriva** de las
+   comprobaciones que el validador ejecuta, así que una invariante nueva trae su salida puesta.
+
+2. **Un guardarraíl ajeno sin salida bloqueó trabajo legítimo.** Un hook del arnés vecino
+   deniega `git push --force` siempre, y su mensaje remite a *«pedir confirmación explícita»*.
+   Se pidió, se dio, y el hook siguió denegando: compara texto y no sabe leer una conversación.
+   La salida que su propio mensaje prometía no existía. Se resolvió por el camino largo —una
+   rama nueva que no necesita forzar— y esa es la señal de alarma: **cuando la salida no está,
+   aparece el rodeo**.
+
+### Qué exige, en concreto
+
+- Todo código que pueda bloquear —invariantes `E*` y guardarraíles de sesión `G*`— aceptado por
+  `cosmos saltar`. La lista no se escribe a mano en ningún sitio.
+- La salida es **acotada**: un código concreto, nunca «todo». Saltarlo todo no es una salida,
+  es apagar COSMOS, y por eso `TODO`/`*`/`ALL` se rechazan explícitamente.
+- Tiene **precio**: motivo escrito y caducidad. Una válvula gratis es un interruptor de apagado,
+  y se acaba usando como tal.
+- Y se verifica **abriéndola**: `tests/test_toda_puerta_tiene_salida.py` abre la válvula de G03,
+  comprueba que el guard deja de bloquear, la cierra y comprueba que vuelve a proteger. Que un
+  código esté en una lista no demuestra que la puerta abra — igual que una invariante que nadie
+  ha visto fallar no demuestra que vigile.
+
 ## La válvula de escape (obligatoria, no opcional)
 
 Del catálogo de mecanismos (patrón 9): **todo guardarraíl duro sin válvula de escape acaba

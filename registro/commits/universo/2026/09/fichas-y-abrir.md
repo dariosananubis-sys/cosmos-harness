@@ -249,3 +249,126 @@ recortar o un presupuesto que subir, y las dos cosas son decisión de Darío, no
 Tres sabotajes más vistos fallar, y dos que **sobrevivieron a la primera** y obligaron a
 reescribir sus pruebas: el test miraba solo el árbol bueno, así que quitarle el campo a un
 río o admitir un `momento` inventado no ponía nada rojo.
+
+---
+
+# Quinta tanda: un oficio no es una lista de herramientas
+
+Lo vio Darío mirando `trading`: *«has entrado mucho en lo que es bots; tiene que ser
+trading y dentro de él pues bots»*. Su resumen decía **«Bots que operan solos»** — el
+oficio entero llamado por una de sus ramas — y sus siete países colgaban en plano.
+
+Al medirlo resultó ser sistémico: **14 de los 21 oficios estaban planos**, y ocho de ellos
+tenían TODAS sus herramientas colgando directamente del oficio, sin un solo nivel
+intermedio. Solo `ciberseguridad` y `rendimiento` tenían estructura.
+
+## trading, como pedía
+
+    trading — Operar en mercados: datos, senal, riesgo, ejecucion y los bots que lo automatizan.
+      mercado     datos-de-mercado · investigacion
+      estrategia  backtesting · riesgo
+      bots        motores · codigo-de-bot
+      ejecucion   conectividad · (rotki)
+
+Cuatro continentes que siguen el flujo real —de dónde salen los precios, qué se opera y
+cuánto se arriesga, cómo se automatiza, dónde está el dinero— con los bots dentro, que es
+donde van.
+
+## Y los otros trece
+
+31 países nuevos, todos con **dos hijos o más**: agrupar con un solo hijo no organiza
+nada, solo cobra su resumen. `automatizacion` pasó de 12 herramientas sueltas a cuatro
+países; `saas` de 9 a tres; `blockchain`, `cientifico`, `embebidos`, `juegos`, `moviles`,
+`visibilidad`, `analitica`, `cumplimiento`, `documentos`, `infraestructura` e
+`ingenieria-datos`, igual.
+
+Resultado: **73 países y 10 continentes**, cero niveles de relleno, y ningún oficio con más
+de dos herramientas sueltas. El presupuesto no se movió (65 tokens de margen) porque el
+catálogo se paga por nicho activo, y el peor sigue siendo `ciberseguridad`.
+
+## Contraste con la otra historia, que era lo primero que pedía
+
+El remoto tenía 15 ficheros que esta rama no: 14 países y `QUEDA.md`. Medidos uno a uno,
+**los 14 tienen un solo hijo** — `saas/facturacion` con solo `gobl`, `automatizacion/firma`
+con solo `docuseal`, y así. Son el relleno que esta rama había quitado a propósito.
+
+Lo interesante es que la idea era buena y la ejecución no: hoy existen `saas/cobro` (con
+pasarela, consumo y factura) y `automatizacion/gestion` (clientes, proyectos y firma). El
+país estaba bien pensado, mal poblado.
+
+## Lo que impide que vuelva a pasar
+
+`tests/test_oficios_estructurados.py`, con dos sabotajes vistos fallar: devolver tres
+herramientas al oficio, y dejar un país con un solo hijo.
+
+Y una comprobación que **se quitó tras medirla**: «el resumen del oficio no puede abrir con
+el nombre de una de sus ramas». Marcaba en rojo a `audiovisual`, `blockchain` y
+`ciberseguridad`, que no reducen nada sino que **enumeran** sus ramas — y no cazaba el caso
+real, porque «Bots que operan solos: exchanges, ejecucion…» menciona dos de las cuatro.
+Distinguir «enumera sus partes» de «llama al todo por una parte» es semántica, y la
+semántica cuesta un modelo (`GOAL.md` §5). Se declara el límite en vez de publicar un
+canario que miente.
+
+## Un error propio que casi cuesta el trabajo
+
+Al construir un sabotaje se restauró con `git checkout -- galaxia/` y eso **revirtió 108
+repadrados sin commitear**. Los ficheros nuevos sobrevivieron (son untracked), los
+modificados no. Se rehízo entero. La regla: para deshacer un sabotaje se guarda y se
+restaura **solo el fichero tocado**, nunca un directorio con trabajo vivo dentro.
+
+---
+
+# Sexta tanda: los cuatro fallos que quedaban del especialista
+
+## F17 — tres veredictos de presupuesto sobre el mismo árbol
+
+`E16` medía el peor nicho **con** su agua. `cosmos medir` devolvía su código de salida
+sobre el nicho activo con agua. Y los guards de sesión comparaban el nicho activo **sin**
+agua, con un comentario encima que decía *«mismo criterio que `cosmos medir`»*. No lo era.
+
+Ninguno estaba mal por separado; el fallo es que los tres se publicaban con la misma
+etiqueta, así que cada uno parecía confirmar a los otros. Con `[nichos] activos` puesto, el
+comando decía «quedan 325» donde el gate vigilaba 119.
+
+Ahora hay un juez único, `medir.veredicto_de_presupuesto`, y compara siempre lo que el
+presupuesto promete: **que cualquier sesión quepa** — el peor nicho con toda su agua. El
+nicho activo se sigue enseñando, como dato y no como veredicto.
+
+## F16 y F09 — escribir el índice entero, y un cerrojo del que se pueda salir
+
+`escribir_indice` era un `write_text` pelado mientras el manifiesto —menos crítico— ya
+tenía temporal, `fsync` y `os.replace`. El índice **es** el contexto de entrada: cortado a
+medias deja el árbol rojo por E15 y G03 impide arreglarlo a mano. Callejón sin salida.
+
+Y el cerrojo de `compilar` era `O_EXCL` a secas: si el proceso moría sin llegar a su
+`finally`, el fichero quedaba y **toda compilación futura fallaba para siempre**. Ahora
+lleva el PID dentro y se pregunta — si su dueño vive, rechaza; si no, retoma diciéndolo.
+
+Las dos piezas viven ya en `modelo.py` y las comparten `generar` y `compilar`.
+
+Nota de contrato: `test_lock_exclusivo_rechaza_segunda_compilacion` afirmaba el
+comportamiento viejo (bastaba que el fichero existiera). Se reescribió para afirmar el
+nuevo, con la razón dentro, y se le añadió el hermano: un cerrojo rancio no deja el
+repositorio inservible.
+
+## F23 — la descarga subía sola por escribir documentación
+
+`resto` sumaba el cuerpo de todo nodo no-océano, y los partes de commit viven en el árbol
+como `lluvia`: 17.263 tokens, el 11 % del universo, de historia interna que ningún agente
+carga para trabajar (`rio/memoria` los busca y devuelve dónde mirar, nunca el cuerpo).
+
+El efecto era de dos décimas —98,42 % contra 98,24 %— pero el defecto no es el tamaño: la
+métrica **crecía sola**. Cada parte nuevo mejoraba la descarga sin que el sistema
+descargara nada, y este repositorio escribe un parte por tanda. La prueba ejercita
+exactamente eso: añade un parte a un árbol de juguete y exige que la cifra no se mueva.
+
+## Y una prueba que no valía y hubo que rehacer
+
+El primer sabotaje de `escribir_atomico` **sobrevivió**: cambiarlo por `write_text` daba el
+mismo resultado en el caso feliz, así que la prueba no distinguía las dos
+implementaciones. Lo que sí las separa es que `os.replace` opera sobre la **entrada del
+directorio** y no sobre el fichero: con el destino en solo lectura dentro de un directorio
+escribible, la escritura atómica pasa y `write_text` da `PermissionError`. Y esa es
+justamente la propiedad que hace que un corte a mitad no deje el índice truncado.
+
+Doce sabotajes vistos fallar en esta tanda. 160 pruebas, 113 de puente, 38/38 mutaciones.

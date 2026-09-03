@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: expo
-padre: moviles
+padre: moviles/marcos
 resumen: Capa gestionada sobre React Native: recarga en caliente, actualizaciones por aire y firma sin cadena local.
 ---
 

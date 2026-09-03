@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: toxiproxy
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: Corta la red a proposito entre el bot y el mercado: latencia, timeout y conexion caida.
 ---
 

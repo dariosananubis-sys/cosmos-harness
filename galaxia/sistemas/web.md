@@ -7,4 +7,6 @@ usa:
   - saas
   - visibilidad
   - cumplimiento
+  - rendimiento
+  - moviles
 ---

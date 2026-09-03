@@ -20,7 +20,24 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-CODIGOS_INVARIANTES = tuple(f"E{numero:02d}" for numero in range(20))
+def _invariantes_vigentes() -> tuple[str, ...]:
+    """Los códigos que el validador comprueba HOY, preguntándoselo a él.
+
+    Era `range(20)`, escrito a mano, y por eso E20 quedó **viva y sin válvula**: se añadió
+    la invariante y nadie tocó esta línea. `spec/GUARDARRAILES.md` dice de la válvula que
+    es «obligatoria, no opcional», porque «todo guardarraíl duro sin válvula de escape
+    acaba desactivado a la fuerza». Una invariante sin salida acotada es exactamente eso.
+
+    El import va aquí dentro a propósito: `validar` importa de este módulo, y al revés
+    sería un ciclo.
+    """
+
+    from .validar import codigos_comprobados
+
+    return codigos_comprobados()
+
+
+CODIGOS_INVARIANTES = _invariantes_vigentes()
 # Guardarraíles de sesión (`puente/sesion.py`). Tienen código propio porque la
 # válvula es obligatoria en TODO guardarraíl duro, no solo en el validador: uno
 # sin salida acotada acaba arrancado de raíz un viernes, y ya no vuelve.
@@ -95,7 +112,10 @@ def normalizar_codigo(codigo: str) -> str:
         raise ErrorSalto("un salto acota un código concreto; 'todo' no es un salto, es apagar COSMOS")
     if limpio not in CODIGOS:
         raise ErrorSalto(
-            f"código desconocido: {codigo!r}; se esperaba una invariante (E00..E19)"
+            # Las que EXISTEN, no un rango: la numeración tiene huecos a propósito
+            # (E04 se retiró) y anunciar «E00..E20» manda a probar códigos que no hay.
+            f"código desconocido: {codigo!r}; se esperaba una invariante "
+            f"({', '.join(CODIGOS_INVARIANTES)})"
             f" o un guardarraíl de sesión ({'/'.join(CODIGOS_SESION)})"
         )
     return limpio

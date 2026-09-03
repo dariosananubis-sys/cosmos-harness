@@ -1,7 +1,7 @@
 ---
 cosmos: pais
 nombre: perfilado
-padre: rendimiento/velocidad
+padre: rendimiento
 resumen: Medir donde se va el tiempo antes de tocar nada.
 ---
 

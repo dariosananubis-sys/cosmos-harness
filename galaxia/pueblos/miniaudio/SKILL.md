@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: miniaudio
-padre: juegos
+padre: juegos/activos
 resumen: Un solo fichero en C y cero dependencias para reproducir y capturar sonido en cualquier plataforma.
 ---
 

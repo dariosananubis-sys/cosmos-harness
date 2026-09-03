@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: vectorbt
-padre: trading/backtesting
+padre: trading/estrategia/backtesting
 resumen: Miles de combinaciones de parametros en el tiempo que un motor evento a evento tarda en una.
 ---
 

@@ -51,12 +51,13 @@ from cosmos.guardarrailes import (
     estado_saltos,
     ruta_saltos,
 )
-from cosmos.medir import medir_casos
+from cosmos.medir import veredicto_de_presupuesto, medir_casos
 from cosmos.modelo import (
     ErrorConfiguracion,
     ErrorNicho,
     cargar_arbol,
     cargar_configuracion,
+    escribir_atomico,
     normalizar_nichos,
 )
 from cosmos.validar import validar_arbol
@@ -118,7 +119,10 @@ class Decision:
     accion: str = "pasar"
     motivo: str = ""
     salida: str | None = None
-    codigo_salida: int = 0
+    # Trivalente: `None` = la respuesta no traía código de salida. Publicar 0 en su
+    # lugar es inventar el valor tranquilizador (regla 14 del arnés): lo que no se
+    # observó se dice como «no lo sé», nunca como el defecto cómodo.
+    codigo_salida: int | None = None
     contexto: str = ""
     canales: tuple[str, ...] = ()
 
@@ -145,13 +149,23 @@ def como_json(decision: Decision, evento: str) -> str:
         cuerpo = {"decision": "block", "reason": decision.motivo}
     elif decision.accion == "reescribir":
         salida = decision.salida or ""
-        actualizado: dict[str, object] = {"output": salida, "exit_code": decision.codigo_salida}
+        # Solo los campos que la respuesta traía: la reescritura anterior fabricaba
+        # `{"output": ..., "exit_code": 0}` siempre, así que una respuesta que solo
+        # tenía `stderr` aparecía además como salida estándar, y el `exit_code: 0`
+        # no lo había dicho nadie — lo ponía el valor por defecto del `.get`.
+        actualizado: dict[str, object] = {}
+        if decision.codigo_salida is not None:
+            actualizado["exit_code"] = decision.codigo_salida
         # El texto ya redactado vuelve por los mismos canales que lo trajeron: si
         # el runtime entrega `stdout` y `stderr` por separado, sustituir solo
         # `output` deja el valor crudo entrando por el otro. El primero lleva el
         # texto y los demás se vacían, para que nada sin redactar sobreviva.
         for posicion, canal in enumerate(decision.canales):
             actualizado[canal] = salida if posicion == 0 else ""
+        if not decision.canales:
+            # Respuesta que llegó como cadena suelta o forma anidada: no hay canal
+            # que sustituir clave a clave, y `output` es la única vía de entrega.
+            actualizado["output"] = salida
         especifico: dict[str, object] = {
             "hookEventName": evento,
             "updatedToolOutput": actualizado,
@@ -211,10 +225,15 @@ def ruta_cierres(base: Path) -> Path:
 
 
 def _escribe_atomico(ruta: Path, datos: dict) -> None:
-    ruta.parent.mkdir(parents=True, exist_ok=True)
-    temporal = ruta.with_suffix(f".{os.getpid()}.tmp")
-    temporal.write_text(json.dumps(datos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    os.replace(temporal, ruta)
+    """Serializa y delega en el único escritor atómico del proyecto.
+
+    Aquí vivía el tercero de tres escritores atómicos —el más flojo: sin `fsync`,
+    con `with_suffix` en vez de `mkstemp`— y era justo el que escribe las marcas
+    de lectura de G04, el estado del que depende un guardarraíl. Tres copias
+    garantizan que la próxima corrección de escritura segura se aplica a una.
+    """
+
+    escribir_atomico(ruta, json.dumps(datos, ensure_ascii=False, indent=2) + "\n")
 
 
 def _lee_json(ruta: Path) -> dict:
@@ -538,16 +557,23 @@ def revisar_arbol(config, saltados: frozenset[str]) -> Revision:
     medicion = medir_casos(
         arbol, metodo=config.metodo, presupuesto=config.entrada, nichos=nichos
     )
-    entrada = medicion.evaluada.entrada
-    # Mismo criterio que el código de salida de `cosmos medir`: si aquí fuese otro,
-    # el guard y el comando dirían cosas distintas del mismo árbol.
-    holgado = entrada <= config.entrada
+    # El juez del presupuesto es uno solo, en `medir.veredicto_de_presupuesto`. Este
+    # comentario decía «mismo criterio que `cosmos medir`» y era falso: el comando
+    # comparaba con el agua y el guard sin ella, así que el guard daba verde donde el
+    # comando daba rojo. Tres comparaciones distintas con la misma etiqueta es peor que
+    # ninguna, porque cada una parece confirmar a las otras.
+    veredicto = veredicto_de_presupuesto(medicion, config.entrada)
+    entrada = veredicto.evaluado
+    # `is True` porque el veredicto es trivalente: `None` significa «no había nada
+    # que medir» y tampoco es un verde — un árbol sin un token no es un árbol holgado.
+    holgado = veredicto.cabe is True
     verde = resultado.valido and holgado
-    presupuesto = (
-        f"entrada {entrada} / {config.entrada} tokens"
-        if holgado
-        else f"entrada {entrada} / {config.entrada} tokens, EXCEDIDO en {entrada - config.entrada}"
-    )
+    if veredicto.cabe is None:
+        presupuesto = "entrada SIN MEDIR: el árbol no aporta ni un token"
+    elif holgado:
+        presupuesto = f"entrada {entrada} / {config.entrada} tokens"
+    else:
+        presupuesto = f"entrada {entrada} / {config.entrada} tokens, EXCEDIDO en {entrada - config.entrada}"
     titulo = f"COSMOS  sesion  {'verde' if verde else 'rojo'}  {presupuesto}"
     lineas = []
     if not resultado.valido:
@@ -556,7 +582,9 @@ def revisar_arbol(config, saltados: frozenset[str]) -> Revision:
         lineas.extend(f"  {error.codigo}  {error.ruta}: {error.mensaje}" for error in errores)
         if len(resultado.errores) > len(errores):
             lineas.append(f"  … y {len(resultado.errores) - len(errores)} más (cosmos validar)")
-    if not holgado:
+    if veredicto.cabe is None:
+        lineas.append("No hay nada que medir: comprueba que la raíz del árbol del cosmos.toml es la buena.")
+    elif not holgado:
         lineas.append("El presupuesto de entrada se ha pasado: mira 'cosmos medir --detalle'.")
     return Revision(verde, titulo, "\n".join(lineas))
 
@@ -791,7 +819,7 @@ def _texto_anidado(valor: object) -> str:
     return ""
 
 
-def _respuesta(entrada: dict) -> tuple[str, int, tuple[str, ...]]:
+def _respuesta(entrada: dict) -> tuple[str, int | None, tuple[str, ...]]:
     """Todo el texto que la herramienta devuelve, y por qué claves se puede reescribir.
 
     Leía `output` y, a falta de él, `stdout`. `stderr` —que es justo donde salen
@@ -802,9 +830,9 @@ def _respuesta(entrada: dict) -> tuple[str, int, tuple[str, ...]]:
 
     respuesta = entrada.get("tool_response")
     if isinstance(respuesta, str):
-        return respuesta, 0, ()
+        return respuesta, None, ()
     if not isinstance(respuesta, dict):
-        return "", 0, ()
+        return "", None, ()
     canales = tuple(
         clave for clave in _CANALES if isinstance(respuesta.get(clave), str) and respuesta[clave]
     )
@@ -815,11 +843,15 @@ def _respuesta(entrada: dict) -> tuple[str, int, tuple[str, ...]]:
         anidado = _texto_anidado(respuesta)
         if anidado:
             partes.append(anidado)
-    bruto = respuesta.get("exit_code", respuesta.get("exitCode", 0))
-    try:
-        codigo = int(bruto or 0)
-    except (TypeError, ValueError):
-        codigo = 0
+    # `None` cuando la respuesta no trae código de salida (o trae basura): un 0 por
+    # defecto era un hecho inventado que el modelo leía como «terminó bien».
+    codigo: int | None = None
+    if "exit_code" in respuesta or "exitCode" in respuesta:
+        bruto = respuesta.get("exit_code", respuesta.get("exitCode"))
+        try:
+            codigo = int(bruto)
+        except (TypeError, ValueError):
+            codigo = None
     return "\n".join(partes), codigo, canales
 
 
@@ -998,18 +1030,39 @@ def decidir(entrada: dict, *, config_path: Path | None = None) -> tuple[Decision
         return PASAR, evento
 
     if config_path:
-        ruta: Path | None = Path(config_path)
+        rutas = [Path(config_path)]
     else:
-        ruta = next((c for p in _rutas_del_evento(entrada) if (c := _subiendo(p))), None)
+        # TODOS los árboles implicados, no el primero que aparezca. Quedarse con el
+        # primero era un bypass: un comando que nombra una ruta de otro repositorio
+        # COSMOS antes que la propia se evaluaba contra ESE árbol, y G03 se apagaba en
+        # silencio para el que de verdad se estaba tocando. El comentario que lo
+        # acompañaba —«una de más solo hace mirar un directorio de más»— era falso
+        # justamente porque las demás no se miraban nunca.
+        vistas: list[Path] = []
+        for punto in _rutas_del_evento(entrada):
+            encontrada = _subiendo(punto)
+            if encontrada is not None and encontrada not in vistas:
+                vistas.append(encontrada)
+        rutas = vistas
 
+    ruta = rutas[0] if rutas else None
     if ruta is None or not ruta.is_file():
         # Enganchado sobre un repositorio que no usa COSMOS: silencio. Escanear
         # el directorio de trabajo «por si acaso» sería caro y además mentiría.
         raise SinCosmos(f"no hay cosmos.toml para {entrada.get('cwd') or Path.cwd()}")
-    config = cargar_configuracion(ruta)
-    if not config.arbol.is_dir():
-        raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")
-    return manejador(entrada, config, base_de(entrada, config)), evento
+    # Se evalúa contra cada árbol implicado y **gana la respuesta más restrictiva**: si
+    # cualquiera de ellos dice que no, es que no. Proteger «el árbol que mencionó primero
+    # el comando» no protege nada, porque quien escribe el comando elige el orden.
+    decisiones = []
+    for candidata in rutas:
+        config = cargar_configuracion(candidata)
+        if not config.arbol.is_dir():
+            raise ErrorSesion(f"no hay árbol COSMOS en {config.arbol}")
+        decisiones.append(manejador(entrada, config, base_de(entrada, config)))
+
+    orden = {"denegar": 0, "bloquear": 1, "reescribir": 2, "informar": 3, "pasar": 4}
+    decisiones.sort(key=lambda d: orden.get(d.accion, 5))
+    return decisiones[0], evento
 
 
 def _anotar_fallo(entrada: dict, fallo: BaseException) -> None:
@@ -1037,11 +1090,43 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--formato", choices=("json", "exit2"), default="json")
     parser.add_argument("--config", type=Path, default=None, help="ruta de cosmos.toml")
     args = parser.parse_args(argv)
+    # Una entrada que no se puede leer es tan «no puedo evaluar» como un `cosmos.toml`
+    # roto, y antes se trataba al revés: exit 0 y silencio. Pero hay un matiz que decide
+    # la respuesta — con el JSON ilegible **no se sabe siquiera qué evento es**, así que
+    # denegar sería bloquear todos los hooks ante cualquier basura del canal. Se separan
+    # los dos casos: si no se sabe qué es, rastro y paso; si se sabe que es `PreToolUse`
+    # y el resto está malformado, se deniega, que es lo que ese guard existe para hacer.
+    crudo = sys.stdin.read()
     try:
-        entrada = json.load(sys.stdin)
-    except (ValueError, TypeError):
+        entrada = json.loads(crudo)
+    except (ValueError, TypeError) as fallo:
+        _anotar_fallo({"hook_event_name": "?", "tool_name": "?"}, fallo)
         return 0
     if not isinstance(entrada, dict):
+        _anotar_fallo({"hook_event_name": "?", "tool_name": "?"},
+                      TypeError(f"el evento no es un objeto: {type(entrada).__name__}"))
+        return 0
+
+    if entrada.get("hook_event_name") == "PreToolUse" and not entrada.get("tool_name"):
+        fallo = ValueError("PreToolUse sin 'tool_name': no se puede saber qué se iba a ejecutar")
+        _anotar_fallo(entrada, fallo)
+        decision = Decision(
+            accion="denegar",
+            motivo=(
+                "COSMOS  sesion  rojo  el guard no pudo evaluar este evento\n"
+                f"  {fallo}\n"
+                "Se deniega porque el guard que debía mirarlo no ha podido, no por lo que\n"
+                "hace la herramienta. Si hace falta seguir, abre la válvula con 'cosmos saltar'."
+            ),
+        )
+        if args.formato == "exit2":
+            texto, codigo = como_exit2(decision)
+            if texto:
+                sys.stderr.write(texto + "\n")
+            return codigo
+        cuerpo = como_json(decision, "PreToolUse")
+        if cuerpo:
+            sys.stdout.write(cuerpo + "\n")
         return 0
     try:
         decision, evento = decidir(entrada, config_path=args.config)

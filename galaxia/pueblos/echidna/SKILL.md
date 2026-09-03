@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: echidna
-padre: blockchain
+padre: blockchain/auditoria
 resumen: Se le declara la invariante y genera llamadas hasta romperla, ejecutando de verdad.
 ---
 
@@ -40,4 +40,4 @@ falta, `echidna` da verde para siempre. Aqui el falso verde no es del programa: 
 las propiedades.
 
 Aviso de maquina: 100.000 secuencias en un contrato mediano son minutos de CPU al maximo. En un Mac
-de 8 GB conviene fijar `--test-limit` y no dejarlo corriendo mientras se trabaja.
+justo de memoria conviene fijar `--test-limit` y no dejarlo corriendo mientras se trabaja.

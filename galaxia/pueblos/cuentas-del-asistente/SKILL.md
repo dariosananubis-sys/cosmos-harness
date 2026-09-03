@@ -26,7 +26,7 @@ en vez de abrir otra cuenta en silencio.
 pierde la sesión y pide `/login` a mano el día que hace falta. La renueva con la inferencia más barata
 que existe (modelo pequeño, esfuerzo bajo, cero herramientas, cero persistencia) y solo cada varios
 días. `reap-claude-orphans.sh` mata lo que quedó colgando de un proceso muerto (`PPID=1`) y sus
-servidores MCP; en una máquina de 8 GB esos restos llenan el intercambio y provocan más caídas.
+servidores MCP; en una máquina justa de memoria esos restos llenan el intercambio y provocan más caídas.
 
 Distinto de preguntar por la cuota (`quota-oficial`): aquello dice cuánta queda, esto decide de quién
 sale. Gana a `claude /login` a mano en que el cambio de cuenta no arriesga la sesión de la otra.

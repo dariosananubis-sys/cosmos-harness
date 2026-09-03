@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: anchor
-padre: blockchain
+padre: blockchain/contratos
 resumen: La otra cadena: genera la validacion de cuentas y el cliente desde la interfaz, que es donde esta el fallo tipico.
 ---
 

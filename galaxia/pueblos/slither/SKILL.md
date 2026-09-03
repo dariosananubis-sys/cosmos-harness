@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: slither
-padre: blockchain
+padre: blockchain/auditoria
 resumen: Analizador estatico de contratos con noventa detectores maduros y salida para tuberia.
 ---
 

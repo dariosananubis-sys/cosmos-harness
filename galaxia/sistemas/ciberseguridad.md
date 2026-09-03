@@ -7,4 +7,6 @@ usa:
   - infraestructura
   - cumplimiento
   - rendimiento
+  - blockchain
+  - embebidos
 ---

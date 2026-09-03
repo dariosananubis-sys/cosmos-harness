@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tauri
-padre: moviles
+padre: moviles/marcos
 resumen: Escritorio con el motor web del sistema: binarios de megas donde otros gastan cientos.
 ---
 
@@ -38,7 +38,7 @@ import { invoke } from '@tauri-apps/api/core'
 await invoke('saludar', { nombre: 'ejemplo' })
 ```
 
-Gana a Electron —el rival, y se nombra— por lo que decide en una maquina de 8 GB: Electron empaqueta
+Gana a Electron —el rival, y se nombra— por lo que decide cuando la memoria manda: Electron empaqueta
 un Chromium entero por aplicacion (binarios de mas de 100 MB y cientos de megas de RAM por app
 abierta); aqui se usa el motor web del sistema operativo y el binario baja a unos pocos MB. Con dos
 o tres aplicaciones de escritorio abiertas, la diferencia es la maquina usable o no.

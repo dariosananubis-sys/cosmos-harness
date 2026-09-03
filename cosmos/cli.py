@@ -29,12 +29,17 @@ from .guardarrailes import (
     sufijo_saltos,
 )
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
-from .acertar import (Contraste, cargar_encargos, formatear as formatear_acierto,
-                      formatear_contraste, puntuacion_json, puntuar)
+from .buscar import buscar_nodos, busqueda_json, formatear_busqueda
+from .juez import ErrorJuez
+from .acertar import (Contraste, ErrorEncargos, cargar_encargos, formatear as formatear_acierto,
+                      formatear_contraste, leer_sello, puntuacion_json, puntuar, sellar,
+                      sello_vigente)
 from .estado import estado_json, formatear as formatear_estado, inventariar
-from .medir import MetodoNoDisponible, casos_json, formatear_casos, medir_casos
+from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
+                    veredicto_de_presupuesto)
 from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
-from .validar import formatear_validacion, rango_comprobado, validacion_json, validar_arbol
+from .validar import (INVARIANTE_PRESUPUESTO, formatear_validacion, rango_comprobado,
+                      validacion_json, validar_arbol)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -56,6 +61,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     abrir_cmd.add_argument("--json", action="store_true", help="emite JSON")
 
+    # Sin el posicional `raiz` de base(): con dos posicionales, la primera palabra de la
+    # consulta se leia como raiz del arbol y la busqueda corria sobre un directorio inventado.
+    buscar_cmd = subparsers.add_parser("buscar", help="encuentra el nodo por intención: el mismo motor con el que se mide el acierto")
+    buscar_cmd.add_argument("consulta", nargs="+", help="lo que se busca, en lenguaje natural, sin comillas")
+    buscar_cmd.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
+    buscar_cmd.add_argument("--limite", type=int, default=5, help="cuántos resultados (por defecto 5)")
+    buscar_cmd.add_argument("--json", action="store_true", help="emite JSON")
+
     acertar_cmd = base("acertar", "¿el catálogo lleva a la herramienta correcta? La contra-métrica")
     acertar_cmd.add_argument("--encargos", type=Path, default=Path("pruebas/encargos.json"))
     acertar_cmd.add_argument(
@@ -68,6 +81,12 @@ def _parser() -> argparse.ArgumentParser:
                              help="falla si se acierta menos de esto (en %%), medido en validación")
     acertar_cmd.add_argument("--detalle", action="store_true")
     acertar_cmd.add_argument("--json", action="store_true")
+    acertar_cmd.add_argument("--sellar", action="store_true",
+                             help="sella el conjunto de validación: su detalle por encargo deja de enseñarse")
+    acertar_cmd.add_argument("--juez", metavar="MODELO",
+                             help="puntúa con un modelo local ya servido por ollama (no arranca ninguno)")
+    acertar_cmd.add_argument("--servidor", default="http://localhost:11434",
+                             help="URL del servidor de modelos (por defecto, ollama local)")
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
     estado.add_argument("--json", action="store_true", help="emite JSON")
@@ -114,7 +133,10 @@ def _parser() -> argparse.ArgumentParser:
     desengancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
 
     saltar = subparsers.add_parser("saltar", help="válvula de escape acotada, con motivo y caducidad")
-    saltar.add_argument("codigo", nargs="?", help="código concreto a saltar (E00..E19, G01..G05)")
+    saltar.add_argument(
+        "codigo", nargs="?",
+        help=f"código concreto a saltar ({rango_comprobado()}, G01..G05)",
+    )
     saltar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     saltar.add_argument("--motivo", help="obligatorio: por qué se salta")
     saltar.add_argument("--caduca", help="obligatorio: días de vigencia, como '7d' (máximo 30d)")
@@ -394,6 +416,13 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "validar":
             return _validar(args, config, arbol)
         if args.comando == "medir":
+            # `--config` fuera del repo resuelve `arbol` contra el directorio del propio
+            # fichero: si el resultado no existe, medir cero nodos y publicar «OK, quedan
+            # 4.000» era el veredicto tranquilizador sobre un árbol que no está.
+            # `puente.sesion.decidir` ya rechazaba este caso; el comando, no.
+            if not config.arbol.is_dir():
+                print(f"COSMOS  medir  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
+                return 1
             nichos = normalizar_nichos(arbol, _nichos(_nichos_medicion(args), config))
             resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada, nichos=nichos)
             sys.stdout.write(casos_json(resultado_medicion) if args.json else formatear_casos(resultado_medicion, detalle=args.detalle))
@@ -401,7 +430,23 @@ def ejecutar(argv: list[str] | None = None) -> int:
             # Antes comparaba `entrada` mientras el texto declaraba rojo por
             # `entrada_con_agua`: imprimia «ROJO, excede en 283 tokens» y devolvia 0.
             # Un aviso que no para es lo que este proyecto existe para evitar (F05).
-            return 0 if resultado_medicion.evaluada.entrada_con_agua <= config.entrada else 1
+            # `is True` porque el veredicto es trivalente: `None` («no había nada que
+            # medir») también sale 1 — un veredicto sobre nada no es un verde.
+            # Y consulta la válvula, como hace `validar`. Sin esto, la misma puerta
+            # quedaba abierta en un comando y cerrada en el otro: con un salto E16 vivo,
+            # `cosmos validar` salía 0 diciendo «verde (1 salto activo)» y `cosmos medir`
+            # salía 1 sobre el mismo árbol. Un código de salida que ignora la salida
+            # acotada es una puerta sin salida, y de esas se sale rodeándolas.
+            cabe = veredicto_de_presupuesto(resultado_medicion, config.entrada).cabe is True
+            if not cabe:
+                activos, _ = _saltos(config)
+                if any(salto.codigo == INVARIANTE_PRESUPUESTO for salto in activos):
+                    sys.stdout.write(
+                        f"\n  Salto activo sobre {INVARIANTE_PRESUPUESTO}: el presupuesto no para "
+                        f"esta ejecución. Caduca, y mientras tanto se dice aquí.\n"
+                    )
+                    return 0
+            return 0 if cabe else 1
         if args.comando == "generar":
             destino = args.salida.resolve() if args.salida else config.indice
             saltados = _codigos_saltados(_saltos(config)[0])
@@ -434,11 +479,37 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "mapa":
             sys.stdout.write(generar_mapa(arbol))
             return 0
+        if args.comando == "buscar":
+            if not config.arbol.is_dir():
+                print(f"COSMOS  buscar  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
+                return 1
+            consulta = " ".join(args.consulta)
+            hallazgos = buscar_nodos(arbol, consulta, limite=args.limite)
+            sys.stdout.write(busqueda_json(hallazgos, consulta) if args.json else formatear_busqueda(hallazgos, consulta))
+            # Sin resultados no es un error del comando, pero sí una búsqueda que no
+            # encontró: salida 1, para que un guion que dependa del hallazgo se entere.
+            return 0 if hallazgos else 1
         if args.comando == "abrir":
             ap = abrir(arbol, args.ruta, tocando=args.tocando)
             sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
             return 0
         if args.comando == "acertar":
+            if args.sellar:
+                datos = sellar(args.validacion)
+                print(
+                    f"COSMOS  acertar  holdout sellado\n\n"
+                    f"{args.validacion}: {datos['encargos']} encargos, sha256 {datos['sha256'][:12]}…\n"
+                    "Desde ahora su detalle por encargo no se enseña. Editar el fichero invalida el\n"
+                    "sello; romperlo es borrar el .SELLO, y ese gesto queda en git."
+                )
+                return 0
+            if args.juez:
+                from .juez import formatear_juicio, juzgar
+
+                encargos_ajuste = cargar_encargos(args.encargos)
+                juicio = juzgar(arbol, encargos_ajuste, modelo=args.juez, servidor=args.servidor)
+                sys.stdout.write(formatear_juicio(juicio, puntuar(arbol, encargos_ajuste), args.juez))
+                return 0
             pun = puntuar(arbol, cargar_encargos(args.encargos))
             val = (
                 puntuar(arbol, cargar_encargos(args.validacion))
@@ -446,10 +517,18 @@ def ejecutar(argv: list[str] | None = None) -> int:
                 else None
             )
             marca = args.validacion.with_suffix(".QUEMADO") if args.validacion else None
+            sellado = bool(val is not None and args.validacion and sello_vigente(args.validacion))
+            if val is not None and not sellado and leer_sello(args.validacion) is not None:
+                print(
+                    "AVISO: el conjunto de validación cambió después de sellarse; su cifra no es "
+                    "publicable hasta volver a sellarlo con --sellar.",
+                    file=sys.stderr,
+                )
             contraste = Contraste(
                 ajuste=pun,
                 validacion=val,
                 quemado=marca.read_text(encoding="utf-8") if marca and marca.exists() else None,
+                sellado=sellado,
             )
 
             if args.json:
@@ -463,9 +542,28 @@ def ejecutar(argv: list[str] | None = None) -> int:
 
             # El mínimo se exige sobre la validación: cobrar el listón con el conjunto que
             # se mira al trabajar es dejar que el examinando escriba su propio examen.
-            juez = val or pun
-            if args.minimo and juez.total:
-                logrado = 100 * juez.aciertos / juez.total
+            #
+            # Y si el juez no está, NO se sustituye por el otro. Antes, `--validacion` con
+            # una ruta mal escrita hacía justo lo que estas líneas prohíben, en silencio:
+            # el fallback tranquilizador por defecto. Un examen que no aparece no se
+            # aprueba por incomparecencia.
+            if args.minimo:
+                if val is None:
+                    print(
+                        f"\n--minimo exige un conjunto de validación y no se pudo leer "
+                        f"{args.validacion}. Cobrarlo sobre los encargos de ajuste sería "
+                        f"dejar que el examinando escriba su propio examen.",
+                        file=sys.stderr,
+                    )
+                    return 2
+                if not val.total:
+                    print(
+                        f"\n--minimo exige un conjunto de validación con encargos y "
+                        f"{args.validacion} está vacío.",
+                        file=sys.stderr,
+                    )
+                    return 2
+                logrado = 100 * val.aciertos / val.total
                 if logrado < args.minimo:
                     print(f"\nacierto {logrado:.0f} % < mínimo exigido {args.minimo} %", file=sys.stderr)
                     return 1
@@ -480,6 +578,15 @@ def ejecutar(argv: list[str] | None = None) -> int:
     except NodoNoEncontrado as exc:
         print(f"COSMOS  abrir  rojo\n\n{exc}", file=sys.stderr)
         return 1
+    except ErrorEncargos as exc:
+        # El mismo código de salida que el examen ausente de `--minimo`: un fichero
+        # de encargos que no está o no cumple su esquema es un error de uso (2), no
+        # un rojo de la métrica (1) — y nunca un traceback.
+        print(f"COSMOS  acertar  rojo\n\n{exc}", file=sys.stderr)
+        return 2
+    except ErrorJuez as exc:
+        print(f"COSMOS  acertar  sin juez\n\n{exc}", file=sys.stderr)
+        return 2
     except (MetodoNoDisponible, ErrorCompilacion, ErrorNicho, ErrorSalto, ErrorEnganche) as exc:
         print(f"COSMOS  {args.comando}  rojo\n\n{exc}", file=sys.stderr)
         return 1

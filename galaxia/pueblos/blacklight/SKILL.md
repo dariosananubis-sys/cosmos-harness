@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: blacklight
-padre: cumplimiento
+padre: cumplimiento/web-legal
 resumen: Carga la pagina de verdad y mide que rastreadores saltan antes de que nadie acepte nada.
 ---
 

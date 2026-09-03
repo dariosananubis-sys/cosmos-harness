@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: quantconnect-lean
-padre: trading/motores
+padre: trading/bots/motores
 resumen: Comision, deslizamiento y relleno con un modelo distinto por mercado, no uno generico para todo.
 ---
 

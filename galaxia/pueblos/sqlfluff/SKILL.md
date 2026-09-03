@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sqlfluff
-padre: ingenieria-datos
+padre: ingenieria-datos/calidad
 resumen: Analiza el SQL por su dialecto y por las plantillas antes de que llegue al almacen a ejecutarse.
 ---
 

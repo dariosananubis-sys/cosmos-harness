@@ -44,7 +44,7 @@ contradicción. Y si el `padre` no resuelve, salta E02. La galaxia no declara `p
 tampoco cierra ciclos, y el agua no tiene `padre` en absoluto.
 
 > **E04 («ciclo») queda retirada.** Su hueco en la numeración **no se reutiliza**: los códigos
-> siguen siendo E00–E03 y E05–E19. La aciclicidad no se vigila porque el diseño la ganó; fingir
+> siguen siendo E00–E03 y E05–E20. La aciclicidad no se vigila porque el diseño la ganó; fingir
 > que se vigila con una comprobación que ningún árbol legal puede disparar es peor que no tenerla
 > (`GOAL.md` §7: un verde que nunca ha dado rojo no se distingue de uno roto).
 
@@ -81,20 +81,27 @@ El frontmatter es metadata de COSMOS: `cosmos:`, `nombre:`, `padre:`. **Nunca ll
 modelo**, así que contarlo infla justo lo que se paga siempre. Esto resuelve además H3 de
 `reviews/claude-revisa-codigo-ronda1.md`.
 
-> **catalogo(árbol, nichos)** = una línea por nodo, en orden de rango y luego alfabético por ruta,
-> **excluyendo todo lo que ya aparece en el índice** (la galaxia, los sistemas solares y los
-> océanos):
+> **catalogo(árbol, nichos)** = una línea por nodo, **en árbol indentado y en profundidad**
+> (alfabético por ruta, que agrupa cada familia), **excluyendo todo lo que ya aparece en el
+> índice** (la galaxia, los sistemas solares y los océanos):
 >
 > | Nivel | Línea |
 > |---|---|
-> | planeta, continente, pais, provincia | `<ruta>` (siempre: forman el mapa de descenso) |
-> | pueblo | `<ruta>: <resumen>`, solo si su sistema solar está en `nichos` |
-> | rio (`momento: trabajo`, por defecto) | `<ruta>: <resumen>` |
+> | hijo directo del sistema (intermedio o pueblo) | `<nicho>/<nombre>: <resumen>` — el ancla del árbol |
+> | intermedio o pueblo más profundo | `<nombre>: <resumen>`, indentado dos espacios por nivel |
+> | rio (`momento: trabajo`, por defecto) | `rio/<nombre>: <resumen>`, tras el mapa |
 > | rio (`momento: mantenimiento`) | solo el nombre, en una línea agrupada |
 > | mar, lago, lluvia, estrella, luna | *(no aparece)* |
+>
+> Solo aparecen los sólidos cuyo sistema está en `nichos`. El nombre corto basta para invocar:
+> E18 exige nombre de pueblo único en toda la galaxia y `cosmos abrir <nombre>` resuelve.
 
-Ordenar por rango y no alfabéticamente por nivel es deliberado: el catálogo se inyecta en contexto y
-tiene que leerse como una jerarquía, no como una lista revuelta. Resuelve también H5.
+El árbol indentado sustituyó a la lista de rutas completas el 2026-09-02: en el peor nicho, el
+40 % del coste eran prefijos repetidos (medido con tiktoken: 1.452 → 1.093 en ciberseguridad).
+La indentación dice lo mismo que decía el prefijo, y leerse como jerarquía —que era el porqué del
+orden anterior (H5)— lo hace ahora la forma, no el orden de rango. La contra-métrica puntúa la
+misma selección por construcción (`medir.nodos_de_catalogo` es compartida) y conserva las palabras
+de la ruta en el texto puntuable, porque esa información el agente la sigue viendo — en la sangría.
 
 `nichos=None` significa **ningún nicho activo**: no aparece ningún pueblo. Una selección como
 `nichos=["web", "saas"]` incluye la unión de los pueblos contenidos por esos dos sistemas, y
@@ -107,8 +114,13 @@ escribe corto — se paga en cada sesión, como el índice.
 
 Pero no todos los comandos sirven para lo mismo, y el campo opcional `momento` lo declara:
 
-- **`trabajo`** (por defecto) — resuelve el encargo: `abrir`, `medir`, `memoria`, `saltar`.
-- **`mantenimiento`** — cuida el repositorio: `enganchar`, `proyectar`, `generar`, `acertar`.
+- **`trabajo`** (por defecto) — resuelve el encargo del que trabaja en un oficio.
+- **`mantenimiento`** — cuida el repositorio: no lo pide ningún encargo.
+
+Cuáles son de cada clase no se escribe aquí: la lista cambió el mismo día en que se creó el
+campo y esta enumeración se quedó con la mitad. La dice el árbol —`cosmos estado`— y la fija
+`tests/test_rio_momento.py`, que la lleva escrita a mano **a propósito**: deducirla del árbol
+dejaría que quitarle el campo a un río subiera el coste en silencio.
 
 Los de mantenimiento aparecen **nombrados, no descritos**, en una sola línea agrupada. La razón es
 la tesis del proyecto aplicada a sus propias herramientas: `enganchar` se ejecuta una vez en la vida
@@ -301,7 +313,7 @@ manifiesto = ".cosmos/compilado.json"
 metodo = "aprox"                     # "aprox" | "exacto"
 
 [presupuesto]
-solapamiento = 0.25                  # umbral de E17 (Jaccard sobre n-gramas de 4)
+solapamiento = 0.25                  # umbral de E17 (Jaccard entre conjuntos de palabras, frase a frase)
 ```
 
 ## 9. Semántica de `moja`, y qué significa «lo moja todo» (E11)
@@ -381,11 +393,13 @@ partículas gramaticales: mientras `no`, `ni` y `ha` contaban como contenido, «
 nunca ha dado rojo» y «una copia que nunca se ha restaurado» —una analogía, no una duplicación—
 compartían cuatro «palabras» y puntuaban 0,44.
 
-Medido sobre la galaxia real (465 pares de nodos co-cargables): con el suelo en 3 quedan
-**exactamente los dos pares** que la revisión adversarial había señalado a mano leyendo el agua y
-las 21 estrellas (H13), y **ningún** falso positivo. El primer par no duplicado queda en 0,286 con
-solo dos palabras compartidas: por debajo del suelo y por debajo del umbral, con margen por los dos
-lados.
+Sobre la galaxia real de hoy (528 pares de nodos co-cargables, cifra vigilada por
+`tests/test_cifras_de_las_specs.py`) ningún par comparte ya tres palabras con contenido: los dos
+duplicados que existían se deduplicaron. En la medición que calibró el suelo (2026-09-02, árbol de
+entonces) quedaban con el suelo en 3 **exactamente los dos pares** que la revisión adversarial
+había señalado a mano leyendo el agua y las estrellas (H13), y **ningún** falso positivo; el
+primer par no duplicado quedaba en 0,286 con solo dos palabras compartidas — por debajo del suelo
+y por debajo del umbral, con margen por los dos lados.
 
 E17 salta cuando `solape(a, b) > presupuesto.solapamiento`. El error nombra los dos nodos, el
 porcentaje y **las dos frases concretas**, porque un rojo que no enseña la frase obliga a leer los

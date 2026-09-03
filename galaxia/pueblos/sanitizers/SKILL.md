@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: sanitizers
-padre: rendimiento/velocidad/depuracion
+padre: rendimiento/depuracion
 resumen: Detectan en ejecucion el desbordamiento, el uso despues de liberar y la carrera que ningun test ve.
 ---
 

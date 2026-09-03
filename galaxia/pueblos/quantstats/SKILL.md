@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: quantstats
-padre: trading/riesgo
+padre: trading/estrategia/riesgo
 resumen: Convierte una serie de resultados en Sharpe, caida maxima e informe comparado con una referencia.
 ---
 

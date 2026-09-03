@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .modelo import Arbol, Nodo, nicho_de_nodo, normalizar_nichos
+from .modelo import ErrorCerrojo, cerrojo, escribir_atomico, Arbol, Nodo, nicho_de_nodo, normalizar_nichos
 
 
 NIVELES_APLANADOS = frozenset({"pueblo"})
@@ -30,6 +30,7 @@ class ResultadoCompilacion:
     ajenas: int = 0
     eliminadas: int = 0
     preservadas: int = 0
+    adoptadas: int = 0
     seco: bool = False
     acciones: tuple[str, ...] = field(default_factory=tuple)
 
@@ -161,21 +162,6 @@ def _serializar_manifiesto(
     ) + "\n"
 
 
-def _escribir_atomico(ruta: Path, contenido: str) -> None:
-    ruta.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporal = tempfile.mkstemp(prefix=f".{ruta.name}.", dir=ruta.parent)
-    temporal_path = Path(temporal)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
-            fichero.write(contenido)
-            fichero.flush()
-            os.fsync(fichero.fileno())
-        os.replace(temporal_path, ruta)
-    finally:
-        if temporal_path.exists():
-            temporal_path.unlink()
-
-
 def _borrar_entrada(ruta: Path) -> None:
     if ruta.is_symlink() or ruta.is_file():
         ruta.unlink()
@@ -271,26 +257,22 @@ def compilar_arbol(
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
     seleccion = normalizar_nichos(arbol, nichos)
     if not seco and not _bloqueado:
-        manifiesto.parent.mkdir(parents=True, exist_ok=True)
-        lock = manifiesto.parent / "compilar.lock"
+        # El cerrojo compartido sabe distinguir «ocupado» de «alguien murió aquí»: antes,
+        # un proceso muerto sin llegar al `finally` dejaba el fichero y toda compilación
+        # futura fallaba para siempre.
         try:
-            descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-        except FileExistsError as exc:
-            raise ErrorCompilacion(f"otra compilación está en curso: {lock}") from exc
-        try:
-            with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
-                fichero.write(f"{os.getpid()}\n")
-            return compilar_arbol(
-                arbol,
-                destino=destino,
-                manifiesto=manifiesto,
-                modo=modo,
-                seco=False,
-                nichos=seleccion,
-                _bloqueado=True,
-            )
-        finally:
-            lock.unlink(missing_ok=True)
+            with cerrojo(manifiesto.parent / "compilar.lock", que_hace="compilación"):
+                return compilar_arbol(
+                    arbol,
+                    destino=destino,
+                    manifiesto=manifiesto,
+                    modo=modo,
+                    seco=False,
+                    nichos=seleccion,
+                    _bloqueado=True,
+                )
+        except ErrorCerrojo as exc:
+            raise ErrorCompilacion(str(exc)) from exc
     datos = _leer_manifiesto(manifiesto)
     if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")
@@ -299,7 +281,7 @@ def compilar_arbol(
     existentes = {ruta.name for ruta in destino.iterdir()} if destino.is_dir() else set()
     ajenas_nombres = existentes - set(antiguas)
     acciones: list[str] = []
-    creadas = actualizadas = iguales = eliminadas = preservadas = 0
+    creadas = actualizadas = iguales = eliminadas = preservadas = adoptadas = 0
     nuevas: dict[str, dict[str, str]] = {}
 
     for nombre, nodo in esperadas.items():
@@ -308,6 +290,24 @@ def compilar_arbol(
         hash_esperado = _hash_esperado(origen, entrada, modo)
         registro = antiguas.get(nombre)
         if registro is None and (entrada.exists() or entrada.is_symlink()):
+            # La ausencia del manifiesto NO convierte lo propio en ajeno. Sin esta
+            # rama, borrar `.cosmos/` (un artefacto generado, gitignored) dejaba la
+            # vista plana huérfana para siempre: `compilar` clasificaba sus propias
+            # entradas como ajenas, E19 mandaba a ejecutar `compilar`, y `compilar`
+            # las respetaba — el único camino de vuelta era borrar a mano lo que el
+            # mensaje prohíbe tocar a mano. Se adopta SOLO lo idéntico byte a byte
+            # (o el symlink con el mismo objetivo) a lo que se crearía: con hash
+            # igual no hay nada ajeno que perder. Lo que difiere sigue siendo ajeno.
+            if _hash_actual(entrada, modo) == hash_esperado:
+                adoptadas += 1
+                ajenas_nombres.discard(nombre)
+                acciones.append(f"ADOPTAR {entrada}")
+                nuevas[nombre] = {
+                    "hash": hash_esperado,
+                    "modo": modo,
+                    "origen": os.path.relpath(origen, start=manifiesto.parent),
+                }
+                continue
             acciones.append(f"AJENA {entrada}")
             continue
         correcto = _hash_actual(entrada, modo) == hash_esperado
@@ -347,6 +347,7 @@ def compilar_arbol(
         ajenas=len(ajenas_nombres),
         eliminadas=eliminadas,
         preservadas=preservadas,
+        adoptadas=adoptadas,
         seco=seco,
         acciones=tuple(acciones),
     )
@@ -372,7 +373,7 @@ def compilar_arbol(
     contenido = _serializar_manifiesto(destino, manifiesto, nuevas, seleccion)
     actual_manifest = manifiesto.read_text(encoding="utf-8") if manifiesto.exists() else None
     if actual_manifest != contenido:
-        _escribir_atomico(manifiesto, contenido)
+        escribir_atomico(manifiesto, contenido)
     return resultado
 
 
@@ -383,7 +384,8 @@ def formatear_compilacion(resultado: ResultadoCompilacion) -> str:
         "",
         (
             f"Creadas {resultado.creadas}; actualizadas {resultado.actualizadas}; "
-            f"iguales {resultado.iguales}; ajenas respetadas {resultado.ajenas}; "
+            f"iguales {resultado.iguales}; adoptadas {resultado.adoptadas}; "
+            f"ajenas respetadas {resultado.ajenas}; "
             f"obsoletas eliminadas {resultado.eliminadas}; obsoletas preservadas {resultado.preservadas}."
         ),
     ]

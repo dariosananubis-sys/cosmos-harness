@@ -1,23 +1,23 @@
 [
   {
     "peticion": "quiero saber por que esta API va lenta",
-    "espera": "rendimiento/velocidad/perfilado"
+    "espera": "rendimiento/perfilado"
   },
   {
     "peticion": "necesito reproducir un fallo que solo pasa a veces",
-    "espera": "rendimiento/velocidad/depuracion"
+    "espera": "rendimiento/depuracion"
   },
   {
     "peticion": "hay codigo duplicado por todo el proyecto",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "quiero cambiar una funcion en cuatrocientos ficheros a la vez",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "mis tests pasan pero no me fio de ellos",
-    "espera": "rendimiento/calidad"
+    "espera": "refactorizacion"
   },
   {
     "peticion": "montar un bot que opere solo en un exchange",
@@ -25,19 +25,19 @@
   },
   {
     "peticion": "el backtest sale precioso y en real pierdo dinero",
-    "espera": "trading/backtesting"
+    "espera": "trading/estrategia/backtesting"
   },
   {
     "peticion": "conectarme a binance para leer precios",
-    "espera": "trading/conectividad"
+    "espera": "trading/ejecucion/conectividad"
   },
   {
     "peticion": "cuanto arriesgo en cada operacion",
-    "espera": "trading/riesgo"
+    "espera": "trading/estrategia/riesgo"
   },
   {
     "peticion": "que el bot aguante un reinicio con posicion abierta",
-    "espera": "trading/codigo-de-bot"
+    "espera": "trading/bots/codigo-de-bot"
   },
   {
     "peticion": "auditar la seguridad de una web con permiso del cliente",
@@ -77,8 +77,8 @@
   },
   {
     "peticion": "emitir facturas validas en espana",
-    "espera": "saas/gobl",
-    "nota": "Escrito esperando un pais 'saas/facturacion' que no existe: gobl es el unico de su hueco y un nivel con un solo hijo no agrupa, solo cobra su resumen (spec/TAXONOMIA.md). El arbol lleva bien; el encargo pedia una ruta que no debe existir."
+    "espera": "saas/cobro",
+    "nota": "El pais que faltaba ya existe: 'saas/cobro' agrupa pasarela, consumo y factura. Antes se corrigio el encargo porque gobl estaba solo; ahora tiene con quien agruparse."
   },
   {
     "peticion": "que un modelo de IA corra en mi portatil sin pagar por uso",
@@ -138,8 +138,8 @@
   },
   {
     "peticion": "firmar documentos electronicamente sin pagar una plataforma",
-    "espera": "automatizacion/docuseal",
-    "nota": "Mismo caso que la facturacion: docuseal esta bajo 'automatizacion' sin pais intermedio."
+    "espera": "automatizacion/gestion",
+    "nota": "Igual: 'automatizacion/gestion' agrupa clientes, proyectos y firma."
   },
   {
     "peticion": "cortar y subtitular doscientos videos",

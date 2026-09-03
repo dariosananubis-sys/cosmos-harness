@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: consola-interactiva-tmux
-padre: automatizacion
+padre: automatizacion/escritorio
 resumen: Conduce vim, un REPL o un rebase interactivo desde un guion: manda teclas y lee la pantalla.
 ---
 

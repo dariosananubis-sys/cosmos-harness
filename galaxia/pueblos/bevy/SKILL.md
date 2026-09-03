@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: bevy
-padre: juegos
+padre: juegos/motores
 resumen: Motor sin editor: todo en codigo y con entidad-componente-sistema de fabrica.
 ---
 
@@ -40,7 +40,7 @@ rapido.
 
 Y lo que no hace bien, dicho sin adornos:
 
-- **La primera compilacion son minutos y aprieta el enlazado.** En un Mac de 8 GB, `cargo build` de
+- **La primera compilacion son minutos y aprieta el enlazado.** En una maquina justa de memoria, `cargo build` de
   un proyecto Bevy limpio se come toda la RAM disponible durante el enlazado. Se mitiga con
   `cargo add bevy --features dynamic_linking` en desarrollo, pero es la barrera real de este pueblo.
   `raylib` arranca en segundos y se cita para ese caso.

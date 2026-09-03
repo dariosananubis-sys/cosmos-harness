@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: elementary
-padre: ingenieria-datos
+padre: ingenieria-datos/calidad
 resumen: Pruebas de anomalia sobre la tuberia de transformacion y aviso cuando un valor se sale de su historico.
 ---
 

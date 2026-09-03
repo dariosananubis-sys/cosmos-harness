@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: stryker-js
-padre: rendimiento/calidad
+padre: refactorizacion/mutacion
 resumen: Mutacion en JavaScript y TypeScript, con modo incremental y un complemento por cada ejecutor de pruebas.
 ---
 

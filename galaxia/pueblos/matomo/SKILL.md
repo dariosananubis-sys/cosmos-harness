@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: matomo
-padre: visibilidad
+padre: visibilidad/medicion
 resumen: Analitica en servidor propio: embudos y mapas de calor sin ceder un dato a un tercero.
 ---
 

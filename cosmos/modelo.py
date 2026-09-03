@@ -6,6 +6,12 @@ escalares (en línea o en bloque). No intenta completar ni reinterpretar YAML.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
+import tempfile
+
+import os
+
 import ast
 import re
 import tomllib
@@ -119,6 +125,10 @@ class Configuracion:
 
 class ErrorConfiguracion(ValueError):
     pass
+
+
+class ErrorCerrojo(RuntimeError):
+    """Otro proceso vivo tiene el cerrojo. Distinto de uno rancio, que se retoma solo."""
 
 
 class ErrorNicho(ValueError):
@@ -438,3 +448,102 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         encontrada=True,
         ruta=ruta_path,
     )
+
+
+def escribir_atomico(ruta: Path, contenido: str) -> None:
+    """Escribe entero o no escribe. Vivía solo en `compilar`, y el índice lo necesita igual.
+
+    `NUCLEO.md` §7 exige atomicidad para el manifiesto porque «un manifiesto truncado es
+    peor que ninguno». El argumento vale más para el índice, que **es** el contexto de
+    entrada: si se corta a medias, el árbol queda rojo por E15 y G03 impide arreglarlo a
+    mano, que es un callejón sin salida.
+    """
+
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    # `mkstemp` crea en 0600 por seguridad, y como el temporal SUSTITUYE al destino, el
+    # índice pasaba de 644 a 600 cada vez que se regeneraba: la escritura atómica cambiaba
+    # en silencio quién puede leer el fichero. Se conservan los permisos que tenía; si no
+    # existía, los que daría una creación normal con la máscara del proceso.
+    try:
+        permisos = ruta.stat().st_mode & 0o777
+    except OSError:
+        mascara = os.umask(0)
+        os.umask(mascara)
+        permisos = 0o666 & ~mascara
+
+    descriptor, temporal = tempfile.mkstemp(prefix=f".{ruta.name}.", dir=ruta.parent)
+    temporal_path = Path(temporal)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as fichero:
+            fichero.write(contenido)
+            fichero.flush()
+            os.fsync(fichero.fileno())
+        os.chmod(temporal_path, permisos)
+        os.replace(temporal_path, ruta)
+    finally:
+        if temporal_path.exists():
+            temporal_path.unlink()
+
+
+def _proceso_vivo(pid: int) -> bool:
+    """¿Sigue ahí el que dejó el cerrojo? `signal 0` pregunta sin tocar nada."""
+
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # existe, pero es de otro usuario
+    return True
+
+
+@contextmanager
+def cerrojo(ruta: Path, *, que_hace: str = "escritura"):
+    """Cerrojo de fichero que sabe distinguir «ocupado» de «alguien murió aquí».
+
+    El cerrojo anterior era `O_EXCL` a secas: si el proceso moría sin llegar al `finally`
+    —`kill -9`, batería, terminal cerrada—, el fichero quedaba y **toda ejecución futura
+    fallaba para siempre** con «otra compilación está en curso». Un cerrojo que no se
+    puede abrir no protege nada, solo rompe el repositorio.
+
+    Dentro va el PID, así que se puede preguntar. Si su dueño ya no existe, el cerrojo
+    está rancio y se retoma diciéndolo; si vive, el error es legítimo.
+
+    **No es reentrante, y lo dice.** La condición de robo llevaba un `pid != os.getpid()`
+    que convertía el propio cerrojo en «rancio» para el mismo proceso: un `with` anidado
+    sobre la misma ruta lo robaba, y al salir el interior borraba el fichero — el exterior
+    seguía creyendo que tenía la exclusión y ya no la tenía nadie. Una exclusión que se
+    evapora sin decirlo es peor que un interbloqueo, porque nada se pone rojo. Ahora el
+    mismo proceso recibe un `ErrorCerrojo` explícito, y el cerrojo exterior sobrevive.
+    """
+
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    while True:
+        try:
+            descriptor = os.open(ruta, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError as exc:
+            try:
+                pid = int(ruta.read_text(encoding="utf-8").split()[0])
+            except (OSError, ValueError, IndexError):
+                pid = None
+            if pid is not None and _proceso_vivo(pid):
+                quien = (
+                    "este mismo proceso ya tiene el cerrojo (reentrada no soportada)"
+                    if pid == os.getpid()
+                    else f"otra {que_hace} está en curso (proceso {pid})"
+                )
+                raise ErrorCerrojo(f"{quien}: {ruta}") from exc
+            # Rancio: su dueño no existe o el fichero está ilegible.
+            ruta.unlink(missing_ok=True)
+        else:
+            # El PID se escribe ANTES de ceder el control: un fichero vacío se
+            # clasifica como rancio, y entre el open y la escritura otro proceso
+            # podía robar un cerrojo vivo. La ventana no desaparece del todo, pero
+            # pasa de «lo que tarde el cuerpo» a dos llamadas al sistema seguidas.
+            os.write(descriptor, f"{os.getpid()}\n".encode("utf-8"))
+            os.close(descriptor)
+            break
+    try:
+        yield
+    finally:
+        ruta.unlink(missing_ok=True)

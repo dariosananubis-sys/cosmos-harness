@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tiled
-padre: juegos
+padre: juegos/activos
 resumen: Editor de mapas y conjuntos de baldosas cuyo formato importan casi todos los motores por complemento.
 ---
 

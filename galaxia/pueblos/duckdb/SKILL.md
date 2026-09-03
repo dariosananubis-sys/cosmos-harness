@@ -29,7 +29,7 @@ duckdb -c "SET memory_limit='4GB'; SET temp_directory='/tmp/duckdb'; \
 ```
 
 Un solo binario, sin servidor, sin proceso que mantener. El derrame a disco es lo que lo hace viable
-con 8 GB: una consulta que no cabe en memoria se ralentiza en vez de morir, que es exactamente lo
+con memoria acotada: una consulta que no cabe en memoria se ralentiza en vez de morir, que es exactamente lo
 contrario de lo que hace `pandas.read_csv` sobre un fichero de varios gigas. Frente a SQLite —el
 rival obvio— la diferencia es la orientacion: aquel es por filas y esta pensado para transacciones;
 este es columnar y esta pensado para agregar millones de filas.
@@ -41,6 +41,6 @@ Y lo que no hace bien: es de un solo escritor. No es una base de datos para una 
 varios usuarios escribiendo a la vez — abrir el mismo fichero `.duckdb` desde dos procesos en
 escritura falla. Y el falso verde de memoria: sin `SET memory_limit`, coge por defecto una fraccion
 grande de la RAM de la maquina y puede llevarse por delante todo lo demas antes de derramar. En un
-Mac de 8 GB se fija a mano, siempre.
+maquina justa de memoria se fija a mano, siempre.
 
 Es la base del resto del nicho: `evidence` lo usa por defecto, y `dbt-core` lo tiene como motor.

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: n8n
-padre: automatizacion
+padre: automatizacion/flujos
 resumen: Encadena cuatrocientas integraciones con nodos, con flujo de error y reintento por nodo.
 ---
 

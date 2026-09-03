@@ -449,13 +449,56 @@ class Redaccion(unittest.TestCase):
 
     def test_el_texto_redactado_vuelve_por_los_dos_canales(self) -> None:
         # Sustituir solo `output` deja el valor crudo entrando por `stderr` si el
-        # runtime entrega los canales por separado.
+        # runtime entrega los canales por separado. Y SOLO los canales que llegaron:
+        # esta prueba exigía además un `output` que la respuesta no traía — estaba
+        # consagrando el campo inventado (B11), el modelo leía como salida estándar
+        # algo que fue error. Igual con `exit_code`: aquí no vino, no se fabrica.
         falso = "ghp_" + "b" * 36
         decision = self._post_bruto({"stdout": "salida limpia\n", "stderr": f"TOKEN={falso}\n"})
         actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
         actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
         self.assertNotIn(falso, json.dumps(actualizado))
-        self.assertLessEqual({"output", "stdout", "stderr"}, set(actualizado))
+        self.assertEqual({"stdout", "stderr"}, set(actualizado),
+                         "la reescritura fabricó campos que la respuesta no traía")
+
+    def test_la_reescritura_no_inventa_exit_code_ni_output(self) -> None:
+        # B11: la reescritura emitía `{"output": ..., "exit_code": 0}` siempre. El
+        # `exit_code: 0` no lo dijo nadie —lo ponía el `.get(..., 0)`— y con una
+        # respuesta que solo traía `stderr` se CREABA un `output` con su texto: el
+        # modelo leía como salida estándar algo que fue error, terminado «bien».
+        falso = "ghp_" + "c" * 36
+        decision = self._post_bruto({"stderr": f"TOKEN={falso}\n"})
+        actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
+        actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
+        self.assertEqual({"stderr"}, set(actualizado))
+        self.assertNotIn(falso, actualizado["stderr"])
+
+    def test_una_respuesta_de_cadena_no_gana_un_exit_code(self) -> None:
+        falso = "ghp_" + "d" * 36
+        decision = _decidir(
+            self.raiz,
+            _evento(
+                self.raiz,
+                hook_event_name="PostToolUse",
+                tool_name="Bash",
+                tool_input={},
+                tool_response=f"TOKEN={falso}",
+            ),
+        )
+        actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
+        actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
+        # `output` es la única vía de entrega cuando la respuesta llegó como cadena;
+        # `exit_code` no vino y no se fabrica.
+        self.assertEqual({"output"}, set(actualizado))
+        self.assertNotIn(falso, actualizado["output"])
+
+    def test_un_exit_code_real_se_conserva(self) -> None:
+        falso = "ghp_" + "e" * 36
+        decision = self._post_bruto({"output": f"TOKEN={falso}\n", "exit_code": 3})
+        actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
+        actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
+        self.assertEqual(actualizado.get("exit_code"), 3)
+        self.assertNotIn(falso, json.dumps(actualizado))
 
     def test_tapa_lo_que_devuelve_una_lectura(self) -> None:
         falso = "AKIA" + "0123456789ABCDEF"

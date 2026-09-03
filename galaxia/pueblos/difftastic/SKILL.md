@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: difftastic
-padre: rendimiento/calidad
+padre: refactorizacion
 resumen: Compara dos versiones por su arbol sintactico, asi que reindentar o mover una llave no sale como cambio.
 ---
 

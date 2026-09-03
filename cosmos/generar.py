@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 
-from .modelo import RANGOS, Arbol, NIVELES_SOLIDOS, Nodo
+from .modelo import cerrojo, escribir_atomico, RANGOS, Arbol, NIVELES_SOLIDOS, Nodo
 
 
 def _orden(nodo: Nodo) -> tuple[int, str, str]:
@@ -52,10 +52,19 @@ def generar_indice(arbol: Arbol) -> str:
 
 
 def escribir_indice(arbol: Arbol, ruta: str | Path) -> str:
+    """Escribe el índice entero o no lo escribe, y no compite consigo mismo.
+
+    Antes era un `write_text` pelado, mientras el manifiesto —menos crítico— ya tenía
+    temporal, `fsync` y `os.replace`. El índice **es** el contexto de entrada: cortado a
+    medias deja el árbol rojo por E15, y G03 impide arreglarlo a mano. Además dos
+    `generar` a la vez se entrelazaban, porque ninguno tomaba cerrojo.
+    """
+
     contenido = generar_indice(arbol)
     destino = Path(ruta)
     destino.parent.mkdir(parents=True, exist_ok=True)
-    destino.write_text(contenido, encoding="utf-8")
+    with cerrojo(destino.parent / ".cosmos-generar.lock", que_hace="generación del índice"):
+        escribir_atomico(destino, contenido)
     return contenido
 
 

@@ -46,7 +46,7 @@ Y lo que no hace bien:
 - **Transcribe con `whisper-base` por defecto**, que alucina sobre audio con musica o silencios. El
   propio guion documenta como detectarlo (bigrama repetido mas de cinco veces, o proporcion de
   palabras unicas por debajo de 0,15) y `--high-precision` sube a `large-v3`: tres veces mas lento y
-  unos 3 GB de pesos, que en 8 GB va justo.
+  unos 3 GB de pesos, que con poca memoria va justo.
 - **Cinco fotogramas equiespaciados no son cinco fotogramas representativos.** Si el video tiene el
   texto en pantalla dos segundos, el muestreo lo pierde. Es un resumen, no una lectura.
 - Depende de `yt-dlp`, que se rompe cada vez que una red cambia su web: `brew upgrade yt-dlp` es

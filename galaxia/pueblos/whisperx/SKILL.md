@@ -35,7 +35,7 @@ Python con PyTorch.
 
 Y lo que no hace bien:
 
-- **En 8 GB aprieta.** Instala PyTorch (2-3 GB en disco) y carga dos modelos a la vez —el de
+- **Con memoria justa aprieta.** Instala PyTorch (2-3 GB en disco) y carga dos modelos a la vez —el de
   reconocimiento y el de alineación— más un tercero si se pide diarización. Con `--model small` y
   `--batch_size 4` va; con `large-v3` y el navegador abierto, intercambia.
 - **La alineación en castellano es peor que en inglés.** El modelo de alineación por defecto para

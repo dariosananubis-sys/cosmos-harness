@@ -40,7 +40,7 @@ con el núcleo sin dependencias pesadas, así que entra en un guion pequeño sin
 paquetes ni una superficie de suministro. Encaja entre `docling` —que convierte el documento a texto—
 y `sentence-transformers`, que lo vectoriza.
 
-En 8 GB: el troceador recursivo no carga ningún modelo y es trivial. El semántico sí carga uno de
+Memoria: el troceador recursivo no carga ningún modelo y es trivial. El semántico sí carga uno de
 vectores, y ahí valen las reglas de su vecino: `all-MiniLM-L6-v2` (~90 MB) es la opción segura.
 
 Y lo que no hace bien:

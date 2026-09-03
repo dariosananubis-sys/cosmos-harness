@@ -20,7 +20,7 @@ vectores = modelo.encode(["primera nota", "segunda nota"], normalize_embeddings=
 print(vectores.shape)
 ```
 
-**En 8 GB**: `all-MiniLM-L6-v2` es la opción segura y trivial —22M parámetros, unos 90 MB, cabe en
+**Memoria**: `all-MiniLM-L6-v2` es la opción segura y trivial —22M parámetros, unos 90 MB, cabe en
 cualquier sitio y basta para casi todo. `BGE-M3` (~560M parámetros, ~2,2 GB en fp32,
 https://github.com/FlagOpen/FlagEmbedding, 12.116★) **también cabe** pero se lleva más de una cuarta
 parte de la RAM de la máquina: se reserva para cuando el idioma importa de verdad o hace falta

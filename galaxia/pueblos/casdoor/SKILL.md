@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: casdoor
-padre: saas
+padre: saas/identidad
 resumen: Identidad autoalojada con inicio de sesion unico y los protocolos estandar ya hechos.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: yfinance
-padre: trading/datos-de-mercado
+padre: trading/mercado/datos-de-mercado
 resumen: Historico gratis de acciones, divisas e indices a cambio de ninguna garantia de seguir manana.
 ---
 
@@ -25,7 +25,7 @@ gratis mejor, y porque el coste de que falle es un script roto, no una pérdida.
 el caso simple (una fuente, renta variable) por no arrastrar la capa de proveedores.
 
 Ojo: **no vale para cripto a nivel de tick**, ni para nada que vaya a producción — un bot en vivo que
-dependa de esto se para el día que Yahoo cambie el HTML. Para cripto, `trading/conectividad/ccxt` da
+dependa de esto se para el día que Yahoo cambie el HTML. Para cripto, `trading/ejecucion/conectividad/ccxt` da
 el histórico del propio mercado, que además es el que se ejecutó de verdad. Y los datos ajustados por
 dividendos que devuelve pueden cambiar entre descargas: para un backtest reproducible, guardar la
 serie una vez (en `ingenieria-datos/motor/duckdb` sobre Parquet) y no re-descargar en cada corrida.

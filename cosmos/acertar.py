@@ -7,7 +7,7 @@ Goodhart en su forma más pura, con el camino ya pavimentado:
 > **La manera más barata de pasar el presupuesto es escribir resúmenes peores.**
 
 Recortar un resumen baja la entrada, pone verde E16 y no dispara ninguna invariante
-— degradando justo aquello por lo que se paga el resumen. Con 21 oficios se nota
+— degradando justo aquello por lo que se paga el resumen. Con una veintena de oficios se nota
 poco; con cincuenta sería el modo de fallo dominante.
 
 Darío lo dijo antes de que existiera este fichero, corrigiendo el principio rector:
@@ -32,15 +32,20 @@ límite de E17.
 
 from __future__ import annotations
 
+import hashlib
 import json
-import re
-import unicodedata
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
-from .medir import catalogo_visible
+from puente.lluvia import normalizar
+from .medir import nodos_de_catalogo
 from .modelo import Arbol
+
+
+class ErrorEncargos(ValueError):
+    """El fichero de encargos no existe o no cumple su esquema. Mensaje entero, sin traceback."""
 
 
 @dataclass(frozen=True)
@@ -130,9 +135,15 @@ def _raiz(palabra: str) -> str:
 
 
 def _normalizar(texto: str) -> list[str]:
-    plano = unicodedata.normalize("NFKD", texto.lower())
-    plano = "".join(c for c in plano if not unicodedata.combining(c))
-    return [_raiz(p) for p in re.findall(r"[a-z0-9]{2,}", plano)]
+    """La tokenización de `puente/lluvia` más el recorte de sufijos.
+
+    El docstring de `_ordenar` promete «la misma normalización que usa la búsqueda de
+    memoria», y hasta hoy era una copia casi igual: verdadera a medias, y con la
+    divergencia garantizada en la primera corrección que tocara una de las dos. Ahora
+    es la misma función por construcción — lo único propio de aquí es `_raiz`.
+    """
+
+    return [_raiz(p) for p in normalizar(texto)]
 
 
 def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
@@ -144,11 +155,18 @@ def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
     del camino. Medir solo el caso base daría 0 % siempre y no diría nada.
 
     Y se puntúa sobre el **índice más el catálogo**, no sobre el catálogo solo. La
-    primera versión de esta función se dejaba fuera los 21 oficios, que viven en el
+    primera versión de esta función se dejaba fuera los oficios, que viven en el
     índice y no en el catálogo: 309 líneas de candidatos y ni una de profundidad cero.
     Con eso, los quince encargos cuya respuesta es un oficio —«que google encuentre mi
     web»— solo podían acertar de rebote, por un nieto, compitiendo contra el catálogo
     entero. No medía el árbol: medía un recorte del árbol que ningún agente ve.
+
+    Desde el catálogo en árbol indentado (2026-09-02), la selección de nodos es
+    literalmente la misma que renderiza `medir.catalogo_visible` — comparten
+    `medir.nodos_de_catalogo`, así que no pueden divergir. El texto puntuable de cada
+    nodo lleva su ruta completa además del resumen: es la información que la
+    indentación le da al agente (bajo qué familia está la línea), dicha en palabras
+    para que el BM25 la vea igual que antes del cambio de formato.
     """
 
     lineas = [
@@ -157,11 +175,17 @@ def _lineas_del_catalogo(arbol: Arbol) -> list[tuple[str, str]]:
         if nodo.cosmos == "sistema-solar"
     ]
     todos = [nombre for nombre, _ in lineas]
-    for linea in catalogo_visible(arbol, todos).splitlines():
-        if not linea.strip():
+    de_mantenimiento: list[str] = []
+    for nodo in nodos_de_catalogo(arbol, todos):
+        if nodo.cosmos == "rio" and nodo.datos.get("momento") == "mantenimiento":
+            de_mantenimiento.append(nodo.nombre)
             continue
-        ruta, _, resumen = linea.partition(":")
-        lineas.append((ruta.strip(), f"{ruta} {resumen}".strip()))
+        ruta = nodo.referencia
+        lineas.append((ruta, f"{ruta} {nodo.resumen}".strip()))
+    if de_mantenimiento:
+        # La línea agrupada del render también compite en el ranking, como línea que es.
+        lineas.append(("rio (mantenimiento, 'cosmos abrir rio/x')",
+                       "rio mantenimiento cosmos abrir rio " + " ".join(sorted(de_mantenimiento))))
     return lineas
 
 
@@ -225,11 +249,87 @@ def puntuar(arbol: Arbol, encargos: list[Encargo]) -> Puntuacion:
 
 
 def cargar_encargos(ruta: str | Path) -> list[Encargo]:
-    datos = json.loads(Path(ruta).read_text(encoding="utf-8"))
-    return [
-        Encargo(peticion=d["peticion"], espera=d["espera"], nota=d.get("nota", ""))
-        for d in datos
-    ]
+    """Carga y valida el fichero de encargos, o explica qué le pasa.
+
+    `rio/acertar` se anuncia en cualquier proyecto sobre el que se clone COSMOS, y en
+    todos menos éste `pruebas/encargos.json` no existe: el caso de estreno terminaba en
+    un `FileNotFoundError` crudo. El mismo trato que ya recibía `--validacion` —mensaje
+    entero y salida limpia— se aplica aquí a lo que se lee, no solo a un fichero de los
+    dos. Validar en el borde es lo que evita que el `KeyError` salga desde el fondo.
+    """
+
+    ruta = Path(ruta)
+    try:
+        crudo = ruta.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise ErrorEncargos(
+            f"no existe {ruta}: sin encargos no hay nada que puntuar. En un proyecto "
+            "recién clonado es lo esperable — créalo como lista JSON de objetos "
+            '{"peticion": "...", "espera": "ruta/del/nodo"} antes de medir el acierto.'
+        ) from None
+    except OSError as exc:
+        raise ErrorEncargos(f"no se puede leer {ruta}: {exc}") from exc
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError as exc:
+        raise ErrorEncargos(f"{ruta} no es JSON válido ({exc}); se esperaba una lista de encargos") from exc
+    if not isinstance(datos, list):
+        raise ErrorEncargos(f"{ruta} debe ser una lista de encargos y es {type(datos).__name__}")
+    encargos: list[Encargo] = []
+    for indice, dato in enumerate(datos):
+        if (
+            not isinstance(dato, dict)
+            or not isinstance(dato.get("peticion"), str)
+            or not isinstance(dato.get("espera"), str)
+        ):
+            raise ErrorEncargos(
+                f"{ruta}: el encargo {indice} necesita 'peticion' y 'espera' de texto"
+            )
+        encargos.append(Encargo(peticion=dato["peticion"], espera=dato["espera"], nota=str(dato.get("nota", ""))))
+    return encargos
+
+
+def ruta_sello(ruta: str | Path) -> Path:
+    return Path(ruta).with_suffix(".SELLO")
+
+
+def sellar(ruta: str | Path) -> dict:
+    """Sella el holdout: a partir de aquí, su detalle por encargo no se enseña.
+
+    El holdout anterior no lo quemó la mala fe: lo quemó un `--detalle`/`--json`
+    abierto para ver qué fallaba. Un sello que no impida ESE gesto no sella nada.
+    El fichero .SELLO se versiona: romperlo es borrarlo, y ese gesto queda en git.
+    """
+
+    encargos = cargar_encargos(ruta)  # valida el esquema antes de sellar
+    datos = {
+        "sha256": hashlib.sha256(Path(ruta).read_bytes()).hexdigest(),
+        "sellado": date.today().isoformat(),
+        "encargos": len(encargos),
+    }
+    ruta_sello(ruta).write_text(json.dumps(datos, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return datos
+
+
+def leer_sello(ruta: str | Path) -> dict | None:
+    sello = ruta_sello(ruta)
+    if not sello.is_file():
+        return None
+    try:
+        datos = json.loads(sello.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return datos if isinstance(datos, dict) else None
+
+
+def sello_vigente(ruta: str | Path) -> bool:
+    """El sello ata el CONTENIDO exacto: editar el fichero lo invalida, como una marca de lectura."""
+
+    datos = leer_sello(ruta)
+    return bool(
+        datos and Path(ruta).is_file()
+        and datos.get("sha256") == hashlib.sha256(Path(ruta).read_bytes()).hexdigest()
+    )
 
 
 def formatear(p: Puntuacion, *, detalle: bool = False) -> str:
@@ -282,6 +382,7 @@ class Contraste:
     ajuste: Puntuacion
     validacion: Puntuacion | None
     quemado: str | None = None
+    sellado: bool = False
 
     @property
     def brecha(self) -> float | None:
@@ -293,9 +394,18 @@ class Contraste:
                 - 100 * self.validacion.aciertos / self.validacion.total)
 
     def como_dict(self) -> dict[str, object]:
+        validacion = self.validacion.como_dict() if self.validacion else None
+        if validacion is not None and self.sellado:
+            # El detalle por encargo es EXACTAMENTE lo que quema un holdout: verlo
+            # una vez basta para escribir hacia el examen. Con el sello vigente se
+            # publica el agregado y se explica el porqué, no se confía en la memoria.
+            validacion["resultados"] = (
+                "SELLADO: el detalle por encargo quemaría el holdout; "
+                "romper el sello es borrar el .SELLO, y ese gesto queda en git"
+            )
         return {
             "ajuste": self.ajuste.como_dict(),
-            "validacion": self.validacion.como_dict() if self.validacion else None,
+            "validacion": validacion,
             "brecha_puntos": self.brecha,
             "quemado": self.quemado,
             "cifra_honesta": (
@@ -307,8 +417,20 @@ class Contraste:
 
 
 def formatear_contraste(c: Contraste) -> str:
-    if not c.validacion:
+    # `brecha` y `como_dict` ya comprobaban `.total`; esta era la única de las tres que no,
+    # y con un conjunto vacío salía un ZeroDivisionError crudo a la cara del usuario. Un
+    # conjunto sin encargos no es un 0 %: es «no lo sé», y hay que decirlo así.
+    # Los DOS divisores, no solo el que salió en el traceback. Arreglar el que se ve y
+    # dejar al hermano una línea más abajo es el fix a medias que el revisor siguiente
+    # encuentra en el código escrito para corregir al anterior.
+    if not c.ajuste.total:
         return formatear(c.ajuste)
+    if not c.validacion or not c.validacion.total:
+        salida = formatear(c.ajuste)
+        if c.validacion is not None and not c.validacion.total:
+            salida += "\n  El conjunto de validación existe pero está VACÍO: sin él, la\n"
+            salida += "  cifra de arriba es la del examen que sí se mira. No vale de listón.\n"
+        return salida
 
     aj = 100 * c.ajuste.aciertos / c.ajuste.total
     va = 100 * c.validacion.aciertos / c.validacion.total
@@ -318,12 +440,18 @@ def formatear_contraste(c: Contraste) -> str:
         f"  Ajuste ......... {c.ajuste.aciertos}/{c.ajuste.total} ({aj:.0f} %)   "
         "los encargos que SÍ se miran al trabajar",
         f"  Validación ..... {c.validacion.aciertos}/{c.validacion.total} ({va:.0f} %)   "
-        "escritos aparte; no guían ninguna decisión",
+        + ("YA MIRADO: es una segunda cifra de ajuste" if c.quemado
+           else "escritos aparte; no guían ninguna decisión"),
         "",
         f"  La cifra que vale es {va:.0f} %."
         if not c.quemado
         else f"  {va:.0f} %, pero ESTE CONJUNTO YA SE MIRÓ y un holdout es de un solo uso:",
     ]
+
+    if c.sellado and not c.quemado:
+        lineas.append("  (holdout SELLADO: el detalle por encargo no se enseña, que es lo que quema)")
+    elif not c.quemado:
+        lineas.append("  (holdout SIN SELLAR: 'cosmos acertar --sellar' impide quemarlo por descuido)")
 
     if c.quemado:
         lineas.extend(

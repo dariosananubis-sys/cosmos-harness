@@ -33,7 +33,7 @@ que romperían el esquema**, así que la salida no puede ser inválida por const
 golpe el bucle de reintentos, el `try/except json.loads` y la rama de recuperación que en un agente
 son la mitad del código y la mitad de los fallos.
 
-En 8 GB es exactamente lo que hace viables los modelos que caben: un 3B en 4 bits sin restringir se
+Con memoria justa es exactamente lo que hace viables los modelos que caben: un 3B en 4 bits sin restringir se
 inventa la forma cada dos por tres, y restringido acierta la estructura siempre — el modelo solo tiene
 que decidir el contenido. La biblioteca en sí no consume nada; el coste es el modelo servido, con las
 mismas reglas de siempre.

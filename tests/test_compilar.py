@@ -137,6 +137,65 @@ manifiesto = ".cosmos/compilado.json"
         self.assertEqual(1, resultado.ajenas)
         self.assertEqual("conservar\n", ajeno.read_text(encoding="utf-8"))
 
+    def test_la_vista_huerfana_identica_se_adopta_y_e19_sana(self) -> None:
+        """B03: borrar `.cosmos/` (generado, gitignored) dejaba el repo en un callejón.
+
+        Sin manifiesto, `compilar` clasificaba SUS PROPIAS entradas como ajenas y las
+        respetaba para siempre; E19 recetaba «ejecuta cosmos compilar», y compilar no
+        hacía nada — el único camino de vuelta era borrar a mano lo que el mensaje
+        prohíbe tocar a mano. Una entrada idéntica byte a byte a lo que se crearía no
+        tiene nada ajeno que perder: se adopta, y la receta del error vuelve a curar.
+        """
+
+        self.compilar()
+        contenido_antes = (self.destino / "revisar" / "SKILL.md").read_text(encoding="utf-8")
+        shutil.rmtree(self.manifiesto.parent)  # el estado que deja «limpiar lo generado»
+
+        resultado = self.compilar()
+
+        self.assertEqual(1, resultado.adoptadas, "la entrada huérfana idéntica no se adoptó")
+        self.assertEqual(0, resultado.ajenas)
+        self.assertEqual(contenido_antes, (self.destino / "revisar" / "SKILL.md").read_text(encoding="utf-8"))
+        config = cargar_configuracion(self.config_path)
+        self.assertNotIn("E19", validar_arbol(self.arbol(), configuracion=config).codigos(),
+                         "tras seguir la receta del error, E19 sigue en rojo: el callejón vive")
+
+    def test_la_huerfana_divergente_sigue_siendo_ajena(self) -> None:
+        """La adopción exige identidad de hash: lo editado a mano no se apropia ni se pisa."""
+
+        self.compilar()
+        shutil.rmtree(self.manifiesto.parent)
+        (self.destino / "revisar" / "SKILL.md").write_text("editado por otro\n", encoding="utf-8")
+
+        resultado = self.compilar()
+
+        self.assertEqual(0, resultado.adoptadas)
+        self.assertEqual(1, resultado.ajenas)
+        self.assertEqual("editado por otro\n",
+                         (self.destino / "revisar" / "SKILL.md").read_text(encoding="utf-8"))
+        config = cargar_configuracion(self.config_path)
+        self.assertIn("E19", validar_arbol(self.arbol(), configuracion=config).codigos(),
+                      "una vista divergente sin manifiesto tiene que seguir cantando E19")
+
+    def test_el_manifiesto_conserva_sus_permisos_al_reescribirse(self) -> None:
+        """A01/B04: el arreglo de permisos solo valía para el 50 % de los escritores.
+
+        `escribir_atomico` (modelo) aprendió a conservar el modo del destino; la copia
+        byte a byte que usaba `compilar` para el manifiesto, no — cada recompilación lo
+        estrechaba a 0600. Dos escritores idénticos garantizan que la corrección llega
+        a uno; ahora hay uno solo y esta prueba lo mide donde dolía.
+        """
+
+        self.compilar()
+        self.manifiesto.chmod(0o644)
+        antes = self.manifiesto.read_bytes()
+        (self.skill_dir / "referencia.md").write_text("# Referencia cambiada\n", encoding="utf-8")
+        self.compilar()
+        self.assertNotEqual(antes, self.manifiesto.read_bytes(),
+                            "el manifiesto no se reescribió: la prueba no midió nada")
+        self.assertEqual(0o644, self.manifiesto.stat().st_mode & 0o777,
+                         "reescribir el manifiesto volvió a estrechar sus permisos")
+
     def test_editar_copia_a_mano_produce_e19(self) -> None:
         self.compilar()
         (self.destino / "revisar" / "SKILL.md").write_text("editado a mano\n", encoding="utf-8")
@@ -317,13 +376,32 @@ manifiesto = ".cosmos/compilado.json"
         self.assertIn("E15", salida)
         self.assertEqual("# COSMOS — mentira\n", (self.arbol_dir / "COSMOS.md").read_text(encoding="utf-8"))
 
-    def test_lock_exclusivo_rechaza_segunda_compilacion(self) -> None:
+    def test_lock_de_un_proceso_vivo_rechaza_la_segunda_compilacion(self) -> None:
+        """El contrato cambió a propósito (F09), y esta prueba lo dice.
+
+        Antes bastaba con que el fichero existiera, con cualquier contenido. Eso
+        significaba que un proceso muerto sin llegar a su `finally` —`kill -9`, batería,
+        terminal cerrada— dejaba el repositorio sin poder compilar **para siempre**. Ahora
+        el cerrojo lleva dentro el PID y se pregunta: si su dueño vive, esto rechaza; si
+        no, se retoma. Un cerrojo del que no se puede salir no protege nada.
+        """
+
+        import os
+
         lock = self.manifiesto.parent / "compilar.lock"
         lock.parent.mkdir(parents=True)
-        lock.write_text("ocupado\n", encoding="utf-8")
-        with self.assertRaisesRegex(ErrorCompilacion, "otra compilación"):
+        lock.write_text(f"{os.getppid()}\n", encoding="utf-8")  # un PID que existe de verdad
+        with self.assertRaisesRegex(ErrorCompilacion, "en curso"):
             self.compilar()
         self.assertFalse(self.destino.exists())
+
+    def test_un_lock_rancio_no_deja_el_repositorio_inservible(self) -> None:
+        lock = self.manifiesto.parent / "compilar.lock"
+        lock.parent.mkdir(parents=True)
+        lock.write_text("999999\n", encoding="utf-8")  # PID que no existe
+        self.compilar()
+        self.assertTrue(self.destino.exists(), "un cerrojo rancio bloqueó una compilación válida")
+        self.assertFalse(lock.exists())
 
     def test_editar_por_symlink_edita_la_verdad_y_no_rompe_e19(self) -> None:
         self.compilar(modo="symlink")

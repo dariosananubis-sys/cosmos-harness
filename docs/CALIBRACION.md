@@ -60,7 +60,12 @@ Medido el 2026-09-02 sobre el índice y el catálogo de los dos árboles del rep
 ```
 
 `cosmos/medir.py` aplica `contar_generado` al índice y al catálogo, y `contar_aprox` a todo lo
-demás. Con `--metodo exacto` no hay factores que valgan: cuenta el tokenizador.
+demás.
+
+Re-medido el 2026-09-02 tras pasar el catálogo a árbol indentado: el ratio real sobre la galaxia
+(índice + los 22 catálogos por nicho) da 1,369 — un 0,9 % por debajo del factor publicado, del
+lado conservador (el aproximado sobreestima el coste). El factor no se toca por eso: solo se
+recalibraría si la desviación creciera o cambiara de signo. Con `--metodo exacto` no hay factores que valgan: cuenta el tokenizador.
 
 ## Por qué importaba, y no era cosmético
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: spectral
-padre: saas
+padre: saas/contrato
 resumen: Comprueba el contrato de la API contra reglas propias, no solo que el fichero este bien formado.
 ---
 

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: viem
-padre: blockchain
+padre: blockchain/cadena
 resumen: Cliente de nodo en TypeScript con tipos estrictos y sin el peso de la biblioteca de la generacion anterior.
 ---
 

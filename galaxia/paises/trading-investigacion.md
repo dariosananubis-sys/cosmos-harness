@@ -1,7 +1,7 @@
 ---
 cosmos: pais
 nombre: investigacion
-padre: trading
+padre: trading/mercado
 resumen: Convertir precio en senal: calculado en lote para estudiar, y al vuelo para operar en vivo.
 ---
 

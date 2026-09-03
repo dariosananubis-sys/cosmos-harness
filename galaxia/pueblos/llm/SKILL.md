@@ -38,7 +38,7 @@ filtro de shell de verdad, con entrada estándar y salida estándar, lo que le d
 Frontera con sus vecinos: `ollama` **sirve** el modelo, esto lo **usa** desde la línea de comandos, y
 `lm-evaluation-harness` lo **puntúa**. No compiten.
 
-En 8 GB no añade coste: es una envoltura de Python de unos pocos megas; quien ocupa la memoria es el
+No añade coste de memoria: es una envoltura de Python de unos pocos megas; quien la ocupa es el
 modelo que haya detrás, con las reglas de siempre —4 bits, hasta 7B con margen justo.
 
 Y lo que no hace bien:

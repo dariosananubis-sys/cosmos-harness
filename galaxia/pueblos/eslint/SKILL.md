@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: eslint
-padre: rendimiento/calidad
+padre: refactorizacion/reglas
 resumen: El linter de JavaScript y TypeScript con reglas para cada marco de trabajo; la cobertura es su ventaja.
 ---
 

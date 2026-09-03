@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: flutter
-padre: moviles
+padre: moviles/marcos
 resumen: Un solo codigo compilado a binario nativo que dibuja cada pixel con su propio motor.
 ---
 
@@ -56,4 +56,4 @@ una cuota anual y Google una alta unica. Compilar para iOS ademas exige un Mac c
 manera de esquivarlo.
 
 Aviso de maquina: `flutter doctor` completo con Xcode y el SDK de Android son decenas de gigas de
-disco. En un Mac de 8 GB corre, pero el simulador de iOS y el emulador de Android a la vez, no.
+disco. En una maquina justa de memoria corre, pero el simulador de iOS y el emulador de Android a la vez, no.

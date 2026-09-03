@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: scipy
-padre: cientifico
+padre: cientifico/computo
 resumen: Optimizacion, integracion de ecuaciones y algebra dispersa sobre el array de referencia.
 ---
 

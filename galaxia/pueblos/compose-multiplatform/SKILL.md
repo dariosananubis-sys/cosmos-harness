@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: compose-multiplatform
-padre: moviles
+padre: moviles/marcos
 resumen: Comparte logica y pantallas en Kotlin sin renunciar a llamar a la API nativa cuando toca.
 ---
 
@@ -51,7 +51,7 @@ Y lo que no hace bien:
 - **iOS es el objetivo más joven.** La interfaz compartida en iOS lleva menos rodaje que en Android, y
   el desplazamiento y los gestos no se sienten idénticos a los de SwiftUI: para una app en la que la
   sensación nativa de iOS es el producto, sigue ganando escribir esa pantalla en Swift.
-- **Gradle en un Mac de 8 GB es lo que aprieta**, no el marco: el demonio de compilación más Android
+- **Gradle es lo que aprieta en una maquina justa de memoria**, no el marco: el demonio de compilación más Android
   Studio más el simulador de iOS no caben a la vez. Un solo entorno abierto por sesión.
 - **El ecosistema de bibliotecas compartidas es mucho más pequeño** que el de npm o el de pub.dev:
   bastante cosa hay que envolver a mano por plataforma, y eso es tiempo que en el presupuesto no

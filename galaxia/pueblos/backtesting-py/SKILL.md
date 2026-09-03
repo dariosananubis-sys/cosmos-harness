@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: backtesting-py
-padre: trading/backtesting
+padre: trading/estrategia/backtesting
 resumen: Bucle vela a vela de un solo activo: el modelo mental donde cuesta mas hacerse trampa sin verlo.
 ---
 

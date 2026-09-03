@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: tenacity
-padre: trading/codigo-de-bot
+padre: trading/bots/codigo-de-bot
 resumen: Reintento con espera creciente y limite declarado, en vez de un while con sleep escrito a mano.
 ---
 

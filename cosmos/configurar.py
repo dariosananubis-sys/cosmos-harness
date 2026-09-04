@@ -399,42 +399,86 @@ def fijar_claves(ruta: Path, respaldo: Path, claves: dict[str, object], *, marca
     return informe
 
 
-def retirar_claves(ruta: Path, respaldo: Path, *, marca: str) -> tuple[str, list[str]]:
+def _reponer_padres(datos: dict, previo: dict, clave: str) -> None:
+    """Si el fichero anterior tenía `permissions: {}`, `_quitar` no debe llevárselo (revisión C-18)."""
+    tramos = clave.split(".")
+    for n in range(1, len(tramos)):
+        ruta = ".".join(tramos[:n])
+        habia, valor = _obtener(previo, ruta)
+        if not habia or not isinstance(valor, dict):
+            return
+        esta, _ = _obtener(datos, ruta)
+        if not esta:
+            _poner(datos, ruta, {})
+
+
+def podar_hacia_previo(datos: dict, escritas: dict[str, object], previo: dict | None) -> tuple[dict, list[str]]:
+    """Quita nuestras claves devolviendo cada una al valor que tenía ANTES, si lo tenía.
+
+    `podar_claves` solo sabía quitar: `--autonomia manual` sobre un usuario que tenía
+    `defaultMode = acceptEdits` le dejaba sin `permissions` y culpaba a «alguien» (revisión
+    C-01). Una clave con otro valor la cambió alguien a mano y no se toca (se devuelve).
+    """
+    copia = json.loads(json.dumps(datos))
+    ajenas: list[str] = []
+    for clave, valor in escritas.items():
+        esta, actual = _obtener(copia, clave)
+        if not esta:
+            continue
+        if actual != valor:
+            ajenas.append(clave)
+            continue
+        habia, anterior = _obtener(previo or {}, clave)
+        if habia:
+            _poner(copia, clave, anterior)
+        else:
+            _quitar(copia, clave)
+            _reponer_padres(copia, previo or {}, clave)
+    return copia, ajenas
+
+
+def retirar_claves(ruta: Path, respaldo: Path, *, marca: str, seco: bool = False) -> tuple[str, list[str]]:
     """Deshace `fijar_claves`. Devuelve `(estado, claves_que_no_se_tocaron)`.
 
     Estados: `ausente` (COSMOS no escribió nada), `restaurado` (fichero devuelto byte a byte),
     `eliminado` (no existía antes), `podado` (el resto lo cambió alguien: se quita solo lo
-    nuestro) o `ilegible` (no es JSON: no se toca).
+    nuestro) o `ilegible` (no es JSON: no se toca). Con `seco` calcula el estado y no escribe.
     """
     guardado = leer_ajustes(respaldo) or {}
     if guardado.get("marca") != marca or "escritas" not in guardado:
         return "ausente", []
     if not ruta.is_file():
-        respaldo.unlink(missing_ok=True)
+        if not seco:
+            respaldo.unlink(missing_ok=True)
         return "ausente", []
     datos = leer_ajustes(ruta)
     if datos is None:
         return "ilegible", []
     escritas = guardado["escritas"] if isinstance(guardado["escritas"], dict) else {}
-    podado, ajenas = podar_claves(datos, escritas)
     original = guardado.get("original")
     try:
-        previo = podar_claves(json.loads(original), escritas)[0] if isinstance(original, str) else {}
+        previo = json.loads(original) if isinstance(original, str) else {}
     except ValueError:
         previo = None
+    if not isinstance(previo, dict):
+        previo = None
+    podado, ajenas = podar_hacia_previo(datos, escritas, previo)
     intacto = previo is not None and podado == previo and not ajenas
     if intacto and guardado.get("existia") and isinstance(original, str):
-        ruta.write_text(original, encoding="utf-8")
-        respaldo.unlink(missing_ok=True)
+        if not seco:
+            ruta.write_text(original, encoding="utf-8")
+            respaldo.unlink(missing_ok=True)
         return "restaurado", []
     if intacto and not guardado.get("existia"):
-        ruta.unlink()
-        respaldo.unlink(missing_ok=True)
-        if guardado.get("creo_directorio") and not any(ruta.parent.iterdir()):
-            ruta.parent.rmdir()
+        if not seco:
+            ruta.unlink()
+            respaldo.unlink(missing_ok=True)
+            if guardado.get("creo_directorio") and not any(ruta.parent.iterdir()):
+                ruta.parent.rmdir()
         return "eliminado", []
-    ruta.write_text(json.dumps(podado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    respaldo.unlink(missing_ok=True)
+    if not seco:
+        ruta.write_text(json.dumps(podado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        respaldo.unlink(missing_ok=True)
     return "podado", ajenas
 
 
@@ -486,8 +530,8 @@ def fijar_autonomia(grado: str, ruta: Path | None = None, respaldo: Path | None 
     return fijar_claves(ruta or ajustes_usuario(), respaldo or RESPALDO_AUTONOMIA, GRADOS[grado], marca=MARCA_AUTONOMIA)
 
 
-def retirar_autonomia(ruta: Path | None = None, respaldo: Path | None = None) -> tuple[str, list[str]]:
-    return retirar_claves(ruta or ajustes_usuario(), respaldo or RESPALDO_AUTONOMIA, marca=MARCA_AUTONOMIA)
+def retirar_autonomia(ruta: Path | None = None, respaldo: Path | None = None, *, seco: bool = False) -> tuple[str, list[str]]:
+    return retirar_claves(ruta or ajustes_usuario(), respaldo or RESPALDO_AUTONOMIA, marca=MARCA_AUTONOMIA, seco=seco)
 
 
 # --- El lanzador `cosmos` en el PATH ------------------------------------------------------
@@ -533,8 +577,12 @@ def instalar_lanzador(raiz: Path, ruta: Path | None = None, *, forzar: bool = Fa
     ruta = ruta or LANZADOR
     if ruta.exists() and not es_lanzador_nuestro(ruta) and not forzar:
         return ruta, "ajeno"
-    existia = ruta.exists()
+    existia = ruta.exists() or ruta.is_symlink()
     ruta.parent.mkdir(parents=True, exist_ok=True)
+    if ruta.is_symlink():
+        # `write_text` sigue el enlace: con --forzar sobre un symlink ajeno se pisaba el fichero
+        # al que apuntaba y el enlace seguía siendo enlace (revisión C-09).
+        ruta.unlink()
     ruta.write_text(contenido_lanzador(raiz.resolve()), encoding="utf-8")
     ruta.chmod(0o755)
     return ruta, "actualizado" if existia else "creado"

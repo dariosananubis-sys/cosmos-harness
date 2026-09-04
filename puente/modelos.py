@@ -10,7 +10,8 @@ cada cinco minutos) y un hook `SessionStart` en los ajustes de usuario, porque l
 eventos y un `/model` abierto a los pocos segundos de arrancar aún no las veía.
 
 Es alta de MÁQUINA (`cosmos configurar --modelos instalar|estado|quitar`), no de repositorio:
-todo lo que escribe vive en `~/.cosmos/`, `~/.local/bin/` y `~/Library/LaunchAgents/`.
+escribe en `~/.cosmos/`, `~/.local/bin/`, `~/Library/LaunchAgents/`, el hook `SessionStart`
+de los ajustes de usuario y cada `.claude.json` vigilado.
 Ninguna ruta de este fichero nombra una máquina ni una organización; los ficheros a vigilar
 salen de `$HOME`, de `$CLAUDE_CONFIG_DIR` y de la tabla `[modelos]` del perfil.
 
@@ -23,10 +24,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+from xml.sax.saxutils import escape as _xml
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -248,7 +251,9 @@ for ruta in dict.fromkeys(CONFIGS):
 
 
 def contenido_plist(interprete: str, reponedor: Path, configs: list[Path], log: Path) -> str:
-    vigilados = "\n".join(f"        <string>{c}</string>" for c in configs)
+    # `&` en una ruta rompía el XML y launchd no cargaba nada (revisión C-21).
+    vigilados = "\n".join(f"        <string>{_xml(str(c))}</string>" for c in configs)
+    interprete, reponedor, log = _xml(str(interprete)), _xml(str(reponedor)), _xml(str(log))
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -281,9 +286,23 @@ def contenido_plist(interprete: str, reponedor: Path, configs: list[Path], log: 
 def orden_hook(interprete: str, reponedor: Path) -> str:
     # En segundo plano y con tres segundos de espera: el CLI reescribe su fichero justo al
     # arrancar, y reponer antes de eso es reponer para nada (medido en el origen de esto).
+    # Intérprete y reponedor van como ARGUMENTOS citados: un espacio en cualquiera de las dos
+    # rutas dejaba un hook que no ejecutaba nunca y `estado` lo daba por ok (revisión C-12).
     return (
-        f"bash -c 'nohup bash -c \"sleep 3; {interprete} {reponedor}\" >/dev/null 2>&1 &'  # {MARCA}"
+        "nohup bash -c 'sleep 3; exec \"$0\" \"$1\"' "
+        f"{shlex.quote(str(interprete))} {shlex.quote(str(reponedor))} >/dev/null 2>&1 &  # {MARCA}"
     )
+
+
+def partes_de_la_orden(orden: str) -> tuple[str, str] | None:
+    """`(intérprete, reponedor)` de una orden de hook nuestra; ``None`` si no se puede leer."""
+    try:
+        piezas = shlex.split(orden.split("  #", 1)[0])
+    except ValueError:
+        return None
+    if len(piezas) < 6 or piezas[:2] != ["nohup", "bash"]:
+        return None
+    return piezas[4], piezas[5]
 
 
 def contenido_atajo(nombre: str, esfuerzo: str, modelo: str, rastro: Path) -> str:
@@ -437,6 +456,33 @@ def retirar_hook(ruta: Path | None = None, respaldo: Path | None = None) -> str:
     return "podado"
 
 
+def orden_del_hook(ruta: Path | None = None) -> str | None:
+    """La orden de nuestro hook SessionStart, o ``None`` si no está."""
+    datos = leer_ajustes(ruta or ajustes_usuario()) or {}
+    hooks = datos.get("hooks")
+    if not isinstance(hooks, dict) or not isinstance(hooks.get("SessionStart"), list):
+        return None
+    for entrada in hooks["SessionStart"]:
+        if _es_hook_nuestro(entrada):
+            for h in entrada["hooks"]:
+                if isinstance(h, dict) and MARCA in str(h.get("command", "")):
+                    return str(h["command"])
+    return None
+
+
+def _programa_del_plist(texto: str) -> tuple[str, str] | None:
+    import re
+    from xml.sax.saxutils import unescape
+
+    bloque = re.search(r"<key>ProgramArguments</key>\s*<array>(.*?)</array>", texto, re.S)
+    if not bloque:
+        return None
+    cadenas = re.findall(r"<string>(.*?)</string>", bloque.group(1), re.S)
+    if len(cadenas) < 2:
+        return None
+    return unescape(cadenas[0]), unescape(cadenas[1])
+
+
 def tiene_hook(ruta: Path | None = None) -> bool:
     datos = leer_ajustes(ruta or ajustes_usuario()) or {}
     hooks = datos.get("hooks")
@@ -535,12 +581,26 @@ def instalar(*, perfil: dict | None = None, interprete: str | None = None, ejecu
     return lineas
 
 
-def quitar(*, ejecutor: Ejecutor = _ejecutar_real, plataforma: str | None = None) -> list[str]:
+def quitar(*, ejecutor: Ejecutor = _ejecutar_real, plataforma: str | None = None, seco: bool = False) -> list[str]:
     """Quita todo lo que `instalar` escribió. NO borra las entradas ya presentes en los menús:
-    quitar el vigilante no es borrar datos ajenos; siguen hasta el próximo arranque del CLI."""
+    quitar el vigilante no es borrar datos ajenos; siguen hasta el próximo arranque del CLI.
+    Con `seco` solo lo cuenta: `--modelos quitar --seco` descargaba el agente de verdad (C-04)."""
     plataforma = plataforma or sys.platform
     lineas: list[str] = []
     plist = ruta_plist()
+    if seco:
+        if plist.is_file() and es_nuestro(plist):
+            lineas.append(f"  (seco) descargaría {ETIQUETA} y borraría {plist}")
+        if orden_del_hook() is not None:
+            lineas.append(f"  (seco) quitaría el hook SessionStart de {ajustes_usuario()} (o devolvería el fichero byte a byte)")
+        if ruta_reponedor().exists() and es_nuestro(ruta_reponedor()):
+            lineas.append(f"  (seco) borraría {ruta_reponedor()}")
+        for nombre, _ in ATAJOS:
+            ruta = directorio_atajos() / nombre
+            if ruta.exists() and es_nuestro(ruta):
+                lineas.append(f"  (seco) borraría {ruta}")
+        lineas.append("  (seco) las entradas ya presentes en /model no se tocan; el log se conserva")
+        return lineas or ["  (seco) no hay nada nuestro que quitar"]
     if plataforma == "darwin":
         ejecutor(["launchctl", "bootout", f"gui/{_uid()}/{ETIQUETA}"])
     if plist.is_file() and es_nuestro(plist):
@@ -568,6 +628,12 @@ def quitar(*, ejecutor: Ejecutor = _ejecutar_real, plataforma: str | None = None
             lineas.append(f"  Atajo {nombre:<10} .. {ruta} borrado")
         elif ruta.exists():
             lineas.append(f"  Atajo {nombre:<10} .. {ruta} no es nuestro: no se toca")
+    directorio = directorio_bin()
+    if directorio.is_dir() and not any(directorio.iterdir()):
+        directorio.rmdir()
+        lineas.append(f"  {directorio} vacío: borrado")
+    if ruta_log().exists():
+        lineas.append(f"  El log {ruta_log()} se conserva: es historia, no configuración.")
     lineas.append("  Las entradas ya presentes en /model siguen ahí hasta el próximo arranque del CLI: no se borran.")
     return lineas
 
@@ -606,14 +672,36 @@ def estado(*, perfil: dict | None = None, interprete: str | None = None, ejecuto
             filas.append(Fila("agente launchd", "falta", f"{plist} no existe"))
         else:
             resultado = ejecutor(["launchctl", "print", f"gui/{_uid()}/{ETIQUETA}"])
-            if resultado.returncode:
+            programa = _programa_del_plist(plist.read_text(encoding="utf-8", errors="replace"))
+            if programa is None:
+                filas.append(Fila("agente launchd", "desactualizado", f"{plist} no lleva ProgramArguments legibles -> volver a instalar"))
+            elif not Path(programa[0]).is_file():
+                # «Cargado» no es «funciona»: un venv de /tmp borrado dejaba un agente que fallaba
+                # cada cinco minutos y un `ok` en el inventario (revisión C-10).
+                filas.append(Fila("agente launchd", "falta", f"el intérprete del plist no existe: {programa[0]} -> volver a instalar"))
+            elif not Path(programa[1]).is_file():
+                filas.append(Fila("agente launchd", "falta", f"el reponedor del plist no existe: {programa[1]} -> volver a instalar"))
+            elif plist.read_text(encoding="utf-8") != contenido_plist(programa[0], Path(programa[1]), configs, ruta_log()):
+                filas.append(Fila("agente launchd", "desactualizado", f"{plist} no coincide con el que se generaría hoy -> volver a instalar"))
+            elif resultado.returncode:
                 filas.append(Fila("agente launchd", "falta", f"{plist} existe pero no está cargado"))
             else:
                 salida = resultado.stdout or ""
                 estado_txt = next((l.strip() for l in salida.splitlines() if "state =" in l), "cargado")
                 filas.append(Fila("agente launchd", "ok", f"{ETIQUETA} ({estado_txt})"))
 
-    filas.append(Fila("hook SessionStart", "ok" if tiene_hook() else "falta", str(ajustes_usuario())))
+    orden = orden_del_hook()
+    partes = partes_de_la_orden(orden) if orden else None
+    if orden is None:
+        filas.append(Fila("hook SessionStart", "falta", str(ajustes_usuario())))
+    elif partes is None:
+        filas.append(Fila("hook SessionStart", "desactualizado", f"la orden del hook no se puede leer -> volver a instalar ({ajustes_usuario()})"))
+    elif not Path(partes[0]).is_file():
+        filas.append(Fila("hook SessionStart", "falta", f"el intérprete del hook no existe: {partes[0]} -> volver a instalar"))
+    elif not Path(partes[1]).is_file():
+        filas.append(Fila("hook SessionStart", "falta", f"el reponedor del hook no existe: {partes[1]} -> volver a instalar"))
+    else:
+        filas.append(Fila("hook SessionStart", "ok", str(ajustes_usuario())))
 
     modelo = modelo_duro(perfil)
     for nombre, esfuerzo in ATAJOS:

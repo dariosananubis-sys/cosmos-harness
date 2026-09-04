@@ -17,6 +17,7 @@ from . import __version__
 from .compilar import ErrorCompilacion, compilar_arbol, compilar_runtime, formatear_compilacion, manifiesto_runtime
 from .generar import escribir_indice, generar_mapa
 from .guardarrailes import (
+    aviso_pre_push,
     CODIGOS_GATE,
     CODIGOS_SESION,
     ErrorEnganche,
@@ -114,6 +115,8 @@ def _parser() -> argparse.ArgumentParser:
 
     estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa; --maquina: qué falta en ESTA máquina")
     estado.add_argument("--json", action="store_true", help="emite JSON")
+    estado.add_argument("--directorio", type=Path, default=None,
+                        help="con --maquina: dónde viven el perfil y las credenciales (por defecto ~/.cosmos)")
     estado.add_argument("--maquina", action="store_true",
                         help="inventario de la máquina, trivalente (ok / falta / no_comprobado): python3, git, claude, "
                              "tmux, llavero, perfil, credenciales, autonomía, vigilante de modelos, lanzador")
@@ -180,7 +183,7 @@ def _parser() -> argparse.ArgumentParser:
     configurar.add_argument("--llavero", action="store_true",
                             help="pasa las credenciales al llavero de macOS (security add-generic-password) y vacía el txt")
     configurar.add_argument("--seco", action="store_true",
-                            help="con --llavero, --autonomia o --modelos: enseña lo que haría sin escribir nada")
+                            help="enseña lo que haría sin escribir nada (vale para todas las caras del alta)")
     # Las tres caras de MÁQUINA del alta (ajustes de usuario del runtime, no del repositorio).
     configurar.add_argument("--autonomia", nargs="?", const="estado", choices=("estado", "auto", "libre", "manual"),
                             metavar="GRADO",
@@ -189,8 +192,8 @@ def _parser() -> argparse.ArgumentParser:
                                  "como estaba); sin valor, dice el grado vigente")
     configurar.add_argument("--modelos", choices=("instalar", "estado", "quitar"), metavar="ACCION",
                             help="el vigilante que mantiene todos los modelos en el selector del runtime: "
-                                 "instalar | estado | quitar (solo escribe en ~/.cosmos, ~/.local/bin y, en macOS, "
-                                 "~/Library/LaunchAgents)")
+                                 "instalar | estado | quitar (escribe en ~/.cosmos, ~/.local/bin, el hook SessionStart de "
+                                 "los ajustes de usuario, cada ~/.claude.json vigilado y, en macOS, ~/Library/LaunchAgents)")
     configurar.add_argument("--lanzador", nargs="?", const="instalar", choices=("instalar", "quitar"), metavar="ACCION",
                             help="pone 'cosmos' en el PATH (~/.local/bin/cosmos apuntando a este clon) o lo quita")
     configurar.add_argument("--forzar", action="store_true",
@@ -399,7 +402,7 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     if getattr(args, "modelos", None):
         return _modelos(args.modelos, perfil, seco=args.seco, forzar=args.forzar)
     if getattr(args, "lanzador", None):
-        return _lanzador(args.lanzador, config, forzar=args.forzar)
+        return _lanzador(args.lanzador, config, forzar=args.forzar, seco=args.seco)
 
     if args.comprobar or args.llavero:
         datos = cfg.leer_perfil(perfil) or {}
@@ -438,10 +441,13 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
             lineas.append(f"  SOSPECHOSA {variable}   (parece un marcador o es demasiado corta)")
         completas = len({c.variable for c in esperadas}) - len(faltan) - len(sospechosas)
         lineas.append(f"  {completas} completa(s), {len(faltan)} falta(n), {len(sospechosas)} sospechosa(s) de {len({c.variable for c in esperadas})}")
-        cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=not faltan and not sospechosas,
-                                                     modelos=cfg.leer_modelos(perfil)))
-        lineas.append(f"  Perfil guardado en {perfil}: no se vuelve a preguntar."
-                      + (" Cuando quieras: 'cosmos configurar --llavero'." if not faltan and not sospechosas else ""))
+        if args.seco:
+            lineas.append(f"  (seco) no se escribe el perfil {perfil}")
+        else:
+            cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=not faltan and not sospechosas,
+                                                         modelos=cfg.leer_modelos(perfil)))
+            lineas.append(f"  Perfil guardado en {perfil}: no se vuelve a preguntar."
+                          + (" Cuando quieras: 'cosmos configurar --llavero'." if not faltan and not sospechosas else ""))
         sys.stdout.write("\n".join(lineas) + "\n")
         return 0 if not faltan and not sospechosas else 1
 
@@ -474,8 +480,18 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     if fuera:
         raise ErrorEncargos(f"herramienta de un oficio que no activaste: {', '.join(fuera)}")
 
-    cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=False, modelos=cfg.leer_modelos(perfil)))
     esperadas = cfg.credenciales_de(arbol, herramientas)
+    if args.seco:
+        # `--seco` escribía perfil y credenciales igual que sin él (revisión C-08).
+        sys.stdout.write(
+            "COSMOS  configurar  (seco)\n\n"
+            f"  Escribiría el perfil {perfil} con {len(oficios)} oficio(s) y {len(herramientas)} herramienta(s)\n"
+            f"  Escribiría {credenciales} con {len(esperadas)} variable(s) vacía(s)"
+            + ("" if not (credenciales.is_file() and cfg.leer_credenciales(credenciales)) else "  (ya tiene valores: no se pisaría)")
+            + "\n"
+        )
+        return 0
+    cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=False, modelos=cfg.leer_modelos(perfil)))
     if credenciales.is_file() and cfg.leer_credenciales(credenciales):
         # No se pisa un fichero con valores: se dice y se para.
         print(f"COSMOS  configurar\n\n{credenciales} ya tiene valores: no se sobrescribe. "
@@ -501,17 +517,27 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     # script) no se toca ningún ajuste de usuario sin un --autonomia explícito: un sistema que
     # se engancha sin que se lo pidan se arranca de raíz a la primera molestia.
     if not args.oficios and not args.herramientas:
-        grado, detalle = cfg.grado_vigente()
-        print(f"\n¿Esta máquina trabaja sin pedir permiso? Hoy: {grado} ({detalle}).")
-        respuesta = input("  auto (recomendado) / libre / no [Enter = auto]: ").strip().lower()
-        elegido = {"": "auto", "auto": "auto", "libre": "libre"}.get(respuesta)
-        if elegido:
-            _autonomia(elegido, directorio, seco=False)
+        # Si `instalar` trajo la decisión por bandera, no se pregunta lo que ya está dicho:
+        # el ejemplo de portada (`instalar --autonomia auto --modelos`) preguntaba y con Enter
+        # o `n` hacía otra cosa que la pedida (revisión C-06).
+        fijada = getattr(args, "alta_autonomia", None)
+        if fijada:
+            _autonomia(fijada, directorio, seco=False)
         else:
-            print("  Se deja como está.")
-        respuesta = input("¿Instalar el vigilante que mantiene todos los modelos en /model? [s/N]: ").strip().lower()
-        if respuesta in {"s", "si", "sí"}:
-            _modelos("instalar", perfil, seco=False, forzar=False)
+            grado, detalle = cfg.grado_vigente()
+            print(f"\n¿Esta máquina trabaja sin pedir permiso? Hoy: {grado} ({detalle}).")
+            respuesta = input("  auto (recomendado) / libre / no [Enter = auto]: ").strip().lower()
+            elegido = {"": "auto", "auto": "auto", "libre": "libre"}.get(respuesta)
+            if elegido:
+                _autonomia(elegido, directorio, seco=False)
+            else:
+                print("  Se deja como está.")
+        if getattr(args, "alta_modelos", False):
+            _modelos("instalar", perfil, seco=False, forzar=bool(getattr(args, "alta_forzar", False)))
+        else:
+            respuesta = input("¿Instalar el vigilante que mantiene todos los modelos en /model? [s/N]: ").strip().lower()
+            if respuesta in {"s", "si", "sí"}:
+                _modelos("instalar", perfil, seco=False, forzar=False)
     return 0
 
 
@@ -531,15 +557,17 @@ def _autonomia(grado: str, directorio: Path, *, seco: bool) -> int:
             sys.stdout.write("  Para que no pida permiso: cosmos configurar --autonomia auto   (o libre)\n")
         return 0
     if grado == "manual":
-        estado, ajenas = cfg.retirar_autonomia(ruta, respaldo)
+        estado, ajenas = cfg.retirar_autonomia(ruta, respaldo, seco=seco)
         explicacion = {
             "ausente": "COSMOS no había escrito nada aquí: nada que deshacer",
             "restaurado": "devuelto byte a byte al estado anterior",
             "eliminado": "eliminado: no existía antes de fijar la autonomía",
-            "podado": "sin las claves de COSMOS (el resto lo había cambiado alguien, se conserva)",
+            "podado": "sin las claves de COSMOS (el resto del fichero cambió desde entonces y se conserva)",
             "ilegible": "no es JSON legible; NO se ha tocado",
         }[estado]
-        sys.stdout.write(f"COSMOS  configurar  autonomia  manual\n\n  {ruta_corta}: {explicacion}\n")
+        if seco:
+            explicacion = "(seco) haría: " + explicacion
+        sys.stdout.write(f"COSMOS  configurar  autonomia  manual{'  (seco)' if seco else ''}\n\n  {ruta_corta}: {explicacion}\n")
         for clave in ajenas:
             sys.stdout.write(f"  {clave}: alguien la cambió a mano después; no se toca\n")
         return 0
@@ -580,8 +608,8 @@ def _modelos(accion: str, perfil: Path, *, seco: bool, forzar: bool) -> int:
         sys.stdout.write(f"COSMOS  configurar  modelos  estado\n\n{mod.formatear(filas)}\n")
         return 0
     if accion == "quitar":
-        lineas = mod.quitar()
-        sys.stdout.write("COSMOS  configurar  modelos  quitar\n\n" + "\n".join(lineas) + "\n")
+        lineas = mod.quitar(seco=seco)
+        sys.stdout.write("COSMOS  configurar  modelos  quitar" + ("  (seco)" if seco else "") + "\n\n" + "\n".join(lineas) + "\n")
         return 0
     try:
         lineas = mod.instalar(perfil=tabla, seco=seco, forzar=forzar)
@@ -595,9 +623,20 @@ def _modelos(accion: str, perfil: Path, *, seco: bool, forzar: bool) -> int:
     return 0
 
 
-def _lanzador(accion: str, config: Configuracion, *, forzar: bool) -> int:
+def _lanzador(accion: str, config: Configuracion, *, forzar: bool, seco: bool = False) -> int:
     from . import configurar as cfg
 
+    if seco:
+        # `--lanzador --seco` escribía el shim (revisión C-07).
+        ruta = cfg.LANZADOR
+        if accion == "quitar":
+            que = "no había lanzador" if not ruta.exists() else ("lo eliminaría" if cfg.es_lanzador_nuestro(ruta) else "no es nuestro: no lo tocaría")
+        else:
+            raiz = _base_repositorio(config).resolve()
+            que = (f"escribiría el shim -> python3 -m cosmos en {cfg.abreviar_home(raiz)}"
+                   if not ruta.exists() or cfg.es_lanzador_nuestro(ruta) or forzar else "existe y no es nuestro: no lo tocaría")
+        sys.stdout.write(f"COSMOS  configurar  lanzador  {accion}  (seco)\n\n  {cfg.abreviar_home(ruta)}: {que}\n")
+        return 0
     if accion == "quitar":
         ruta, estado = cfg.quitar_lanzador()
         texto = {"ausente": "no había lanzador", "ajeno": f"{ruta} no es nuestro: no se toca", "eliminado": f"{ruta} eliminado"}[estado]
@@ -640,7 +679,8 @@ def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> 
     else:
         args_cfg = argparse.Namespace(directorio=args.directorio, no_abrir=args.no_abrir, comprobar=False, llavero=False,
                                       seco=False, oficios=args.oficios or "", herramientas=args.herramientas or "",
-                                      autonomia=None, modelos=None, lanzador=None, forzar=False)
+                                      autonomia=None, modelos=None, lanzador=None, forzar=False,
+                                      alta_autonomia=args.autonomia, alta_modelos=args.modelos, alta_forzar=args.forzar)
         # Con oficios por bandera el alta es no interactiva y no pregunta por la máquina: eso lo
         # deciden los flags de instalar. Sin banderas, `configurar` pregunta lo suyo y también por
         # la máquina, y entonces los flags no se repiten.
@@ -932,10 +972,13 @@ def _saltar(args: argparse.Namespace, config: Configuracion) -> int:
 def _enganchar(args: argparse.Namespace, config: Configuracion) -> int:
     base = _base_repositorio(config)
     ruta, estado = enganchar(base, con_pruebas=not args.sin_pruebas)
+    aviso = aviso_pre_push(base)
     sys.stdout.write(
-        f"COSMOS  enganchar  verde\n\nHook de pre-commit {estado} en {ruta}\n"
+        f"COSMOS  enganchar  {'verde' if aviso is None else 'aviso'}\n\nHook de pre-commit {estado} en {ruta}\n"
         "Cada commit correrá 'puente.gate' sobre la instantánea del índice.\n"
     )
+    if aviso:
+        sys.stdout.write(f"\nOjo: {aviso}\n")
     if args.sesion:
         ajustes, estado_sesion = enganchar_sesion(base)
         sys.stdout.write(
@@ -1142,7 +1185,7 @@ def ejecutar(argv: list[str] | None = None) -> int:
             return 0
         if args.comando == "estado":
             if args.maquina:
-                filas = inventariar_maquina(arbol, raiz_clon=_base_repositorio(config).resolve())
+                filas = inventariar_maquina(arbol, directorio=args.directorio, raiz_clon=_base_repositorio(config).resolve())
                 sys.stdout.write(maquina_json(filas) if args.json else formatear_maquina(filas))
                 return 0
             inv = inventariar(arbol)

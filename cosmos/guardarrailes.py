@@ -360,6 +360,17 @@ def enganchar(base: Path, *, interprete: str | None = None, con_pruebas: bool = 
     return ruta, estado
 
 
+def aviso_pre_push(base: Path, *, interprete: str | None = None) -> str | None:
+    """Si hay un pre-push ajeno, `enganchar` no lo pisa: hasta ahora tampoco lo decía, y la
+    salida era «verde» sin el escáner de pre-push instalado (revisión C-17)."""
+    push = ruta_hook(base, "pre-push")
+    if not push.exists() or es_nuestro(push):
+        return None
+    return (f"ya hay un pre-push ajeno en {push}; el escáner de secretos de pre-push NO se instaló.\n"
+            "Encadénalo tú mismo añadiendo esta línea a ese hook:\n"
+            f"  {interprete or sys.executable} -m puente.secretos --todo")
+
+
 def desenganchar(base: Path) -> tuple[Path, str]:
     """Quita el hook propio y deja el repositorio exactamente como estaba."""
 
@@ -454,25 +465,45 @@ def _es_entrada_nuestra(entrada: object) -> bool:
 
 
 def podar_sesion(datos: dict) -> dict:
-    """Devuelve los ajustes sin NINGUNA entrada de COSMOS, dejando el resto intacto."""
+    """Devuelve los ajustes sin NINGUNA entrada de COSMOS, dejando el resto intacto.
+
+    Una lista que queda vacía porque se quitó lo nuestro desaparece; una lista que YA estaba
+    vacía era del usuario y se conserva (revisión C-13: `desenganchar` sin respaldo borraba
+    `"Stop": []` de un fichero ajeno).
+    """
 
     copia = json.loads(json.dumps(datos))
     hooks = copia.get("hooks")
     if not isinstance(hooks, dict):
         return copia
+    quitado = False
     for evento in list(hooks):
         entradas = hooks[evento]
         if not isinstance(entradas, list):
             continue
         restantes = [entrada for entrada in entradas if not _es_entrada_nuestra(entrada)]
+        if len(restantes) == len(entradas):
+            continue
+        quitado = True
         if restantes:
             hooks[evento] = restantes
         else:
-            # Una lista vacía no dice nada: se quita a los dos lados de la
-            # comparación, y el fichero original se devuelve tal cual estaba.
             del hooks[evento]
-    if not hooks:
+    if quitado and not hooks:
         del copia["hooks"]
+    return copia
+
+
+def _normalizar_sesion(datos: dict) -> dict:
+    """Para comparar: sin lo nuestro y sin listas vacías, que no dicen nada a ningún lado."""
+    copia = podar_sesion(datos)
+    hooks = copia.get("hooks")
+    if isinstance(hooks, dict):
+        for evento in list(hooks):
+            if hooks[evento] == []:
+                del hooks[evento]
+        if not hooks:
+            del copia["hooks"]
     return copia
 
 
@@ -511,13 +542,25 @@ def enganchar_sesion(base: Path, *, interprete: str | None = None) -> tuple[Path
         hooks[evento] = (existentes if isinstance(existentes, list) else []) + entradas
 
     respaldo = ruta_respaldo(raiz)
+    creo_directorio = not ruta.parent.exists()
+    guardado: dict = {}
+    if respaldo.is_file():
+        try:
+            guardado = json.loads(respaldo.read_text(encoding="utf-8"))
+        except ValueError:
+            guardado = {}
+    if isinstance(guardado, dict) and "existia" in guardado and "original" in guardado:
+        # Enganchar dos veces guardaba como «original» el fichero YA enganchado, y desenganchar
+        # lo devolvía con los cinco hooks dentro llamándolo byte a byte (revisión C-02).
+        existia, original = bool(guardado["existia"]), guardado["original"]
+        creo_directorio = bool(guardado.get("creo_directorio"))
     respaldo.parent.mkdir(parents=True, exist_ok=True)
     respaldo.write_text(
         json.dumps(
             {
                 "esquema": 1,
                 "existia": existia,
-                "creo_directorio": not ruta.parent.exists(),
+                "creo_directorio": creo_directorio,
                 "original": original,
             },
             ensure_ascii=False,
@@ -555,16 +598,21 @@ def desenganchar_sesion(base: Path) -> tuple[Path, str]:
         except ValueError:
             guardado = {}
     original = guardado.get("original")
+    if "existia" not in guardado and podado == datos:
+        # Sin respaldo y sin nada nuestro dentro: no hay nada que quitar, y reescribir el
+        # fichero ajeno «con el mismo contenido» es lo que se prometió no hacer.
+        respaldo.unlink(missing_ok=True)
+        return ruta, "ausente"
     if "existia" in guardado:
         # «El resto no ha cambiado» se comprueba comparando los dos ficheros SIN
-        # las entradas de COSMOS. Comparar contra el original tal cual daría falso
-        # negativo cuando el original ya traía una lista vacía para el mismo
-        # evento: podar la nuestra la deja vacía otra vez y no se distingue.
+        # las entradas de COSMOS ni las listas vacías. Comparar contra el original tal
+        # cual daría falso negativo cuando el original ya traía una lista vacía para el
+        # mismo evento: podar la nuestra la deja vacía otra vez y no se distingue.
         try:
-            previo = podar_sesion(json.loads(original)) if isinstance(original, str) else {}
+            previo = _normalizar_sesion(json.loads(original)) if isinstance(original, str) else {}
         except ValueError:
             previo = None
-        intacto = previo is not None and podado == previo
+        intacto = previo is not None and _normalizar_sesion(datos) == previo
         if intacto and guardado["existia"] and isinstance(original, str):
             ruta.write_text(original, encoding="utf-8")
             respaldo.unlink(missing_ok=True)

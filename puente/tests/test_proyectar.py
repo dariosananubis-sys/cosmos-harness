@@ -77,7 +77,51 @@ class Proyeccion(unittest.TestCase):
         sincronizar(self.destino, self.contrato, self.arbol, self.config)
         actuales = json.loads(ajustes.read_text(encoding="utf-8"))
         self.assertEqual(actuales["model"], "propio")
-        self.assertFalse(actuales["autoMemoryEnabled"])
+        # Revisión C-03: una clave presente es del anfitrión aunque se llame como una nuestra.
+        self.assertTrue(actuales["autoMemoryEnabled"], "proyectar pisó un ajuste del anfitrión")
+        self.assertFalse(actuales["includeGitInstructions"], "la clave ausente sí se añade")
+
+    def test_un_ajuste_del_anfitrion_no_se_pisa_ni_comprobar_lo_exige(self) -> None:
+        ajustes = self.destino / ".claude" / "settings.json"
+        ajustes.parent.mkdir(parents=True)
+        ajustes.write_text(json.dumps({"attribution": {"commit": "Firmado por mí", "mio": 1}}), encoding="utf-8")
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        actuales = json.loads(ajustes.read_text(encoding="utf-8"))
+        self.assertEqual(actuales["attribution"]["commit"], "Firmado por mí")
+        self.assertEqual(actuales["attribution"]["mio"], 1)
+        self.assertEqual(actuales["attribution"]["pr"], "", "dentro del mismo objeto, lo ausente se añade")
+        self.assertEqual(problemas(self.destino, self.contrato, self.arbol, self.config), [])
+
+    def test_el_bloque_se_sustituye_donde_estaba(self) -> None:
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        agentes = self.destino / "AGENTS.md"
+        agentes.write_text(agentes.read_text(encoding="utf-8") + "\n## Mis notas al final\n", encoding="utf-8")
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        texto = agentes.read_text(encoding="utf-8")
+        self.assertLess(texto.index(FIN), texto.index("## Mis notas al final"), "el bloque se movió al final (C-15)")
+        self.assertTrue(texto.endswith("## Mis notas al final\n"))
+        self.assertEqual(problemas(self.destino, self.contrato, self.arbol, self.config), [])
+
+    def test_un_claude_md_con_crlf_conserva_su_final_de_linea(self) -> None:
+        ruta = self.destino / "CLAUDE.md"
+        ruta.write_bytes(b"# Mi proyecto\r\n\r\nReglas mias.\r\n")
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        crudo = ruta.read_bytes()
+        self.assertIn(b"Reglas mias.\r\n", crudo)
+        self.assertNotIn(b"\n\n", crudo.replace(b"\r\n", b""), "quedaron saltos LF sueltos en un fichero CRLF")
+        self.assertIn(INICIO.encode(), crudo)
+        self.assertEqual(problemas(self.destino, self.contrato, self.arbol, self.config), [])
+
+    def test_una_skill_enlazada_del_anfitrion_no_aborta_la_proyeccion(self) -> None:
+        propias = self.destino / "skills-propias" / "mia"
+        propias.mkdir(parents=True)
+        (propias / "SKILL.md").write_text("---\nname: mia\ndescription: mia\n---\n", encoding="utf-8")
+        base = self.destino / ".claude" / "skills"
+        base.mkdir(parents=True)
+        (base / "mia").symlink_to(propias)
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        self.assertTrue((base / "mia").is_symlink(), "el enlace del anfitrión tiene que seguir ahí")
+        self.assertEqual(problemas(self.destino, self.contrato, self.arbol, self.config), [])
 
     def test_un_fichero_ajeno_cualquiera_sobrevive(self) -> None:
         (self.destino / "README.md").write_text(AJENO, encoding="utf-8")

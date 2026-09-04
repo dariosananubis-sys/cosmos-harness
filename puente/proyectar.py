@@ -316,7 +316,9 @@ def _gestionados(base: Path) -> dict[str, Path]:
     resultado = {}
     for hijo in base.iterdir():
         if hijo.is_symlink():
-            raise ErrorProyeccion("una skill del destino no puede ser symlink")
+            # Es del anfitrión: se ignora. Si coincide en nombre con una skill nuestra, la
+            # guarda de «no se sobrescribe lo ajeno» la para igual (revisión C-20).
+            continue
         marca = hijo / MARCA
         if hijo.is_dir() and marca.is_file() and not marca.is_symlink():
             if marca.read_text(encoding="utf-8") == CONTENIDO_MARCA:
@@ -392,6 +394,13 @@ def bloque(contrato: ContratoPlaneta, arbol: Arbol) -> str:
 def _fusionar(existente: str, nuevo: str) -> str:
     """Sustituye solo lo que está entre marcadores; lo de fuera se conserva entero."""
 
+    fin_de_linea = "\r\n" if "\r\n" in existente else "\n"
+    existente = existente.replace("\r\n", "\n")
+    texto = _fusionar_lf(existente, nuevo)
+    return texto.replace("\n", fin_de_linea) if fin_de_linea != "\n" else texto
+
+
+def _fusionar_lf(existente: str, nuevo: str) -> str:
     inicios = [c.start() for c in re.finditer(re.escape(INICIO), existente)]
     finales = [c.end() for c in re.finditer(re.escape(FIN), existente)]
     if not inicios and not finales:
@@ -401,13 +410,15 @@ def _fusionar(existente: str, nuevo: str) -> str:
         return f"{existente}{separador}{nuevo}"
     if len(inicios) != 1 or len(finales) != 1 or inicios[0] >= finales[0]:
         raise ErrorProyeccion("marcadores de COSMOS inválidos en las instrucciones del planeta")
+    # El bloque se sustituye DONDE ESTÁ: mandarlo al final desplazaba lo que el dueño había
+    # escrito después de él (revisión C-15).
     prefijo = existente[: inicios[0]]
     corte = finales[0] + (1 if existente[finales[0] :].startswith("\n") else 0)
-    fuera = prefijo + existente[corte:]
-    if not fuera:
+    resto = existente[corte:]
+    if not prefijo and not resto:
         return nuevo
-    separador = "" if fuera.endswith("\n\n") else "\n" if fuera.endswith("\n") else "\n\n"
-    return f"{fuera}{separador}{nuevo}"
+    bloque_nuevo = nuevo if nuevo.endswith("\n") or not resto else nuevo + "\n"
+    return f"{prefijo}{bloque_nuevo}{resto}"
 
 
 def ficheros_raiz_esperados(
@@ -425,7 +436,9 @@ def ficheros_raiz_esperados(
         ruta = _ruta_del_planeta(raiz, Path(nombre))
         if ruta.is_symlink():
             raise ErrorProyeccion(f"{nombre} no puede ser symlink")
-        existente = ruta.read_text(encoding="utf-8") if ruta.exists() else ""
+        # Bytes, no `read_text`: este normaliza CRLF a LF y luego se reescribía el fichero
+        # entero del anfitrión con otro final de línea (revisión C-14).
+        existente = ruta.read_bytes().decode("utf-8") if ruta.exists() else ""
         esperados[ruta] = _fusionar(existente, texto).encode("utf-8")
     return esperados
 
@@ -447,17 +460,22 @@ def ajustes_claude_esperados(raiz: Path) -> dict:
 
 
 def _fusionar_ajustes(actual: dict, nuestros: dict) -> dict:
-    """Fusión recursiva: `actual | nuestros` era superficial y borraba `attribution.miCampoPropio`
-    del `settings.json` de un repositorio AJENO (revisión R-46). Lo nuestro manda en su clave; lo
-    del anfitrión dentro del mismo objeto se conserva. El orden de claves del anfitrión se respeta."""
+    """Añade lo que falte y NO pisa lo que el anfitrión ya tiene.
+
+    `actual | nuestros` era superficial y borraba `attribution.miCampoPropio` (revisión R-46);
+    la fusión recursiva que lo arregló seguía imponiendo nuestro valor sobre el del dueño
+    (`autoMemoryEnabled: true` pasaba a `false`) y `comprobar` daba rojo cuando lo volvía a
+    poner (revisión C-03). El README promete «sin pisar nada suyo»: una clave presente es
+    suya, se llame como se llame. El orden de claves del anfitrión se respeta."""
 
     resultado = dict(actual)
     for clave, valor in nuestros.items():
-        previo = resultado.get(clave)
+        if clave not in resultado:
+            resultado[clave] = valor
+            continue
+        previo = resultado[clave]
         if isinstance(valor, dict) and isinstance(previo, dict):
             resultado[clave] = _fusionar_ajustes(previo, valor)
-        else:
-            resultado[clave] = valor
     return resultado
 
 

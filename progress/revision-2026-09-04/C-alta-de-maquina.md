@@ -1,6 +1,6 @@
 # Revisión C — alta de máquina y CLI (2026-09-04)
 
-Informe de un revisor adversarial de solo lectura sobre `cosmos/configurar.py`, `cosmos/cli.py`, `cosmos/guardarrailes.py`, `puente/proyectar.py` y `puente/modelos.py`. 22 hallazgos reproducidos con comando y salida sobre un HOME falso; ninguno arreglado todavía. Cada arreglo debe entrar con su mutación en `puente/tests/mutaciones.py`.
+Informe de un revisor adversarial de solo lectura sobre `cosmos/configurar.py`, `cosmos/cli.py`, `cosmos/guardarrailes.py`, `puente/proyectar.py` y `puente/modelos.py`. 22 hallazgos reproducidos con comando y salida sobre un HOME falso. **Los 22 arreglados el mismo día**: tests en `tests/test_revision_c.py` y `puente/tests/test_proyectar.py`, mutaciones M89–M111 en `puente/tests/mutaciones.py`. Los dos plausibles (carrera del reponedor, secreto por argv en `--llavero`) quedan abiertos.
 
 El repo real sigue intacto (solo el `settings.local.json` que ya estaba sin versionar) y el HOME real no se ha tocado; todo corrió con `HOME=…/scratchpad/revC/home*`, un clon del repo en `revC/clon` (sin `.git` original ni `pruebas/encargos-validacion.json`), un repo ajeno de juguete en `revC/ajeno` y un `launchctl` falso en `revC/fakebin` para las pruebas del vigilante.
 

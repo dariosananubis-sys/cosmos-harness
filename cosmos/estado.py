@@ -194,7 +194,7 @@ def estado_json(inv: Inventario) -> str:
 @dataclass(frozen=True)
 class FilaMaquina:
     nombre: str
-    estado: str  # ok | falta | no_comprobado | desactualizado | ajeno | auto | libre | manual | desconocido
+    estado: str  # ok | falta | inseguro | no_comprobado | desactualizado | ajeno | auto | libre | manual | desconocido
     detalle: str
 
 
@@ -257,6 +257,10 @@ def inventariar_maquina(arbol: Arbol, *, directorio=None, raiz_clon=None) -> lis
                                  "ninguna herramienta elegida pide credenciales" if datos is not None else "sin perfil no se sabe cuáles hacen falta"))
     elif not credenciales.is_file():
         filas.append(FilaMaquina("credenciales", "falta", f"{credenciales} no existe -> cosmos configurar"))
+    elif _permisos_flojos(directorio, credenciales):
+        # «ok» con el fichero en 644 era un verde que mentía sobre lo único que el README
+        # promete de las credenciales: 700 el directorio, 600 el fichero (revisión C-11).
+        filas.append(FilaMaquina("credenciales", "inseguro", _permisos_flojos(directorio, credenciales)))
     else:
         faltan, sospechosas = cfg.comprobar_credenciales(esperadas, cfg.leer_credenciales(credenciales))
         total = len({c.variable for c in esperadas})
@@ -299,6 +303,22 @@ def inventariar_maquina(arbol: Arbol, *, directorio=None, raiz_clon=None) -> lis
             filas.append(FilaMaquina("lanzador", "ok" if en_path else "falta",
                                      f"{lanzador} -> {apunta}" + ("" if en_path else f"  ({lanzador.parent} no está en el PATH)")))
     return filas
+
+
+def _permisos_flojos(directorio, credenciales) -> str | None:
+    import stat
+
+    try:
+        modo_dir = stat.S_IMODE(directorio.stat().st_mode)
+        modo_fich = stat.S_IMODE(credenciales.stat().st_mode)
+    except OSError:
+        return None
+    problemas = []
+    if modo_dir & 0o077:
+        problemas.append(f"{directorio} es {modo_dir:o}, debería ser 700 -> chmod 700 {directorio}")
+    if modo_fich & 0o077:
+        problemas.append(f"{credenciales} es {modo_fich:o}, debería ser 600 -> chmod 600 {credenciales}")
+    return "; ".join(problemas) or None
 
 
 def formatear_maquina(filas: list[FilaMaquina]) -> str:

@@ -160,7 +160,9 @@ python3 -m cosmos proyectar comprobar /ruta/al/repo                  # rojo si a
 
 Lo que escribe en el repo ajeno: un bloque entre `<!-- cosmos:inicio -->` y `<!-- cosmos:fin -->`
 en su `CLAUDE.md` y `AGENTS.md` (índice, océanos, catálogo del nicho, contrato; lo de fuera de las
-marcas no se toca), y los pueblos de esos nichos como **skills nativas** en `.claude/skills/` y
+marcas no se toca y el bloque se sustituye donde esté), unas pocas claves en `.claude/settings.json`
+**solo si faltan** (memoria automática apagada, sin instrucciones de git, sin atribución; lo que el
+anfitrión ya tiene manda), y los pueblos de esos nichos como **skills nativas** en `.claude/skills/` y
 `.agents/skills/`, con `name:` y `description:` para que el agente anfitrión las descubra. La carga
 perezosa allí es la del anfitrión: nombre y descripción en el prompt, cuerpo al invocar. Los verbos
 de COSMOS no viajan; el bloque lo dice y explica cómo bajar por otro oficio. `comprobar` verifica el

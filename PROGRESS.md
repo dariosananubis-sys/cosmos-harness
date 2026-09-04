@@ -50,7 +50,7 @@ COSMOS  estado
     oceano              5
     rio                19
     estrella           25
-    lluvia             17
+    lluvia             18
 
   Herramientas por oficio
     ciberseguridad         35

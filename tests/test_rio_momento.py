@@ -14,6 +14,7 @@ encontrándose.
 
 from __future__ import annotations
 
+import argparse
 import re
 import unittest
 from pathlib import Path
@@ -73,8 +74,8 @@ class LosVerbosDeMontarNoSePaganCadaSesion(unittest.TestCase):
 # no rompe nada y el coste vuelve a subir en silencio — que es justo lo que pasó al
 # probar este fichero con un sabotaje. Añadir un río obliga a decidir en qué lado cae.
 DE_MANTENIMIENTO = {
-    "acertar", "arrancar", "compilar", "desenganchar",
-    "enganchar", "generar", "mapa", "proyectar",
+    "acertar", "arrancar", "compilar", "configurar", "desenganchar",
+    "enganchar", "generar", "instalar", "mapa", "proyectar",
 }
 
 
@@ -119,8 +120,13 @@ class ElCampoTieneUnValorOOtro(unittest.TestCase):
     def test_cada_verbo_del_cli_tiene_su_rio(self) -> None:
         """El hueco que motivó `rio/abrir`: se añadió el comando y no su verbo."""
 
-        cli = (RAIZ / "cosmos/cli.py").read_text(encoding="utf-8")
-        comandos = set(re.findall(r'base\(\s*"([a-z-]+)"', cli))
+        # Se leen los subcomandos del PARSER, no un patrón del fuente: `configurar` se añadió
+        # con `subparsers.add_parser(...)` en vez de `base(...)`, y este test lo dejó pasar sin
+        # río durante un día (revisión B-05).
+        from cosmos.cli import _parser
+
+        acciones = [a for a in _parser()._actions if isinstance(a, argparse._SubParsersAction)]
+        comandos = set(acciones[0].choices)
         rios = {n.nombre for n in ARBOL.nodos if n.cosmos == "rio"}
         self.assertEqual(comandos - rios, set(), "hay comandos sin su río en el árbol")
 

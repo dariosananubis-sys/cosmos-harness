@@ -2,7 +2,7 @@
 cosmos: lluvia
 nombre: migracion-puente
 moja: []
-resumen: Cuatro piezas del arnés de origen adaptadas a COSMOS en puente/, con 35 tests y 8 mutaciones en rojo.
+resumen: Cuatro piezas del arnes de origen adaptadas a COSMOS en puente/, con 35 tests y 8 mutaciones en rojo.
 ---
 
 # El puente — cuatro piezas migradas y adaptadas

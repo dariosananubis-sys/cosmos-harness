@@ -1,4 +1,4 @@
-# El universo — 22 oficios
+# El universo — 25 oficios
 
 Encargo de Darío, en tres correcciones sucesivas que llevan al mismo sitio:
 
@@ -23,7 +23,13 @@ código y déjalo mejor» son dos contratos con herramientas disjuntas (medido: 
 solapamiento), y de los diez vecinos que citaban al nicho, nueve venían por la velocidad. El que
 venía por lo otro (`agentes-ia`) apunta ahora a `refactorizacion`.
 
-## Los 22
+Y la misma prueba admitió tres el 2026-09-03, con el sí de Darío: `localizacion`, `entregabilidad` y
+`aprendizaje-automatico`. Los tres se contratan por su nombre —«tradúceme el producto», «mis correos
+caen en spam», «entréname un modelo y ponlo a servir»—, ninguno cabía entero en un nicho existente y
+los tres traían herramientas que no estaban en el árbol. Nacen pequeños, con tres herramientas
+verificadas en vivo cada uno, que es como manda el criterio 2: uno por hueco, no una acumulación.
+
+## Los 25
 
 | # | Nicho | El trabajo por el que te contratan |
 |---|---|---|
@@ -33,7 +39,7 @@ venía por lo otro (`agentes-ia`) apunta ahora a `refactorizacion`.
 | 4 | `moviles` | Una aplicación en las tiendas, mantenible y que no consume batería |
 | 5 | `juegos` | Un juego que se publica: motor, bucle, activos, distribución |
 | 6 | `saas` | Un producto de suscripción: identidad, pagos, multi-cliente, facturación |
-| 7 | `agentes-ia` | Agentes que hacen trabajo real, con herramientas, memoria y evaluación |
+| 7 | `agentes-ia` | Agentes que hacen trabajo real —herramientas, memoria, evaluación— y el instrumental con el que se opera al propio agente de código |
 | 8 | `modelos-locales` | IA que corre en tu máquina: privacidad, coste cero por uso, sin depender de nadie |
 | 9 | `ingenieria-datos` | Un pipeline que valida antes de cargar y avisa cuando se rompe |
 | 10 | `analitica` | Cuadros de mando y métricas de negocio en los que se puede confiar |
@@ -49,6 +55,9 @@ venía por lo otro (`agentes-ia`) apunta ahora a `refactorizacion`.
 | 20 | `cumplimiento` | RGPD, accesibilidad legal, licencias: lo que evita la multa |
 | 21 | `rendimiento` | Que el código vaya rápido: perfilado, depuración de lo raro, memoria |
 | 22 | `refactorizacion` | Entrar en código ajeno y dejarlo mejor: cambio en masa seguro, deuda, duplicación |
+| 23 | `localizacion` | El mismo producto hablando varios idiomas, y siguiendo traducido cuando el código cambia |
+| 24 | `entregabilidad` | Que el correo que manda tu máquina llegue a la bandeja de entrada y no a spam |
+| 25 | `aprendizaje-automatico` | Entrenar un modelo que generaliza, ajustarlo y dejarlo respondiendo peticiones |
 
 ### Qué salió, y por qué
 
@@ -64,7 +73,7 @@ venía por lo otro (`agentes-ia`) apunta ahora a `refactorizacion`.
 
 ## Los mares — lo transversal, que no es un nicho
 
-Seis aguas que mojan los 22 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
+Seis aguas que mojan los 25 sin pertenecer a ninguno. No se invocan: actúan siempre que se toca su
 terreno.
 
 | Mar | Qué impone |
@@ -141,7 +150,7 @@ Lo que no cambia: el criterio 2 sigue siendo eliminatorio. El presupuesto impide
 engorde sin freno, pero **no impide meter basura repartida** — eso solo lo impide elegir bien.
 
 Esta es la restricción que convierte «lo mejor del mundo» en una decisión y no en una acumulación.
-Sin ella, «llenar 22 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
+Sin ella, «llenar 25 nichos» acaba siendo meter 300 herramientas y volver exactamente al problema
 que COSMOS existe para resolver.
 
 ## Ciberseguridad: el límite que no se cruza

@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: captura-recortada
-padre: agentes-ia/coste
+padre: agentes-ia/instrumentacion
 resumen: Captura solo la ventana o la region que hace falta; una pantalla entera es la imagen mas cara que se puede meter.
 origen: propio
 ---
@@ -22,7 +22,7 @@ encuentra ninguna.
 
 Gana a `screencapture` a secas para el caso de ventana tapada, que es el único donde la región no
 sirve: no se puede recortar lo que no se ve. Para todo lo demás, el `-R` nativo es más barato aún y no
-pide dependencias — y en este arnés la pantalla entera está bloqueada por enganche.
+pide dependencias.
 
 Ojo: si sale negra no está rota — es TCC. Concederle Grabación de pantalla al proceso que la lanza
 (Ajustes › Privacidad), no al guion. Y no confundirlo con `scripts/foto-cuadrar.py`, que es otra cosa:

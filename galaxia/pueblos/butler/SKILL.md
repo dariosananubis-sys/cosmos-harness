@@ -2,7 +2,7 @@
 cosmos: pueblo
 nombre: butler
 padre: juegos/motores
-resumen: Sube una build a itch.io con parches binarios; unico pueblo de la provincia de distribucion.
+resumen: Sube una build a itch.io con parches binarios: solo sube lo que cambio, no el juego entero.
 ---
 
 https://github.com/itchio/butler · MIT · 980★ · último push 2026-09-03 (comprobado 2026-09-03)
@@ -20,10 +20,10 @@ butler push carpeta-de-la-build usuario/mi-juego:canal-windows
 butler status usuario/mi-juego:canal-windows      # ver versiones subidas y su tamano de parche
 ```
 
-Nota de padre: vive en `juegos/distribucion`, la provincia abierta para él (antes no existía y
-entraba en `juegos/motores` por no haber hueco más propio). `butler` no es un motor, es la
-herramienta de línea de comandos para **publicar** la build que produce cualquiera de los motores
-del país (`godot`, `bevy`, `phaser`, `raylib`).
+Nota de sitio: cuelga de `juegos/motores` y **no es un motor**. Es la herramienta de línea de
+comandos para **publicar** la build que produce cualquiera de ellos (`godot`, `bevy`, `phaser`,
+`raylib`). El país de distribución que llegó a abrirse para él se retiró el 2026-09-03 por tener un
+solo hijo, que es el antipatrón de nivel de relleno de `spec/TAXONOMIA.md`.
 
 Gana a subir el zip a mano por la web de itch.io en lo único que importa para iterar rápido: usa el
 protocolo `wharf` para calcular un **parche binario** entre la build anterior y la nueva, así que

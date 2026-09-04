@@ -25,6 +25,6 @@ artículo de blog de hace tres años que sale primero en el buscador.
 
 Ojo, y es una decisión de presupuesto, no de calidad: como todo servidor de herramientas, **cuesta
 contexto en cada sesión** por el mero hecho de estar conectado. Se deja conectado solo mientras se
-usa. Ya está disponible en esta casa. Y la cobertura depende de que la biblioteca esté indexada:
-para una interna o muy nueva no hay nada que traer, y ahí el resultado vacío se confunde con «no
-existe esa API».
+usa. Cuando el harness anfitrión ya lo trae conectado, no hay nada que instalar. Y la cobertura
+depende de que la biblioteca esté indexada: para una interna o muy nueva no hay nada que traer, y
+ahí el resultado vacío se confunde con «no existe esa API».

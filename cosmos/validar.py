@@ -269,12 +269,23 @@ def _comprobar_e06(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
 
 
 def _comprobar_e07(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
+    """E07 — `resumen` presente, ≤ N caracteres y en ASCII.
+
+    Lo tercero era costumbre, no norma: 453 de 454 resúmenes iban sin acentos y uno no, en un
+    océano (revisión B-29). El resumen es la línea que se paga en cada sesión y el tokenizador
+    BPE parte cada carácter acentuado en una pieza aparte (`docs/CALIBRACION.md`); el cuerpo,
+    que solo se paga al abrir el nodo, sí lleva acentos.
+    """
     errores = []
     for nodo in arbol.nodos:
         if not nodo.resumen:
             errores.append(_error("E07", nodo, "resumen ausente", "Añade un resumen informativo.", campo="resumen"))
         elif len(nodo.resumen) > config.resumen:
             errores.append(_error("E07", nodo, f"resumen de {len(nodo.resumen)} caracteres; máximo {config.resumen}", "Recorta el resumen sin describir a los hijos.", campo="resumen"))
+        elif not nodo.resumen.isascii():
+            raros = "".join(sorted({c for c in nodo.resumen if not c.isascii()}))
+            errores.append(_error("E07", nodo, f"resumen con caracteres fuera de ASCII ({raros}); se paga en cada sesión y cada acento cuesta una pieza más",
+                                  "Escribe el resumen sin acentos ni signos especiales; el cuerpo sí los lleva.", campo="resumen"))
     return errores
 
 

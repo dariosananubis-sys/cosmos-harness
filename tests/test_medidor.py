@@ -17,9 +17,9 @@ class PruebasMedidor(unittest.TestCase):
     @staticmethod
     def arbol_dos_nichos() -> Arbol:
         nodos = [
-            Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "Organiza dos nichos sintéticos."}, {}, ""),
-            Nodo(Path("web.md"), "web.md", {"cosmos": "sistema-solar", "nombre": "web", "resumen": "Construye sitios sintéticos.", "padre": ""}, {}, ""),
-            Nodo(Path("saas.md"), "saas.md", {"cosmos": "sistema-solar", "nombre": "saas", "resumen": "Construye servicios sintéticos.", "padre": ""}, {}, ""),
+            Nodo(Path("galaxia.md"), "galaxia.md", {"cosmos": "galaxia", "nombre": "raiz", "resumen": "Organiza dos nichos sinteticos."}, {}, ""),
+            Nodo(Path("web.md"), "web.md", {"cosmos": "sistema-solar", "nombre": "web", "resumen": "Construye sitios sinteticos.", "padre": ""}, {}, ""),
+            Nodo(Path("saas.md"), "saas.md", {"cosmos": "sistema-solar", "nombre": "saas", "resumen": "Construye servicios sinteticos.", "padre": ""}, {}, ""),
             Nodo(Path("web-provincia.md"), "web-provincia.md", {"cosmos": "provincia", "nombre": "calidad-web", "resumen": "Agrupa controles web.", "padre": "web"}, {}, ""),
             Nodo(Path("saas-provincia.md"), "saas-provincia.md", {"cosmos": "provincia", "nombre": "calidad-saas", "resumen": "Agrupa controles SaaS.", "padre": "saas"}, {}, ""),
             Nodo(Path("web-tool.md"), "web-tool.md", {"cosmos": "pueblo", "nombre": "web-tool", "resumen": "Comprueba una interfaz web.", "padre": "web/calidad-web"}, {}, ""),
@@ -242,7 +242,7 @@ class PruebasMedidor(unittest.TestCase):
     @staticmethod
     def _escribir_arbol(raiz: Path, aguas: dict[str, list[str]]) -> None:
         (raiz / "galaxia.md").write_text(
-            "---\ncosmos: galaxia\nnombre: agua\nresumen: Galaxia mínima para medir el agua condicional.\n---\n\nCuerpo.\n",
+            "---\ncosmos: galaxia\nnombre: agua\nresumen: Galaxia minima para medir el agua condicional.\n---\n\nCuerpo.\n",
             encoding="utf-8",
         )
         for nombre, moja in aguas.items():

@@ -45,6 +45,29 @@ El agua nunca define jerarquía. Un lago no es menos importante que un océano: 
 superficie**. Confundir alcance con importancia es como un harness llega a 27.000 tokens de prólogo,
 un párrafo global bienintencionado cada vez.
 
+## Instalar en un Mac nuevo
+
+Diez líneas, sin `curl | bash`: lo que se ejecuta está en disco y ha pasado por el índice, el
+escáner de secretos y el gate. Hace falta `python3` 3.11 o posterior y `git`; nada más.
+
+```
+git clone <repo> ~/cosmos && cd ~/cosmos
+python3 -m cosmos instalar --autonomia auto --modelos --lanzador
+#   1/4 arrancar: compila la vista plana y valida el clon
+#   2/4 configurar: pregunta oficios y herramientas, abre ~/.cosmos/credenciales.txt para rellenarlo
+#   3/4 la máquina: el runtime deja de pedir permiso (ajustes de usuario), todos los modelos en /model,
+#       y `cosmos` en el PATH
+#   4/4 estado --maquina: qué hay y qué falta, trivalente (ok / falta / no_comprobado)
+python3 -m cosmos configurar --comprobar     # cuando el fichero de credenciales esté relleno
+python3 -m cosmos enganchar --sesion         # el gate en cada commit y los guardarraíles de sesión
+```
+
+Cada pieza se deshace con el mismo verbo (`--autonomia manual`, `--modelos quitar`, `--lanzador
+quitar`, `desenganchar`) devolviendo cada fichero byte a byte cuando nadie más lo tocó. `--seco` lo
+cuenta sin escribir. Lo que el agente lee al abrir el harness es el océano `autonomia`: se ejecuta
+sin pedir permiso, inicia sesión donde haga falta con las credenciales del alta, y solo lo que no
+tiene vuelta atrás espera un sí.
+
 ## Cómo se usa
 
 Tres verbos, y el tercero es tu terminal. Nada que adivinar: cada salida dice qué hacer después.
@@ -69,8 +92,10 @@ ausente y E19 lo canta. Un comando lo resuelve:
 ```
 git clone <repo> && cd cosmos
 python3 -m cosmos arrancar        # compila la vista y valida; deja el clon en verde
-python3 -m cosmos enganchar       # instala el gate de pre-commit (opcional, muy recomendable)
+python3 -m cosmos enganchar       # instala el gate de pre-commit y el pre-push (opcional, muy recomendable)
 ```
+
+(`cosmos instalar` lo encadena con el alta; esto es el paso suelto.)
 
 Sobre un directorio vacío con su `cosmos.toml`, `arrancar` escribe además la galaxia mínima y el
 índice, que son los dos artefactos que un árbol nuevo no tiene, y se queda en verde. Un sistema
@@ -95,6 +120,31 @@ En el repo solo hay la plantilla vacía (`docs/credenciales.plantilla.txt`); `.g
 escáner de secretos impiden que `credenciales*.txt` o `perfil.toml` se versionen. Con el perfil
 puesto, `cosmos medir` y la vista compilada solo llevan tus oficios y tus herramientas; el juez
 del presupuesto (E16) sigue mirando el peor nicho entero, porque el techo vale para cualquiera.
+
+El alta tiene tres caras más, **de máquina** y no de proyecto: el runtime solo acepta el modo de
+permisos desde sus ajustes de usuario (desde el `.claude/settings.json` de un repositorio lo ignora
+en silencio), así que un `enganchar --libre` sería un verde que miente.
+
+```
+python3 -m cosmos configurar --autonomia            # en qué grado arranca esta máquina; no toca nada
+python3 -m cosmos configurar --autonomia auto       # sin preguntas, con el clasificador del runtime detrás (recomendado)
+python3 -m cosmos configurar --autonomia libre      # bypassPermissions + aceptación del diálogo; ojo: apaga también el clasificador
+python3 -m cosmos configurar --autonomia manual     # deshace: el fichero vuelve byte a byte
+python3 -m cosmos configurar --modelos instalar     # todos los modelos de la cuenta en /model, para siempre (macOS: agente launchd + hook)
+python3 -m cosmos configurar --modelos estado       # qué hay; el acceso de la cuenta a cada id se declara no_comprobado (hace falta red)
+python3 -m cosmos configurar --lanzador             # ~/.local/bin/cosmos apuntando a este clon
+python3 -m cosmos estado --maquina                  # el inventario de la máquina, trivalente
+```
+
+`--autonomia` es lo que hace verdadera la promesa del océano `autonomia`: G01 avisa en cada arranque
+si la carta promete libertad y los ajustes de usuario arrancan en manual (y dice `desconocido`
+cuando no puede leerlos: el evento de arranque no trae el modo). La lista de modelos vive en un solo
+sitio, `puente/modelos.py`, y un test la compara con este README y con el río `configurar`:
+Fable 5.1 (`claude-fable-5-1`), Opus 5 (`claude-opus-5`), Sonnet 5 (`claude-sonnet-5`), Haiku 4.5
+(`claude-haiku-4-5-20251001`) y las variantes de ventana de un millón `claude-fable-5-1[1m]`,
+`claude-opus-5[1m]` y `claude-sonnet-5[1m]`. Los atajos `maxcode` (Opus 5 + `--effort max`) y
+`ultracode` (Opus 5 + `--effort ultracode`) se instalan con el vigilante; no se suman, son puntos
+distintos de la misma escala.
 
 ## Montarlo sobre tu proyecto
 
@@ -125,7 +175,7 @@ en `ejemplo.toml`: `python3 -m cosmos arrancar --config ejemplo.toml`.
 
 ## Cómo se sostiene
 
-Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se acuerde:
+Cuatro piezas que comprueban, y cuatro enganches que las ejecutan sin que nadie se acuerde:
 
 | Pieza | Qué hace |
 |---|---|
@@ -136,9 +186,10 @@ Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se
 
 | Enganche | Cuándo corre | Se instala con |
 |---|---|---|
-| pre-commit | Antes de cada commit, sobre la **instantánea del índice** (no sobre lo que haya sucio en disco) | `cosmos enganchar` |
+| pre-commit | Antes de cada commit, sobre la **instantánea del índice** (no sobre lo que haya sucio en disco): validar, las dos suites, secretos y los canarios `P01`/`P02` | `cosmos enganchar` |
+| pre-push | Antes de cada push: el escáner de secretos sobre todo lo versionado, la última puerta local antes de que algo salga del disco | `cosmos enganchar` |
 | **sesión** | Mientras un agente trabaja: cinco guardarraíles que avisan, protegen lo generado y tapan secretos antes de que lleguen al modelo | `cosmos enganchar --sesion` |
-| CI | En cada push y cada PR | ya está en `.github/workflows/cosmos.yml` |
+| CI | En cada push y cada PR, en Linux y macOS y con el Python mínimo (3.11): todo lo anterior más las mutaciones y la calibración | ya está en `.github/workflows/cosmos.yml` |
 
 (`cosmos arrancar` no es un enganche: es lo primero que se ejecuta tras clonar, porque la vista
 plana es un artefacto generado y no viaja en el repositorio.)
@@ -165,7 +216,7 @@ python3 -m cosmos saltar --listar
 
 | Propiedad | Regla |
 |---|---|
-| Acotada | Un código concreto (`E00`..`E21`), de sesión (`G01`..`G05`) o del gate (`P01`); nunca «todo» |
+| Acotada | Un código concreto (`E00`..`E21`), de sesión (`G01`..`G05`) o del gate (`P01`, `P02`); nunca «todo» |
 | Con motivo | Obligatorio. Sin `--motivo` no hay salto |
 | Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
 | Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Vigila que el acceso remoto a este Mac siga vivo y lo reactiva si algo lo apaga.
+# Vigila que el acceso remoto al equipo siga vivo y lo reactiva si algo lo apaga.
 # Lo apaga: actualizaciones de macOS, "Compartir" en Ajustes, un reset de energia.
 # Instalado en /usr/local/sbin/ y lanzado cada 5 min por
 # /Library/LaunchDaemons/es.example.acceso-remoto-watchdog.plist

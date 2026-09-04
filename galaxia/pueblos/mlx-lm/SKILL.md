@@ -28,7 +28,7 @@ Ollama lo adoptó como backend en Apple Silicon.
 
 Es además **la única vía real de ajuste fino aquí**: `mlx_lm.lora` hace LoRA/QLoRA sobre esa base.
 Los entrenadores del ecosistema NVIDIA quedan descartados por hardware, `unslothai/unsloth` (75.414★)
-incluido: exige CUDA y no corre en este Mac.
+incluido: exige CUDA y no corre en Apple Silicon.
 
 Ojo: cuantizar no es gratis. Un 4-bit pierde calidad de forma que no se ve en una prueba corta y sí en
 una tarea larga, así que comparar modelos a ojo entre cuantizaciones distintas no vale — para eso está

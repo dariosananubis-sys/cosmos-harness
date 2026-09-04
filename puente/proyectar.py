@@ -597,12 +597,16 @@ def iniciar(raiz: Path, arbol: Arbol, nombre: str | None, tipo: str, nichos: lis
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog="cosmos proyectar", description=__doc__)
     parser.add_argument("--config", default=None, help="cosmos.toml a usar")
     subparsers = parser.add_subparsers(dest="orden", required=True)
+    ayudas = {
+        "sincronizar": "inyecta el bloque marcado en CLAUDE.md/AGENTS.md del repo destino y sus pueblos como skills nativas",
+        "comprobar": "rojo si el bloque o las skills del repo destino se desincronizaron con el contrato",
+    }
     for orden in ("sincronizar", "comprobar"):
-        hijo = subparsers.add_parser(orden)
-        hijo.add_argument("repo", type=Path)
+        hijo = subparsers.add_parser(orden, help=ayudas[orden])
+        hijo.add_argument("repo", type=Path, help="raíz del repositorio Git ajeno")
     iniciar_parser = subparsers.add_parser(
         "iniciar", help="escribe planeta.toml en el repo destino; luego edítalo y ejecuta sincronizar"
     )

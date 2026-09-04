@@ -1,11 +1,12 @@
 # COSMOS — taller
 
-22 oficios, 6 mares que los cruzan y 5 oceanos siempre presentes. Nada se carga hasta entrar en ello.
+25 oficios, 6 mares que los cruzan y 5 oceanos siempre presentes. Nada se carga hasta entrar en ello.
 
 ## Sistemas solares
 
-- agentes-ia: Agentes y chatbots con herramientas, memoria y evaluacion; MCP.
+- agentes-ia: Agentes con herramientas, memoria, evaluacion e instrumental para operarlos.
 - analitica: Cuadros de mando, informes y prevision de ventas o demanda.
+- aprendizaje-automatico: Entrenar un modelo, ajustarlo y servirlo.
 - audiovisual: Video, audio y voz: cortar, subtitular, transcribir y doblar.
 - automatizacion: Que lo repetitivo se haga solo: flujos entre servicios y avisos.
 - blockchain: Contratos inteligentes en solidity: auditar, desplegar y leer la cadena.
@@ -14,10 +15,12 @@
 - cumplimiento: RGPD, cookies, aviso legal, accesibilidad legal y licencias.
 - documentos: Informes, manuales, PDF y diagramas generados desde datos o codigo.
 - embebidos: Placas, firmware y sensores: leer dispositivos y sus protocolos.
+- entregabilidad: Que el correo no acabe en spam.
 - extraccion: Sacar datos del mundo: webs, PDF e imagenes escaneadas.
 - infraestructura: Que corra y no se caiga: contenedores, despliegue, nube y copias.
 - ingenieria-datos: Pipelines que validan antes de cargar y avisan al romperse.
 - juegos: Videojuegos 2D y 3D: motor, bucle, fisica, activos y publicacion.
+- localizacion: Traducir un producto y mantenerlo traducido.
 - modelos-locales: IA en tu maquina: lenguaje y voz, sin internet ni coste por uso.
 - moviles: Apps para iphone, android y escritorio: un codigo, publicacion y tiendas.
 - refactorizacion: Entrar en codigo ajeno y dejarlo mejor sin romperlo: cambio en masa, reglas y mutacion.

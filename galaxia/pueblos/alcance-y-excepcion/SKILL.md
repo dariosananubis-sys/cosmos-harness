@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: alcance-y-excepcion
-padre: agentes-ia
+padre: agentes-ia/instrumentacion
 resumen: Declara que se puede tocar y bloquea el resto; el permiso extra se pide con motivo y caduca solo.
 origen: propio
 ---

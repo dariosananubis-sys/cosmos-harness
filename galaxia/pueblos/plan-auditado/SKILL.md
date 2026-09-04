@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: plan-auditado
-padre: agentes-ia/construccion
+padre: agentes-ia/instrumentacion
 resumen: Audita el plan antes de creerselo: campos, tipos, dependencias que existen y rastro de lo que dice estar hecho.
 origen: propio
 ---

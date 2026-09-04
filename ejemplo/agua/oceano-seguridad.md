@@ -1,7 +1,7 @@
 ---
 cosmos: oceano
 nombre: operaciones-reversibles
-resumen: Impide cambios irreversibles sin una restauración comprobada.
+resumen: Impide cambios irreversibles sin una restauracion comprobada.
 moja: ["**"]
 ---
 

@@ -23,7 +23,7 @@ def _escribir(base: Path, ruta: str, frontmatter: dict[str, str], cuerpo: str = 
 
 
 def _arbol_minimo(base: Path) -> None:
-    _escribir(base, "galaxia.md", {"cosmos": "galaxia", "nombre": "t", "resumen": "Árbol de prueba."})
+    _escribir(base, "galaxia.md", {"cosmos": "galaxia", "nombre": "t", "resumen": "Arbol de prueba."})
     _escribir(base, "sistemas/web.md",
               {"cosmos": "sistema-solar", "nombre": "web", "padre": '""',
                "resumen": "Sitios que cargan y convierten."},
@@ -155,7 +155,7 @@ class AbrirFalla(unittest.TestCase):
 
         _escribir(self.base, "paises/otro--pagos.md",
                   {"cosmos": "pais", "nombre": "pagos", "padre": "web",
-                   "resumen": "Otro país que se llama igual."})
+                   "resumen": "Otro pais que se llama igual."})
         arbol = cargar_arbol(self.base)
         with self.assertRaises(NodoNoEncontrado) as caso:
             resolver(arbol, "pagos")

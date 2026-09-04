@@ -13,9 +13,12 @@ import tomllib
 from dataclasses import replace
 from pathlib import Path
 
+from . import __version__
 from .compilar import ErrorCompilacion, compilar_arbol, formatear_compilacion
 from .generar import escribir_indice, generar_mapa
 from .guardarrailes import (
+    CODIGOS_GATE,
+    CODIGOS_SESION,
     ErrorEnganche,
     ErrorSalto,
     Salto,
@@ -38,7 +41,8 @@ from .juez import ErrorJuez
 from .acertar import (Contraste, ErrorEncargos, Puntuacion, _lineas_del_catalogo, cargar_encargos,
                       formatear as formatear_acierto, formatear_contraste, leer_sello, puntuacion_json, puntuar,
                       ruta_sello, sellar, sello_vigente)
-from .estado import estado_json, formatear as formatear_estado, inventariar
+from .estado import (estado_json, formatear as formatear_estado, formatear_maquina, inventariar,
+                     inventariar_maquina, maquina_json)
 from .holdout import (cobertura, comprobar_procedencia, compromiso_del_sello, esta_dentro, esta_versionado,
                       ruta_por_defecto, solape_examen_catalogo)
 from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
@@ -54,6 +58,9 @@ SELLO_POR_DEFECTO = Path("pruebas/encargos-validacion.SELLO")
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="cosmos", description="Organiza y valida contexto con carga perezosa.")
+    # Un harness que escribe un bloque marcado en el CLAUDE.md de repositorios ajenos tiene que
+    # poder decir qué versión lo escribió (revisión B-08).
+    parser.add_argument("--version", action="version", version=f"cosmos {__version__}")
     subparsers = parser.add_subparsers(dest="comando", required=True)
 
     def base(nombre: str, ayuda: str) -> argparse.ArgumentParser:
@@ -63,7 +70,7 @@ def _parser() -> argparse.ArgumentParser:
         return sub
 
     abrir_cmd = base("abrir", "carga un nodo: su cuerpo, su estrella y por dónde seguir")
-    abrir_cmd.add_argument("ruta", help="ruta cosmográfica o nombre, p.ej. 'trading/backtesting'")
+    abrir_cmd.add_argument("ruta", help="ruta cosmográfica o nombre, p.ej. 'trading/estrategia/backtesting' o solo 'backtesting'")
     abrir_cmd.add_argument(
         "--tocando",
         metavar="FICHERO",
@@ -105,8 +112,11 @@ def _parser() -> argparse.ArgumentParser:
     acertar_cmd.add_argument("--servidor", default="http://localhost:11434",
                              help="URL del servidor de modelos (por defecto, ollama local)")
 
-    estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa")
+    estado = base("estado", "inventario del árbol: qué hay, qué falta, qué no agrupa; --maquina: qué falta en ESTA máquina")
     estado.add_argument("--json", action="store_true", help="emite JSON")
+    estado.add_argument("--maquina", action="store_true",
+                        help="inventario de la máquina, trivalente (ok / falta / no_comprobado): python3, git, claude, "
+                             "tmux, llavero, perfil, credenciales, autonomía, vigilante de modelos, lanzador")
 
     validar = base("validar", f"comprueba las invariantes {rango_comprobado()}")
     validar.add_argument("--json", action="store_true", help="emite JSON")
@@ -145,7 +155,8 @@ def _parser() -> argparse.ArgumentParser:
     arrancar.add_argument("--todos", action="store_true",
                           help="aplana TODOS los pueblos aunque el destino sea un directorio que el runtime escanea (A-02)")
 
-    base("mapa", "muestra el árbol completo para inspección. CARO: sobre la galaxia real son ~3.700 tokens, el 90 %% del presupuesto de entrada, más que el recorrido guiado entero; para navegar usa 'buscar' y 'abrir'")
+    base("mapa", "muestra el árbol completo para inspección. CARO: cuesta más que el recorrido guiado entero "
+                 "('cosmos medir' da la cifra de hoy); para navegar usa 'buscar' y 'abrir'")
 
     proyectar = subparsers.add_parser(
         "proyectar",
@@ -168,9 +179,41 @@ def _parser() -> argparse.ArgumentParser:
                             help="segunda vuelta: lee credenciales.txt, dice qué falta o parece un marcador, y se lo queda")
     configurar.add_argument("--llavero", action="store_true",
                             help="pasa las credenciales al llavero de macOS (security add-generic-password) y vacía el txt")
-    configurar.add_argument("--seco", action="store_true", help="con --llavero: enseña las órdenes sin ejecutarlas")
+    configurar.add_argument("--seco", action="store_true",
+                            help="con --llavero, --autonomia o --modelos: enseña lo que haría sin escribir nada")
+    # Las tres caras de MÁQUINA del alta (ajustes de usuario del runtime, no del repositorio).
+    configurar.add_argument("--autonomia", nargs="?", const="estado", choices=("estado", "auto", "libre", "manual"),
+                            metavar="GRADO",
+                            help="fija en los ajustes de USUARIO cómo arranca el runtime: 'auto' (sin preguntas, con "
+                                 "clasificador), 'libre' (sin comprobación ninguna) o 'manual' (deshace y deja el fichero "
+                                 "como estaba); sin valor, dice el grado vigente")
+    configurar.add_argument("--modelos", choices=("instalar", "estado", "quitar"), metavar="ACCION",
+                            help="el vigilante que mantiene todos los modelos en el selector del runtime: "
+                                 "instalar | estado | quitar (solo escribe en ~/.cosmos, ~/.local/bin y, en macOS, "
+                                 "~/Library/LaunchAgents)")
+    configurar.add_argument("--lanzador", nargs="?", const="instalar", choices=("instalar", "quitar"), metavar="ACCION",
+                            help="pone 'cosmos' en el PATH (~/.local/bin/cosmos apuntando a este clon) o lo quita")
+    configurar.add_argument("--forzar", action="store_true",
+                            help="con --modelos instalar o --lanzador: pisa un fichero ajeno con el mismo nombre")
 
-    engancha = subparsers.add_parser("enganchar", help="instala el gate de pre-commit en este repositorio")
+    instalar = subparsers.add_parser(
+        "instalar",
+        help="todo el alta de un Mac nuevo en un comando: arrancar + configurar (+ --autonomia, --modelos, "
+             "--lanzador) y el inventario de la máquina al final",
+    )
+    instalar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
+    instalar.add_argument("--oficios", help="oficios activos separados por comas (sin esto se pregunta)")
+    instalar.add_argument("--herramientas", help="herramientas separadas por comas (sin esto se pregunta por oficio)")
+    instalar.add_argument("--directorio", type=Path, default=None, help="dónde viven perfil y credenciales (por defecto ~/.cosmos)")
+    instalar.add_argument("--no-abrir", action="store_true", help="no abrir el fichero de credenciales en el editor")
+    instalar.add_argument("--autonomia", choices=("auto", "libre"), metavar="GRADO",
+                          help="además, fija el grado de autonomía de la máquina (auto | libre)")
+    instalar.add_argument("--modelos", action="store_true", help="además, instala el vigilante de modelos")
+    instalar.add_argument("--lanzador", action="store_true", help="además, pone 'cosmos' en el PATH")
+    instalar.add_argument("--forzar", action="store_true", help="pisa un maxcode/ultracode/cosmos ajeno")
+    instalar.add_argument("--seco", action="store_true", help="enseña lo que haría en la máquina sin escribir")
+
+    engancha = subparsers.add_parser("enganchar", help="instala el gate de pre-commit y el escaneo de secretos de pre-push en este repositorio")
     engancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     engancha.add_argument("--sin-pruebas", action="store_true", help="el hook omitirá las suites de tests")
     engancha.add_argument(
@@ -179,13 +222,16 @@ def _parser() -> argparse.ArgumentParser:
         help="además, cablea los guardarraíles de sesión (SessionStart, Stop, PreToolUse...)",
     )
 
-    desengancha = subparsers.add_parser("desenganchar", help="quita el gate de pre-commit")
+    desengancha = subparsers.add_parser("desenganchar", help="quita el gate de pre-commit, el pre-push y el cableado de sesión")
     desengancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
 
     saltar = subparsers.add_parser("saltar", help="válvula de escape acotada, con motivo y caducidad")
+    # Los tres grupos de códigos se componen desde la fuente (revisión B-06: la ayuda decía
+    # «G01..G05» con P01/P02 existiendo, igual que antes dijo «E00-E19» con E20 viva).
     saltar.add_argument(
         "codigo", nargs="?",
-        help=f"código concreto a saltar ({rango_comprobado()}, G01..G05)",
+        help=f"código concreto a saltar ({rango_comprobado()}, {CODIGOS_SESION[0]}..{CODIGOS_SESION[-1]}, "
+             f"{', '.join(CODIGOS_GATE)})",
     )
     saltar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
     saltar.add_argument("--motivo", help="obligatorio: por qué se salta")
@@ -346,6 +392,14 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     oficios_disponibles = list(nombres_nichos(arbol))
     pueblos = {n.nombre: n for n in arbol.nodos if n.cosmos == "pueblo"}
 
+    # Las caras de MÁQUINA del alta: no tocan el perfil ni las credenciales.
+    if getattr(args, "autonomia", None):
+        return _autonomia(args.autonomia, directorio, seco=args.seco)
+    if getattr(args, "modelos", None):
+        return _modelos(args.modelos, perfil, seco=args.seco, forzar=args.forzar)
+    if getattr(args, "lanzador", None):
+        return _lanzador(args.lanzador, config, forzar=args.forzar)
+
     if args.comprobar or args.llavero:
         datos = cfg.leer_perfil(perfil) or {}
         herramientas = [h for h in datos.get("herramientas", []) if isinstance(h, str)]
@@ -383,7 +437,8 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
             lineas.append(f"  SOSPECHOSA {variable}   (parece un marcador o es demasiado corta)")
         completas = len({c.variable for c in esperadas}) - len(faltan) - len(sospechosas)
         lineas.append(f"  {completas} completa(s), {len(faltan)} falta(n), {len(sospechosas)} sospechosa(s) de {len({c.variable for c in esperadas})}")
-        cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=not faltan and not sospechosas))
+        cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=not faltan and not sospechosas,
+                                                     modelos=cfg.leer_modelos(perfil)))
         lineas.append(f"  Perfil guardado en {perfil}: no se vuelve a preguntar."
                       + (" Cuando quieras: 'cosmos configurar --llavero'." if not faltan and not sospechosas else ""))
         sys.stdout.write("\n".join(lineas) + "\n")
@@ -418,7 +473,7 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     if fuera:
         raise ErrorEncargos(f"herramienta de un oficio que no activaste: {', '.join(fuera)}")
 
-    cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=False))
+    cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=False, modelos=cfg.leer_modelos(perfil)))
     esperadas = cfg.credenciales_de(arbol, herramientas)
     if credenciales.is_file() and cfg.leer_credenciales(credenciales):
         # No se pisa un fichero con valores: se dice y se para.
@@ -440,6 +495,175 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
     else:
         lineas.append("  Ninguna de las herramientas elegidas pide credenciales.")
     sys.stdout.write("\n".join(lineas) + "\n")
+
+    # Solo en el alta INTERACTIVA se pregunta por la máquina. Con --oficios/--herramientas (un
+    # script) no se toca ningún ajuste de usuario sin un --autonomia explícito: un sistema que
+    # se engancha sin que se lo pidan se arranca de raíz a la primera molestia.
+    if not args.oficios and not args.herramientas:
+        grado, detalle = cfg.grado_vigente()
+        print(f"\n¿Esta máquina trabaja sin pedir permiso? Hoy: {grado} ({detalle}).")
+        respuesta = input("  auto (recomendado) / libre / no [Enter = auto]: ").strip().lower()
+        elegido = {"": "auto", "auto": "auto", "libre": "libre"}.get(respuesta)
+        if elegido:
+            _autonomia(elegido, directorio, seco=False)
+        else:
+            print("  Se deja como está.")
+        respuesta = input("¿Instalar el vigilante que mantiene todos los modelos en /model? [s/N]: ").strip().lower()
+        if respuesta in {"s", "si", "sí"}:
+            _modelos("instalar", perfil, seco=False, forzar=False)
+    return 0
+
+
+def _autonomia(grado: str, directorio: Path, *, seco: bool) -> int:
+    """El grado de autonomía de la máquina, en los ajustes de USUARIO del runtime (A §2)."""
+
+    from . import configurar as cfg
+
+    ruta = cfg.ajustes_usuario()
+    respaldo = directorio / cfg.RESPALDO_AUTONOMIA.name
+    ambito = "CLAUDE_CONFIG_DIR" if os.environ.get("CLAUDE_CONFIG_DIR") else "ámbito usuario; CLAUDE_CONFIG_DIR sin definir"
+    vigente, detalle = cfg.grado_vigente(ruta)
+    ruta_corta, respaldo_corto = cfg.abreviar_home(ruta), cfg.abreviar_home(respaldo)
+    if grado == "estado":
+        sys.stdout.write(f"COSMOS  configurar  autonomia  {vigente}\n\n  {ruta_corta}  ({ambito})\n  {cfg.abreviar_home(detalle)}\n")
+        if vigente in ("manual", "desconocido"):
+            sys.stdout.write("  Para que no pida permiso: cosmos configurar --autonomia auto   (o libre)\n")
+        return 0
+    if grado == "manual":
+        estado, ajenas = cfg.retirar_autonomia(ruta, respaldo)
+        explicacion = {
+            "ausente": "COSMOS no había escrito nada aquí: nada que deshacer",
+            "restaurado": "devuelto byte a byte al estado anterior",
+            "eliminado": "eliminado: no existía antes de fijar la autonomía",
+            "podado": "sin las claves de COSMOS (el resto lo había cambiado alguien, se conserva)",
+            "ilegible": "no es JSON legible; NO se ha tocado",
+        }[estado]
+        sys.stdout.write(f"COSMOS  configurar  autonomia  manual\n\n  {ruta_corta}: {explicacion}\n")
+        for clave in ajenas:
+            sys.stdout.write(f"  {clave}: alguien la cambió a mano después; no se toca\n")
+        return 0
+    claves = cfg.GRADOS[grado]
+    if seco:
+        sys.stdout.write(f"COSMOS  configurar  autonomia  {grado}  (seco)\n\n  Escribiría en {ruta_corta} ({ambito}):\n")
+        sys.stdout.write("".join(f"    {clave} = {json.dumps(valor)}\n" for clave, valor in claves.items()))
+        sys.stdout.write("  Por sesión, sin tocar ajustes: claude --permission-mode "
+                         f"{'bypassPermissions' if grado == 'libre' else 'auto'}\n")
+        return 0
+    try:
+        informe = cfg.fijar_autonomia(grado, ruta, respaldo)
+    except ValueError as exc:
+        print(f"COSMOS  configurar  rojo\n\n{exc}", file=sys.stderr)
+        return 1
+    lineas = [f"COSMOS  configurar  autonomia  {grado}", "", f"  Escrito en {ruta_corta}  ({ambito})"]
+    for clave, valor, estado in informe:
+        nota = "   (clave no documentada del runtime)" if clave == "skipDangerousModePermissionPrompt" else ""
+        lineas.append(f"    {clave:<34} = {json.dumps(valor):<20} ({estado}){nota}")
+    lineas.append(f"  Respaldo del fichero anterior en {respaldo_corto}")
+    lineas.append("  Vuelta atrás: cosmos configurar --autonomia manual")
+    if grado == "libre":
+        lineas.append("  Ojo: bypassPermissions apaga también el clasificador que revisa `rm` en rutas críticas.")
+    lineas.append("  La primera sesión interactiva en una carpeta nueva sigue pidiendo confianza: eso no se escribe por debajo.")
+    sys.stdout.write("\n".join(lineas) + "\n")
+    return 0
+
+
+def _modelos(accion: str, perfil: Path, *, seco: bool, forzar: bool) -> int:
+    """El vigilante de modelos (puente/modelos.py): instalar | estado | quitar."""
+
+    from puente import modelos as mod
+    from . import configurar as cfg
+
+    tabla = cfg.leer_modelos(perfil)
+    if accion == "estado":
+        filas = mod.estado(perfil=tabla)
+        sys.stdout.write(f"COSMOS  configurar  modelos  estado\n\n{mod.formatear(filas)}\n")
+        return 0
+    if accion == "quitar":
+        lineas = mod.quitar()
+        sys.stdout.write("COSMOS  configurar  modelos  quitar\n\n" + "\n".join(lineas) + "\n")
+        return 0
+    try:
+        lineas = mod.instalar(perfil=tabla, seco=seco, forzar=forzar)
+    except ValueError as exc:
+        print(f"COSMOS  configurar  rojo\n\n{exc}", file=sys.stderr)
+        return 1
+    titulo = "COSMOS  configurar  modelos  instalar" + ("  (seco)" if seco else "")
+    sys.stdout.write(f"{titulo}\n\n" + "\n".join(lineas) + "\n")
+    if not seco:
+        sys.stdout.write("  Se quita todo con: cosmos configurar --modelos quitar\n")
+    return 0
+
+
+def _lanzador(accion: str, config: Configuracion, *, forzar: bool) -> int:
+    from . import configurar as cfg
+
+    if accion == "quitar":
+        ruta, estado = cfg.quitar_lanzador()
+        texto = {"ausente": "no había lanzador", "ajeno": f"{ruta} no es nuestro: no se toca", "eliminado": f"{ruta} eliminado"}[estado]
+        sys.stdout.write(f"COSMOS  configurar  lanzador  quitar\n\n  {texto}\n")
+        return 0
+    raiz = _base_repositorio(config).resolve()
+    ruta, estado = cfg.instalar_lanzador(raiz, forzar=forzar)
+    if estado == "ajeno":
+        print(f"COSMOS  configurar  lanzador  aviso\n\n  {cfg.abreviar_home(ruta)} existe y no es nuestro: no se toca (--forzar para pisarlo)", file=sys.stderr)
+        return 1
+    lineas = [f"COSMOS  configurar  lanzador  {estado}", "", f"  {cfg.abreviar_home(ruta)} -> python3 -m cosmos en {cfg.abreviar_home(raiz)}"]
+    if not cfg.en_el_path(ruta):
+        lineas.append(f"  Ojo: {cfg.abreviar_home(ruta.parent)} no está en el PATH de esta terminal; añádelo a tu shell.")
+    lineas.append("  Se quita con: cosmos configurar --lanzador quitar")
+    sys.stdout.write("\n".join(lineas) + "\n")
+    return 0
+
+
+def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> int:
+    """Todo el alta de una máquina nueva en un comando, delegando en los verbos que ya existen.
+
+    `git clone` y luego esto: nada de `curl | bash`. Lo que se ejecuta está en disco y ha pasado
+    por el índice, el escáner y el gate (GOAL §5: cero red en el camino crítico).
+    """
+
+    from . import configurar as cfg
+
+    sys.stdout.write("== 1/4  arrancar: vista plana e índice ==\n")
+    if args.seco:
+        sys.stdout.write("  (seco) python3 -m cosmos arrancar\n")
+    else:
+        args_arrancar = argparse.Namespace(modo=None, destino=None, nicho=None, detalle=False, quiet=False, todos=False)
+        codigo = _arrancar(args_arrancar, config, arbol)
+        if codigo:
+            sys.stdout.write("\nCOSMOS  instalar  rojo  (arrancar no dejó el árbol en verde; se para aquí)\n")
+            return codigo
+    sys.stdout.write("\n== 2/4  configurar: oficios, herramientas y credenciales ==\n")
+    if args.seco:
+        sys.stdout.write("  (seco) python3 -m cosmos configurar  (pregunta oficios y herramientas; abre ~/.cosmos/credenciales.txt)\n")
+    else:
+        args_cfg = argparse.Namespace(directorio=args.directorio, no_abrir=args.no_abrir, comprobar=False, llavero=False,
+                                      seco=False, oficios=args.oficios or "", herramientas=args.herramientas or "",
+                                      autonomia=None, modelos=None, lanzador=None, forzar=False)
+        # Con oficios por bandera el alta es no interactiva y no pregunta por la máquina: eso lo
+        # deciden los flags de instalar. Sin banderas, `configurar` pregunta lo suyo y también por
+        # la máquina, y entonces los flags no se repiten.
+        codigo = _configurar(args_cfg, config, arbol)
+        if codigo:
+            return codigo
+    directorio = args.directorio or cfg.DIRECTORIO
+    perfil = directorio / cfg.PERFIL.name
+    interactivo = not args.oficios and not args.herramientas
+    sys.stdout.write("\n== 3/4  la máquina: autonomía, modelos, lanzador ==\n")
+    if args.autonomia and not (interactivo and not args.seco):
+        _autonomia(args.autonomia, directorio, seco=args.seco)
+    if args.modelos and not (interactivo and not args.seco):
+        _modelos("instalar", perfil, seco=args.seco, forzar=args.forzar)
+    if args.lanzador:
+        if args.seco:
+            sys.stdout.write(f"  (seco) lanzador en {cfg.LANZADOR}\n")
+        else:
+            _lanzador("instalar", config, forzar=args.forzar)
+    if not (args.autonomia or args.modelos or args.lanzador):
+        sys.stdout.write("  Nada pedido (--autonomia, --modelos, --lanzador): la máquina se queda como está.\n")
+    sys.stdout.write("\n== 4/4  estado de la máquina ==\n")
+    filas = inventariar_maquina(arbol, directorio=directorio, raiz_clon=_base_repositorio(config).resolve())
+    sys.stdout.write(formatear_maquina(filas))
     return 0
 
 
@@ -769,6 +993,8 @@ def ejecutar(argv: list[str] | None = None) -> int:
                 return 1
         if args.comando == "configurar":
             return _configurar(args, config, arbol)
+        if args.comando == "instalar":
+            return _instalar(args, config, arbol)
         if args.comando == "validar":
             return _validar(args, config, arbol)
         if args.comando == "medir":
@@ -896,6 +1122,10 @@ def ejecutar(argv: list[str] | None = None) -> int:
             # examen. Cuando exista un compromiso previo verificable, se reabrirá aquí.
             return 0
         if args.comando == "estado":
+            if args.maquina:
+                filas = inventariar_maquina(arbol, raiz_clon=_base_repositorio(config).resolve())
+                sys.stdout.write(maquina_json(filas) if args.json else formatear_maquina(filas))
+                return 0
             inv = inventariar(arbol)
             sys.stdout.write(estado_json(inv) if args.json else formatear_estado(inv))
             return 0

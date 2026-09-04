@@ -6,4 +6,5 @@ resumen: Apps para iphone, android y escritorio: un codigo, publicacion y tienda
 usa:
   - saas
   - web
+  - localizacion
 ---

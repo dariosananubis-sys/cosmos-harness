@@ -450,8 +450,8 @@ MUTACIONES = (
     Mutacion(
         "M52",
         "spec/UNIVERSO.md",
-        "# El universo — 22 oficios",
-        "# El universo — 21 oficios",
+        "# El universo — 25 oficios",
+        "# El universo — 24 oficios",
         "tests.test_universo_navegable.ElCardinalDelTituloEsElDelDisco.test_universo_anuncia_los_oficios_que_hay",
         "el cardinal del titulo vuelve a escribirse a mano y a envejecer sin que nada lo diga",
     ),
@@ -675,6 +675,54 @@ MUTACIONES = (
         "tests.test_escala.LosArreglosDeRendimientoSeCuentanNoSeCreen.test_d06_e17_parsea_cada_co_cargable_una_sola_vez",
         "R-47 / D-06: una cache que no cachea, firmada por 320 pruebas; ahora se cuentan las llamadas",
     ),
+    Mutacion(
+        "M80",
+        "cosmos/configurar.py",
+        "        if actual == valor:\n            _quitar(copia, clave)\n",
+        "        if True:\n            _quitar(copia, clave)\n",
+        "tests.test_autonomia.LosAjustesDeUsuarioSeEscribenSinPisar.test_no_pisa_un_valor_cambiado_a_mano",
+        "A §2.5: sin comparar el valor, --autonomia manual borra una clave que alguien cambió a mano",
+    ),
+    Mutacion(
+        "M81",
+        "puente/modelos.py",
+        "    faltan = [e for e in entradas_deseadas() if e[\"value\"] not in presentes]\n    if not faltan:\n        return [], None\n",
+        "    faltan = list(entradas_deseadas())\n",
+        "tests.test_modelos.Reponer.test_es_idempotente_y_respeta_lo_del_servidor",
+        "A §3.7: sin mirar lo presente, cada pasada del reponedor duplica las entradas del menú",
+    ),
+    Mutacion(
+        "M82",
+        "puente/modelos.py",
+        "        os.chmod(tmp, 0o600)\n        os.replace(tmp, ruta)\n",
+        "        os.chmod(tmp, 0o600)\n        ruta.write_text(texto, encoding=\"utf-8\"); Path(tmp).unlink()\n",
+        "tests.test_modelos.Reponer.test_escritura_atomica_no_deja_a_medias",
+        "A §3.7 / NUCLEO §7: escribir en el sitio deja el fichero del CLI a medias si algo falla",
+    ),
+    Mutacion(
+        "M83",
+        "cosmos/validar.py",
+        "        elif not nodo.resumen.isascii():\n",
+        "        elif False:\n",
+        "tests.test_validador.PruebasInvariantes.test_e07_resumen_con_acentos",
+        "B-29: sin la comprobación ASCII, un resumen con acentos se paga de más en cada sesión sin que nadie lo vea",
+    ),
+    Mutacion(
+        "M84",
+        "cosmos/validar.py",
+        "                errores.append(_error(\"E20\", nodo, f\"vecino inexistente en 'usa': {destino}\",\n",
+        "                _ = (_error(\"E20\", nodo, f\"vecino inexistente en 'usa': {destino}\",\n",
+        "tests.test_validador.PruebasInvariantes.test_e20_vecino_inexistente",
+        "B-07: E20 estaba viva sin prueba que la viera en rojo; ahora un vecino inexistente tiene la suya",
+    ),
+    Mutacion(
+        "M85",
+        "puente/sesion.py",
+        "    if grado in (\"auto\", \"libre\"):\n        return None\n    if grado == \"desconocido\":\n",
+        "    if grado in (\"auto\", \"libre\", \"manual\"):\n        return None\n    if grado == \"desconocido\":\n",
+        "puente.tests.test_sesion_autonomia.LaCartaYLaMaquinaDicenLoMismo.test_avisa_en_rojo_cuando_la_maquina_arranca_en_manual",
+        "A §2.6: si G01 calla con la máquina en manual, el océano `autonomia` es una exhortación que el agente se cree",
+    ),
 )
 
 
@@ -700,9 +748,12 @@ def main() -> int:
     fallos = 0
     with tempfile.TemporaryDirectory(prefix="cosmos-mut-") as tmp:
         copia = Path(tmp) / "repo"
+        # `.git` viaja con la copia: tres pruebas del juez (M63, M64, M76) leen la historia y se
+        # saltan sin ella con `skipIf`, y un test saltado devuelve 0 — la mutación salía VERDE
+        # sin que nadie la vigilara (revisión B-02: 76/79 donde el cierre decía 79/79).
         shutil.copytree(
             RAIZ, copia,
-            ignore=shutil.ignore_patterns(".git", "__pycache__", ".cosmos", "research"),
+            ignore=shutil.ignore_patterns("__pycache__", ".cosmos", "research"),
         )
         for mutacion in MUTACIONES:
             ruta = copia / mutacion.fichero

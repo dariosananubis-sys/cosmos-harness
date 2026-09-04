@@ -9,4 +9,5 @@ usa:
   - cumplimiento
   - rendimiento
   - moviles
+  - localizacion
 ---

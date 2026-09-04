@@ -105,7 +105,7 @@ alguno de los retirados: `mv ~/.Trash/cosmos-retirados-2026-09-03/<x> galaxia/pu
 ## 5. C · 17 herramientas a retirar o degradar (cambia el contenido del producto)
 
 Retirar cambia lo que el catálogo ofrece: se propone con motivo, **se archiva, nunca se borra**
-(`mv galaxia/pueblos/<x> ~/.Trash/` o a `cosecha/retiradas/`), y luego `cosmos arrancar` + `cosmos generar`.
+(`mv galaxia/pueblos/<x> ~/.Trash/cosmos-retirado-<fecha>/`; `cosecha/` ya no existe), y luego `cosmos arrancar` + `cosmos generar`.
 
 **Retirar (3, firmes):**
 
@@ -161,8 +161,8 @@ evaluar y servir un modelo propio). Pasan la prueba «¿alguien contrataría est
 toca sin tu sí. Preparado: cada uno necesita `galaxia/sistemas/<n>.md`, su estrella, una fila en
 `UNIVERSO.md` y `cosmos generar`.
 
-## 8. F-09 · El hook de pre-commit en tu clon
+## 8. F-09 · El hook de pre-commit en tu clon — HECHO 2026-09-03
 
-`cosmos enganchar --sesion` no está instalado en `~/cosmos` (solo `.sample` en `.git/hooks`). Es
-local y reversible; no lo instalo por iniciativa porque cambia el comportamiento de tus commits
-(corre el gate entero, ~90 s). Si quieres: `cd ~/cosmos && python3 -m cosmos enganchar --sesion`.
+`cosmos enganchar --sesion` quedó instalado en `~/cosmos` al cerrar el ciclo 2 (pre-commit,
+pre-push y `.claude/settings.json` portable). Este punto decía lo contrario hasta el 2026-09-04
+(revisión B-21).

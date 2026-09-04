@@ -30,7 +30,7 @@ existe para quitar.
 | ~~`E04`~~ | **Retirada.** La identidad por ruta completa hace los ciclos imposibles (`NUCLEO.md` §1). El hueco no se reutiliza | — |
 | `E05` | Existe exactamente una galaxia | cero o varias galaxias |
 | `E06` | `nombre` es único dentro de su padre | nombre duplicado entre hermanos |
-| `E07` | `resumen` presente y ≤ 120 caracteres | resumen ausente o pasado de largo |
+| `E07` | `resumen` presente, ≤ 120 caracteres y en ASCII (se paga en cada sesión; cada acento cuesta una pieza más al tokenizador) | resumen ausente, pasado de largo o con acentos |
 | `E08` | El `resumen` aporta al menos una palabra con contenido que no está en el `nombre` | resumen que no informa |
 | `E09` | `cosmos` es uno de los 14 niveles válidos | nivel desconocido |
 | `E10` | Todo nodo de agua declara `moja` (lista, vacía solo en `rio` y `lluvia`, y **obligatoriamente vacía** en `lluvia`) | agua sin alcance |
@@ -65,7 +65,7 @@ en `reviews/revision-adversarial-final.md` (H16): con el nombre `calidad`, tanto
 `«El pais de calidad»` como `«Cosas y mas cosas varias.»` pasaban en verde. Con la lista completa
 los dos dan cero palabras con contenido y saltan.
 
-El umbral es **una** palabra, no dos. Medido sobre los 468 nodos de la galaxia real: el resumen más
+El umbral es **una** palabra, no dos. Medido sobre los 489 nodos de la galaxia real: el resumen más
 flojo que hay hoy aporta dos palabras con contenido, así que exigir una endurece sin generar un
 solo falso positivo, y exigir dos dejaría el margen a cero. Sigue siendo una heurística y va a
 fallar en algún caso raro. La respuesta correcta a un falso positivo es escribir un resumen mejor,
@@ -101,16 +101,32 @@ Aquí para.
 
 ## Configuración: `cosmos.toml`
 
+El de verdad es `cosmos.toml` en la raíz del repositorio (este bloque es su forma; las claves sin
+valor por defecto están marcadas):
+
 ```toml
 [presupuesto]
 entrada = 4000        # tokens máximos de contexto de entrada
 resumen = 120         # caracteres por resumen
 oceanos = 7           # número máximo de reglas globales
 galaxia_lineas = 40   # líneas máximas del índice generado
+solapamiento = 0.25   # umbral de E17 entre nodos que se cargan a la vez
 
 [raiz]
-arbol = "."           # dónde vive el árbol
-indice = "COSMOS.md"  # dónde se escribe el índice generado
+arbol = "galaxia"           # dónde vive el árbol (obligatoria)
+indice = "galaxia/COSMOS.md" # dónde se escribe el índice generado (obligatoria)
+registro = "registro"       # la puerta del registro; sus entradas también se validan (opcional)
+
+[medicion]
+metodo = "aprox"            # aprox | exacto; el exacto exige tokenizador (docs/CALIBRACION.md)
+
+[compilacion]
+destino = ".cosmos/vista-galaxia"          # la vista plana (artefacto generado)
+modo = "symlink"                           # symlink | copia
+manifiesto = ".cosmos/compilado-galaxia.json"
+
+[nichos]
+activos = []                # vacío: ningún nicho activo para el catálogo; la vista completa al compilar
 ```
 
 Todos los umbrales son configurables y **ninguno es opcional**: si falta el fichero, se usan estos

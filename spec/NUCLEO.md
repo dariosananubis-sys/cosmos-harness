@@ -407,7 +407,7 @@ partículas gramaticales: mientras `no`, `ni` y `ha` contaban como contenido, «
 nunca ha dado rojo» y «una copia que nunca se ha restaurado» —una analogía, no una duplicación—
 compartían cuatro «palabras» y puntuaban 0,44.
 
-Sobre la galaxia real de hoy (528 pares de nodos co-cargables, cifra vigilada por
+Sobre la galaxia real de hoy (630 pares de nodos co-cargables, cifra vigilada por
 `tests/test_cifras_de_las_specs.py`) ningún par comparte ya tres palabras con contenido: los dos
 duplicados que existían se deduplicaron. En la medición que calibró el suelo (2026-09-02, árbol de
 entonces) quedaban con el suelo en 3 **exactamente los dos pares** que la revisión adversarial

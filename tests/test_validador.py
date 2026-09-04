@@ -41,7 +41,7 @@ class PruebasInvariantes(unittest.TestCase):
             indice=self.indice,
             encontrada=True,
         )
-        self.escribir("galaxia.md", documento("galaxia", "raiz", "Organiza un árbol sintético para las pruebas."))
+        self.escribir("galaxia.md", documento("galaxia", "raiz", "Organiza un arbol sintetico para las pruebas."))
         self.escribir(
             "sistema.md",
             documento("sistema-solar", "trabajo", "Agrupa un modo ficticio de trabajo.", padre=""),
@@ -76,7 +76,7 @@ class PruebasInvariantes(unittest.TestCase):
         self.exigir("E01")
 
     def test_e02_padre_inexistente(self) -> None:
-        self.escribir("sin-padre.md", documento("planeta", "perdido", "Representa un proyecto sintético aislado.", padre="ausente"))
+        self.escribir("sin-padre.md", documento("planeta", "perdido", "Representa un proyecto sintetico aislado.", padre="ausente"))
         self.exigir("E02")
 
     def test_e03_contencion_invertida(self) -> None:
@@ -93,8 +93,8 @@ class PruebasInvariantes(unittest.TestCase):
         disparaba: por eso se retiró en vez de dejarla de adorno (NUCLEO §1).
         """
 
-        self.escribir("uno.md", documento("planeta", "uno", "Representa la primera rama sintética.", padre="trabajo/dos"))
-        self.escribir("dos.md", documento("provincia", "dos", "Representa la segunda rama sintética.", padre="trabajo/uno"))
+        self.escribir("uno.md", documento("planeta", "uno", "Representa la primera rama sintetica.", padre="trabajo/dos"))
+        self.escribir("dos.md", documento("provincia", "dos", "Representa la segunda rama sintetica.", padre="trabajo/uno"))
         resultado = self.validar()
         self.assertFalse(resultado.valido)
         self.assertNotIn("E04", resultado.codigos())
@@ -106,11 +106,11 @@ class PruebasInvariantes(unittest.TestCase):
         )
 
     def test_e05_varias_galaxias(self) -> None:
-        self.escribir("otra-galaxia.md", documento("galaxia", "otra-raiz", "Organiza una instalación sintética alternativa."))
+        self.escribir("otra-galaxia.md", documento("galaxia", "otra-raiz", "Organiza una instalacion sintetica alternativa."))
         self.exigir("E05")
 
     def test_e06_hermanos_homonimos(self) -> None:
-        contenido = documento("planeta", "duplicado", "Representa un encargo sintético con final definido.", padre="trabajo")
+        contenido = documento("planeta", "duplicado", "Representa un encargo sintetico con final definido.", padre="trabajo")
         self.escribir("uno.md", contenido)
         self.escribir("dos.md", contenido)
         self.exigir("E06")
@@ -118,6 +118,24 @@ class PruebasInvariantes(unittest.TestCase):
     def test_e07_resumen_demasiado_largo(self) -> None:
         self.escribir("largo.md", documento("planeta", "extenso", "x" * 121, padre="sistema-solar/trabajo"))
         self.exigir("E07")
+
+    def test_e07_resumen_con_acentos(self) -> None:
+        """El resumen se paga en cada sesión: va en ASCII (revisión B-29, 453 de 454 ya lo cumplían)."""
+
+        self.escribir("acentos.md", documento("planeta", "acentuado", "Un planeta con acentuación en su línea.", padre="sistema-solar/trabajo"))
+        self.exigir("E07")
+
+    def test_e20_vecino_inexistente(self) -> None:
+        """`spec/VALIDADOR.md` exige un test por invariante viva; E20 no tenía el suyo (revisión B-07)."""
+
+        self.escribir("solo.md", documento("planeta", "solo", "Un planeta que cita a un vecino que no existe.",
+                                            padre="sistema-solar/trabajo", usa=["sistema-solar/trabajo/nadie"]))
+        self.exigir("E20")
+
+    def test_e20_vecino_a_si_mismo(self) -> None:
+        self.escribir("ego.md", documento("planeta", "ego", "Un planeta que se cita a si mismo como vecino.",
+                                           padre="sistema-solar/trabajo", usa=["sistema-solar/trabajo/ego"]))
+        self.exigir("E20")
 
     def test_e08_resumen_no_informa(self) -> None:
         self.escribir("vacio.md", documento("planeta", "demo", "la skill de demo", padre="sistema-solar/trabajo"))
@@ -149,7 +167,7 @@ class PruebasInvariantes(unittest.TestCase):
         self.exigir("E09")
 
     def test_e10_agua_sin_alcance(self) -> None:
-        self.escribir("mar.md", documento("mar", "regional", "Aplica una regla sintética a una región.", moja=[]))
+        self.escribir("mar.md", documento("mar", "regional", "Aplica una regla sintetica a una region.", moja=[]))
         self.exigir("E10")
 
     def test_e10_lluvia_con_alcance_se_cobraria_sin_cargarse(self) -> None:
@@ -160,12 +178,12 @@ class PruebasInvariantes(unittest.TestCase):
         se abren. La regla de `spec/REGISTRO.md` —«ni una línea»— pasa a E10.
         """
 
-        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintético que se consulta a mano.", moja=["puente/**"]))
+        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintetico que se consulta a mano.", moja=["puente/**"]))
         resultado = self.exigir("E10")
         culpables = [error for error in resultado.errores if error.codigo == "E10"]
         self.assertTrue(any("moja" in error.mensaje for error in culpables), culpables)
         # Y con el alcance vacío, la misma memoria pasa: lo que salta es el alcance.
-        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintético que se consulta a mano.", moja=[]))
+        self.escribir("memoria.md", documento("lluvia", "recordada", "Conserva un hecho sintetico que se consulta a mano.", moja=[]))
         self.assertNotIn("E10", self.validar().codigos())
 
     def test_e11_oceano_encubierto(self) -> None:
@@ -183,7 +201,7 @@ class PruebasInvariantes(unittest.TestCase):
     def test_verde_e11_un_mar_que_nombra_su_region(self) -> None:
         for globs in ([r"**/*.py", r"**/*.ts"], [r"**/test/**", r"**/conftest.py"], [r"src/**"]):
             with self.subTest(globs=globs):
-                self.escribir("mar.md", documento("mar", "acotado", "Aplica una regla sintética a una región concreta.", moja=globs))
+                self.escribir("mar.md", documento("mar", "acotado", "Aplica una regla sintetica a una region concreta.", moja=globs))
                 self.assertNotIn("E11", self.validar().codigos())
 
     def test_e11_conjunto_de_globs_que_entre_todos_lo_cubren_todo(self) -> None:
@@ -244,7 +262,7 @@ class PruebasInvariantes(unittest.TestCase):
         )
 
     def test_e12_exceso_de_oceanos(self) -> None:
-        self.escribir("oceano.md", documento("oceano", "global", "Protege una operación sintética irreversible.", moja=["**"]))
+        self.escribir("oceano.md", documento("oceano", "global", "Protege una operacion sintetica irreversible.", moja=["**"]))
         config = Configuracion(**{**self.config.__dict__, "oceanos": 0})
         self.exigir("E12", config=config)
 
@@ -253,8 +271,8 @@ class PruebasInvariantes(unittest.TestCase):
         self.exigir("E13")
 
     def test_e14_dos_estrellas(self) -> None:
-        self.escribir("estrella-a.md", documento("estrella", "luz-a", "Aporta contexto sintético al modo de trabajo.", ilumina="trabajo"))
-        self.escribir("estrella-b.md", documento("estrella", "luz-b", "Añade otra guía ficticia al mismo dominio.", ilumina="trabajo"))
+        self.escribir("estrella-a.md", documento("estrella", "luz-a", "Aporta contexto sintetico al modo de trabajo.", ilumina="trabajo"))
+        self.escribir("estrella-b.md", documento("estrella", "luz-b", "Anade otra guia ficticia al mismo dominio.", ilumina="trabajo"))
         self.exigir("E14")
 
     def test_e15_indice_desincronizado(self) -> None:
@@ -269,7 +287,7 @@ class PruebasInvariantes(unittest.TestCase):
         self.exigir("E16", config=config)
 
     def test_e16_usa_peor_nicho_aunque_el_caso_base_quepa(self) -> None:
-        self.escribir("provincia.md", documento("provincia", "calidad", "Agrupa una capacidad web sintética.", padre="trabajo"))
+        self.escribir("provincia.md", documento("provincia", "calidad", "Agrupa una capacidad web sintetica.", padre="trabajo"))
         self.escribir(
             "pueblos/revisar/SKILL.md",
             documento(
@@ -296,13 +314,13 @@ class PruebasInvariantes(unittest.TestCase):
         contar el agua el árbol quedaba verde. Contándola, es rojo.
         """
 
-        self.escribir("provincia.md", documento("provincia", "calidad", "Agrupa una capacidad sintética comprobable.", padre="trabajo"))
+        self.escribir("provincia.md", documento("provincia", "calidad", "Agrupa una capacidad sintetica comprobable.", padre="trabajo"))
         self.escribir(
             "pueblos/revisar/SKILL.md",
             documento("pueblo", "revisar-web", "Comprueba una interfaz con condiciones reproducibles.", padre="trabajo/calidad"),
         )
         cuerpo_mar = " ".join(f"palabra{numero}" for numero in range(40))
-        self.escribir("mar.md", documento("mar", "criterio", "Aplica una regla sintética a los ficheros de código.", cuerpo_mar, moja=[r"**/*.py"]))
+        self.escribir("mar.md", documento("mar", "criterio", "Aplica una regla sintetica a los ficheros de codigo.", cuerpo_mar, moja=[r"**/*.py"]))
         arbol = cargar_arbol(self.raiz, excluir=self.indice)
         casos = medir.medir_casos(arbol, metodo="aprox", presupuesto=4000)
         self.assertGreater(casos.peor.agua, 0, "el mar tiene que contarse como agua condicional")
@@ -333,8 +351,8 @@ class PruebasInvariantes(unittest.TestCase):
             "Para cambios delicados conserva una copia comprobable y registra la ruta de restauración. "
             "Cuando la comprobación falla detén el cambio y recupera el estado anterior antes de seguir."
         )
-        self.escribir("oceano-a.md", documento("oceano", "respaldo", "Protege cambios sintéticos mediante restauración.", primero, moja=["**"]))
-        self.escribir("oceano-b.md", documento("oceano", "recuperacion", "Detiene operaciones cuando falla una comprobación.", segundo, moja=["**"]))
+        self.escribir("oceano-a.md", documento("oceano", "respaldo", "Protege cambios sinteticos mediante restauracion.", primero, moja=["**"]))
+        self.escribir("oceano-b.md", documento("oceano", "recuperacion", "Detiene operaciones cuando falla una comprobacion.", segundo, moja=["**"]))
         self.exigir("E17")
 
     def test_e17_parafrasis_entre_un_mar_y_una_estrella(self) -> None:
@@ -347,8 +365,8 @@ class PruebasInvariantes(unittest.TestCase):
 
         del_mar = "Estar en el arbol de accesibilidad no es estar disponible: se exige tamano y visibilidad reales."
         de_la_estrella = "Lo que existe en el arbol del documento no es lo que se ve: se exige tamano y visibilidad reales."
-        self.escribir("mar.md", documento("mar", "accesible", "Exige que la interfaz sintética se pueda usar de verdad.", del_mar, moja=[r"**/*.html"]))
-        self.escribir("estrella.md", documento("estrella", "luz", "Aporta contexto sintético sobre interfaces.", de_la_estrella, ilumina="trabajo"))
+        self.escribir("mar.md", documento("mar", "accesible", "Exige que la interfaz sintetica se pueda usar de verdad.", del_mar, moja=[r"**/*.html"]))
+        self.escribir("estrella.md", documento("estrella", "luz", "Aporta contexto sintetico sobre interfaces.", de_la_estrella, ilumina="trabajo"))
         resultado = self.exigir("E17")
         mensaje = next(error.mensaje for error in resultado.errores if error.codigo == "E17")
         self.assertIn("mar/accesible", mensaje)
@@ -358,13 +376,13 @@ class PruebasInvariantes(unittest.TestCase):
     def test_verde_e17_una_analogia_no_es_una_duplicacion(self) -> None:
         """Dos frases con la misma forma y distinto contenido comparten 3 palabras."""
 
-        self.escribir("mar.md", documento("mar", "medida", "Exige que la comprobación sintética haya dado rojo.", "Una comprobacion que nunca ha dado rojo no se distingue de una rota.", moja=[r"**/*.py"]))
-        self.escribir("estrella.md", documento("estrella", "luz", "Aporta contexto sintético sobre respaldos.", "Una copia que nunca se ha restaurado no se distingue de un fichero.", ilumina="trabajo"))
+        self.escribir("mar.md", documento("mar", "medida", "Exige que la comprobacion sintetica haya dado rojo.", "Una comprobacion que nunca ha dado rojo no se distingue de una rota.", moja=[r"**/*.py"]))
+        self.escribir("estrella.md", documento("estrella", "luz", "Aporta contexto sintetico sobre respaldos.", "Una copia que nunca se ha restaurado no se distingue de un fichero.", ilumina="trabajo"))
         self.assertNotIn("E17", self.validar().codigos())
 
     def test_e18_colision_global_al_aplanar_y_rutas(self) -> None:
-        self.escribir("provincia-a.md", documento("provincia", "grupo-a", "Agrupa capacidades sintéticas del primer tipo.", padre="trabajo"))
-        self.escribir("provincia-b.md", documento("provincia", "grupo-b", "Agrupa capacidades sintéticas del segundo tipo.", padre="trabajo"))
+        self.escribir("provincia-a.md", documento("provincia", "grupo-a", "Agrupa capacidades sinteticas del primer tipo.", padre="trabajo"))
+        self.escribir("provincia-b.md", documento("provincia", "grupo-b", "Agrupa capacidades sinteticas del segundo tipo.", padre="trabajo"))
         self.escribir("skills/a/revisar.md", documento("pueblo", "revisar", "Inspecciona una salida ficticia del primer grupo.", padre="trabajo/grupo-a"))
         self.escribir("skills/b/revisar.md", documento("pueblo", "revisar", "Inspecciona una salida ficticia del segundo grupo.", padre="trabajo/grupo-b"))
         resultado = self.exigir("E18")
@@ -373,7 +391,7 @@ class PruebasInvariantes(unittest.TestCase):
         self.assertIn("trabajo/grupo-b/revisar", mensaje)
 
     def test_e19_vista_plana_desincronizada(self) -> None:
-        self.escribir("provincia.md", documento("provincia", "grupo", "Agrupa una capacidad sintética invocable.", padre="trabajo"))
+        self.escribir("provincia.md", documento("provincia", "grupo", "Agrupa una capacidad sintetica invocable.", padre="trabajo"))
         self.escribir("skills/revisar/SKILL.md", documento("pueblo", "revisar", "Inspecciona una salida ficticia controlada.", padre="trabajo/grupo"))
         self.exigir("E19")
 
@@ -396,9 +414,9 @@ class PruebasValidadorComplementarias(unittest.TestCase):
             raiz = Path(temporal)
             contenido = "Conserva una copia comprobable registra restauración completa antes de modificar archivos delicados."
             archivos = {
-                "galaxia.md": documento("galaxia", "raiz", "Organiza un árbol sintético de control."),
+                "galaxia.md": documento("galaxia", "raiz", "Organiza un arbol sintetico de control."),
                 "sistema.md": documento("sistema-solar", "modo", "Agrupa capacidades ficticias para comprobar alcance.", padre=""),
-                "provincia.md": documento("provincia", "grupo", "Reúne dos capacidades atómicas de control.", padre="modo"),
+                "provincia.md": documento("provincia", "grupo", "Reune dos capacidades atomicas de control.", padre="modo"),
                 "uno.md": documento("pueblo", "primero", "Ejecuta la primera capacidad local de control.", contenido, padre="modo/grupo"),
                 "dos.md": documento("pueblo", "segundo", "Ejecuta la segunda capacidad local de control.", contenido, padre="modo/grupo"),
             }
@@ -415,7 +433,7 @@ class PruebasValidadorComplementarias(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporal:
             raiz = Path(temporal)
             archivos = {
-                "galaxia.md": documento("galaxia", "raiz", "Organiza un árbol sintético de identidad."),
+                "galaxia.md": documento("galaxia", "raiz", "Organiza un arbol sintetico de identidad."),
                 "sistema.md": documento("sistema-solar", "modo", "Agrupa proyectos ficticios de identidad.", padre=""),
                 "planeta-a.md": documento("planeta", "uno", "Representa la primera rama ficticia.", padre="modo"),
                 "planeta-b.md": documento("planeta", "dos", "Representa la segunda rama ficticia.", padre="modo"),
@@ -445,7 +463,7 @@ class PruebasValidadorComplementarias(unittest.TestCase):
     def test_validar_no_depende_de_que_exista_tokenizador(self) -> None:
         with tempfile.TemporaryDirectory() as temporal:
             raiz = Path(temporal)
-            (raiz / "galaxia.md").write_text(documento("galaxia", "raiz", "Organiza un árbol sintético reproducible."), encoding="utf-8")
+            (raiz / "galaxia.md").write_text(documento("galaxia", "raiz", "Organiza un arbol sintetico reproducible."), encoding="utf-8")
             arbol = cargar_arbol(raiz)
             indice = raiz / "COSMOS.md"
             indice.write_text(generar_indice(arbol), encoding="utf-8")
@@ -490,7 +508,7 @@ class PruebasAciclicidad(unittest.TestCase):
     @staticmethod
     def arbol_profundo(raiz: Path) -> object:
         archivos = {
-            "galaxia.md": documento("galaxia", "raiz", "Organiza un árbol sintético profundo."),
+            "galaxia.md": documento("galaxia", "raiz", "Organiza un arbol sintetico profundo."),
             "sistema.md": documento("sistema-solar", "modo", "Agrupa proyectos ficticios encadenados.", padre=""),
             "planeta.md": documento("planeta", "uno", "Representa la primera rama ficticia.", padre="modo"),
             "provincia.md": documento("provincia", "revision", "Agrupa referencias de la rama ficticia.", padre="modo/uno"),

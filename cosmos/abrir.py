@@ -90,9 +90,20 @@ def resolver(arbol: Arbol, ruta: str) -> Nodo:
         rutas = ", ".join(sorted(n.referencia for n in candidatos))
         raise NodoNoEncontrado(f"'{ruta}' es ambiguo: {rutas}")
 
-    cercanos = sorted(r for r in indice if ruta in r)[:5]
-    pista = f" ¿Querías {', '.join(cercanos)}?" if cercanos else ""
-    raise NodoNoEncontrado(f"no existe '{ruta}'.{pista}")
+    # Una ruta con tramos de menos («trading/backtesting» por «trading/estrategia/backtesting»)
+    # resuelve por su último tramo si ese nombre es único (revisión B-28); si no, se sugiere lo
+    # cercano y, siempre, el verbo que busca por intención: un error que solo dice qué está
+    # mal invita a desactivar la comprobación (spec/VALIDADOR.md).
+    ultimo = ruta.rstrip("/").rsplit("/", 1)[-1]
+    por_nombre = [n for n in arbol.nodos if n.nombre == ultimo] if ultimo != ruta else []
+    cercanos = sorted(r for r in indice if ruta in r or ultimo == r.rsplit("/", 1)[-1])[:5]
+    if len(por_nombre) == 1:
+        pista = f" ¿Querías '{por_nombre[0].referencia}'?"
+    elif cercanos:
+        pista = f" ¿Querías {', '.join(cercanos)}?"
+    else:
+        pista = ""
+    raise NodoNoEncontrado(f"no existe '{ruta}'.{pista} Para buscar por intención: cosmos buscar <lo que necesitas>")
 
 
 def agua_que_moja(arbol: Arbol, ruta_fichero: str | None) -> list[Nodo]:

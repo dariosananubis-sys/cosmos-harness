@@ -1,5 +1,9 @@
 # Plan maestro — la herramienta definitiva
 
+> **Histórico (2026-09-01), conservado tal cual.** El mapa vigente es `spec/UNIVERSO.md` y el
+> contrato es `GOAL.md`. Los nueve sistemas de §2, el nivel `ciudad` y las cifras de aquí ya no
+> existen; lo que hay hoy lo dice `python3 -m cosmos estado`.
+
 Encargo de Darío: *«el planning para la herramienta definitiva de todo, que tenga las herramientas
 de el arnés de origen más todo lo esencial»*, con especialistas de verdad por oficio —«un experto
 montando bots de trading», «un experto en código»— buscando por todo GitHub lo importante que hay

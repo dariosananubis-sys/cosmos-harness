@@ -9,7 +9,7 @@ https://github.com/msrbuilds/elementor-mcp (plugin **EMCP Tools**) · GPL-2.0 ·
 2026-08-30 (comprobado 2026-09-01). Requiere WordPress 6.9+ y **PHP 8.1+**. Expone **más de 200
 herramientas MCP**.
 
-Del lado de esta casa, dos guiones propios: `scripts/wp-mcp-sync.py` y `scripts/wp-mcp-stdio-bridge.sh`.
+En el directorio de este pueblo, dos guiones propios: `scripts/wp-mcp-sync.py` y `scripts/wp-mcp-stdio-bridge.sh`.
 
 ```bash
 curl -s https://example.com/wp-json/ | grep -c emcp-tools-server   # ¿carga el plugin?

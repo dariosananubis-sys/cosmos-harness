@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: codigo-al-modelo
-padre: agentes-ia/coste
+padre: agentes-ia/instrumentacion
 resumen: Dar codigo a un modelo: el fragmento que pide la intencion, o el repositorio entero si no puede abrir ficheros.
 origen: propio
 ---

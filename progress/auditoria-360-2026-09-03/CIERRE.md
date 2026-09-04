@@ -8,14 +8,14 @@ está **medido a mano**, con la salida íntegra en `CIERRE/verif/`.
 
 | Comprobación | Resultado |
 |---|---|
-| `python3 -m cosmos validar` | verde, 0 errores |
+| `python3 -m cosmos validar` | `COSMOS  verde (2 saltos activos: P01, caduca en 7 d; P02, caduca en 7 d)  0 errores` — línea literal; el «verde» a secas de la primera versión de esta tabla era la mentira que el mecanismo existe para impedir (revisión B-27, 2026-09-04) |
 | `python3 -m cosmos generar` / `arrancar` | verde |
 | `python3 -m cosmos medir` | presupuesto 4.000 OK, quedan 106 tok con margen calibrado (+5,2 %) en el peor caso (ciberseguridad) |
-| `python3 -m unittest discover -s tests` | Ran 359 · OK (2 saltos: comparativas que exigen el tokenizador exacto local) |
+| `python3 -m unittest discover -s tests` | Ran 359 · OK (2 saltos: comparativas que exigen el tokenizador exacto local) — **medido en la rama, antes del merge**: sobre `main` (`892f669`) salió `FAILED (failures=1)` en `test_el_sello_v1_esta_comprometido_desde_2026_09_02` porque el merge tocó 37 resúmenes tras el sello (revisión B-01); corregido el 2026-09-04 |
 | `python3 -m unittest discover -s puente/tests` | Ran 139 · OK |
 | `python3 -m puente.gate --sin-pruebas` | EXIT 0 |
 | `python3 -m puente.secretos --todo` (sobre el índice) | limpio de nuevos; 3 inventariados |
-| `python3 puente/tests/mutaciones.py` | 79/79 invariantes vistas fallar |
+| `python3 puente/tests/mutaciones.py` | 79/79 invariantes vistas fallar — **con el holdout en disco**; sin él (copia sin `.git`, como corría el propio guion) daba 76/79 porque tres pruebas del juez se saltaban (revisión B-02); corregido el 2026-09-04: la copia lleva `.git` |
 | clon en frío (`CICLO-1/clon-en-frio.sh`) | 9/9 pasos en verde, 5,51 s, 0 rutas de máquina en `settings.json` |
 
 ## Decisiones de Darío aplicadas (2026-09-03, «te doy el verdadero sí»)

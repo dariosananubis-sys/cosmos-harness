@@ -2,10 +2,11 @@
 cosmos: sistema-solar
 nombre: agentes-ia
 padre: ""
-resumen: Agentes y chatbots con herramientas, memoria y evaluacion; MCP.
+resumen: Agentes con herramientas, memoria, evaluacion e instrumental para operarlos.
 usa:
   - modelos-locales
   - extraccion
   - refactorizacion
+  - aprendizaje-automatico
 ---
 

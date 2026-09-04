@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cosmos-harness"
+version = "0.1.0"
+description = "Organización jerárquica de contexto para agentes de código, con carga perezosa verificable."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+# Cero dependencias en tiempo de ejecución (GOAL §5): solo biblioteca estándar.
+dependencies = []
+
+[project.scripts]
+# `pip install -e .` deja `cosmos` en el PATH sin shim. La alternativa sin pip es
+# `cosmos configurar --lanzador`, que escribe ~/.local/bin/cosmos apuntando al clon.
+cosmos = "cosmos.cli:main"
+
+[tool.setuptools]
+packages = ["cosmos", "puente"]

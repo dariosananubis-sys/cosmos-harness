@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: playbook-obligatorio
-padre: agentes-ia
+padre: agentes-ia/instrumentacion
 resumen: Deniega escribir hasta haber leido el manual en ESTA sesion; si lo editas, invalida las lecturas anteriores.
 origen: propio
 ---

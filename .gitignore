@@ -20,3 +20,11 @@ credenciales.*.txt
 # la plantilla vacía sí viaja: es producto, no dato
 !docs/credenciales.plantilla.txt
 perfil.toml
+# Los respaldos de los ajustes de usuario del runtime (`--autonomia`, `--modelos`) guardan los
+# bytes de un settings.json ajeno: fuera del repo siempre, y por si alguien los copia dentro.
+autonomia.json
+modelos-ajustes.json
+
+# Lo que `pip install -e .` deja atrás.
+*.egg-info/
+build/

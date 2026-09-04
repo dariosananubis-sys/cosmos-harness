@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: revision-cruzada
-padre: agentes-ia/evaluacion
+padre: agentes-ia/instrumentacion
 resumen: Tres familias de modelos revisan el mismo cambio a la vez; el codigo de salida sale del acuerdo, no de una opinion.
 origen: propio
 ---

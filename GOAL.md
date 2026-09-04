@@ -94,8 +94,7 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 
 | Nivel | Qué es | Contiene |
 |---|---|---|
-| **Universo** | Todo. Hay uno. | Galaxias |
-| **Galaxia** | Una familia de oficios afines | Sistemas solares |
+| **Galaxia** | La raíz: hay una, y contiene todos los oficios | Sistemas solares |
 | **Sistema solar** | Un oficio por el que te contratan (los de `spec/UNIVERSO.md`) | Planetas |
 | **Estrella** | El contexto que ilumina ese sistema: su `CLAUDE.md` | — (irradia) |
 | **Planeta** | Un proyecto concreto | Continentes |
@@ -107,6 +106,11 @@ Dos familias. **Lo sólido contiene** — todo está dentro de otra cosa, sin ex
 
 Regla dura de contención: **ningún elemento existe fuera de un padre.** Un pueblo huérfano es un
 error del sistema, no un caso aceptable, y el validador lo trata como tal.
+
+«Universo» no es un nivel: en COSMOS es la **magnitud del medidor** (`spec/NUCLEO.md` §3, la suma
+de todo el árbol si se cargara entero). Esta tabla lo listaba como nivel por encima de la galaxia
+y el código nunca lo reconoció (revisión B-12); un nivel sin un solo nodo no es una reserva, es una
+promesa que el lector se cree.
 
 ### Agua — lo transversal
 
@@ -126,7 +130,7 @@ regla local en un párrafo global, y así es como un prólogo llega a 30k tokens
 
 | Nivel | Cuándo entra en contexto | Qué se ve de él antes de entrar |
 |---|---|---|
-| Universo / Galaxia | Siempre | Todo (es minúsculo por diseño) |
+| Galaxia | Siempre | Todo (es minúsculo por diseño) |
 | Océano | Siempre | Todo |
 | Sistema solar | Al entrar en ese oficio | Su nombre y una línea |
 | Estrella | Con su sistema | — |

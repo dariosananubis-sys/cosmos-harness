@@ -136,7 +136,7 @@ class RutasSinMaquina(unittest.TestCase):
             configs = mod.configs_vigilados({})
             plist = mod.contenido_plist(sys.executable, mod.ruta_reponedor(), configs, mod.ruta_log())
             self.assertIn(mod.ETIQUETA, plist)
-            self.assertNotIn("<agencia>", plist.lower())
+            self.assertEqual(plist.count("<key>Label</key>"), 1, "una sola etiqueta, la de COSMOS")
             for linea in plist.splitlines():
                 if "<string>/" in linea and "python" not in linea:
                     self.assertIn(str(casa.casa), linea, linea)

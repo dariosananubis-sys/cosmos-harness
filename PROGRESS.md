@@ -45,16 +45,16 @@ COSMOS  estado
     sistema-solar      25
     continente          8
     pais               79
-    pueblo            306
+    pueblo            307
     mar                 6
     oceano              5
     rio                19
     estrella           25
-    lluvia             15
+    lluvia             17
 
   Herramientas por oficio
     ciberseguridad         35
-    agentes-ia             25
+    agentes-ia             26
     trading                22
     web                    21
     infraestructura        16
@@ -85,9 +85,9 @@ COSMOS  estado
     trabajo             9   abrir, buscar, estado, gate, medir, memoria, saltar, secretos, validar
 
   Contrato de pueblo (spec/PUEBLO.md) — lo que E21 no bloquea y hay que saldar por tandas
-    sin rival nombrado           68 de 306   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 62 más
-    sin apartado de avisos       37 de 306   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 31 más
-    sin fecha de comprobacion    54 de 306   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
+    sin rival nombrado           68 de 307   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 62 más
+    sin apartado de avisos       37 de 307   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 31 más
+    sin fecha de comprobacion    54 de 307   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
 
   Niveles sin un solo nodo
     lago, luna, planeta, provincia

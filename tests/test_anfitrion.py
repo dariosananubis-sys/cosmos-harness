@@ -5,6 +5,7 @@ es quitarlas. Todo lo que hace reversible organizar un arnés con COSMOS, visto 
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -231,6 +232,12 @@ class LosMdDeApoyoDeUnPuebloNoSonNodos(unittest.TestCase):
             (pueblo / "references" / "nota.md").write_text("# Nota sin frontmatter\n", encoding="utf-8")
             (pueblo / "README.md").write_text("---\ntitle: paquete\nauthor: alguien\n---\nlibre\n", encoding="utf-8")
             (pueblo / "sub" / "SKILL.md").write_text("---\nname: sub-skill\ndescription: anidada\nmetadata:\n  version: 1\n---\n", encoding="utf-8")
+            # Una guía enlazada desde FUERA del árbol también es carga: la skill del anfitrión
+            # que enlaza el manual de la raíz del repositorio seguía siendo E00 «fuera del árbol».
+            manual = Path(tmp).parent / f"manual-{Path(tmp).name}.md"
+            manual.write_text("# Manual en la raíz del repositorio\n", encoding="utf-8")
+            self.addCleanup(manual.unlink)
+            (pueblo / "ANTES-DE-EMPEZAR.md").symlink_to(os.path.relpath(manual, pueblo))
             arbol = cargar_arbol(base)
             self.assertEqual(sorted(n.nombre for n in arbol.nodos), ["g", "paquete", "web"])
             self.assertEqual(arbol.errores, [])

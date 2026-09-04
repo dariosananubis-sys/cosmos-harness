@@ -477,6 +477,15 @@ def _cargar_desde(
         # La misma ruta —relativa a la raíz— en los dos errores de carga: la de lectura
         # salía absoluta y la de parseo relativa, en la misma salida (auditoría D-10).
         relativa = ruta.relative_to(base_relativa).as_posix()
+        # Dentro de un pueblo —un directorio con `SKILL.md`— los demás `.md` son carga del pueblo
+        # (referencias, guías, la `SKILL.md` de un sub-paquete), no nodos: viajan con él al
+        # compilarlo y no se validan como frontmatter de COSMOS. Un nodo por pueblo, como dice
+        # `spec/PUEBLO.md`; sin esto, una skill del anfitrión con `references/` era E00 por
+        # cada fichero de apoyo. Va ANTES de mirar los enlaces: la carga de un pueblo puede
+        # ser un enlace a una guía de fuera del árbol (una skill que enlaza el manual de la
+        # raíz del repositorio) y sigue sin ser un nodo; `compilar` copia el enlace tal cual.
+        if _es_carga_de_pueblo(ruta, raiz_path):
+            continue
         # La frontera del árbol es la raíz que declara `cosmos.toml`. Un enlace simbólico
         # que apunta fuera de ella entraba como nodo de pleno derecho (auditoría D-11):
         # lo que se mide y se aplana tiene que estar dentro de lo que se declara. Se
@@ -490,13 +499,6 @@ def _cargar_desde(
         if ruta.is_symlink() or any(padre.is_symlink() for padre in ruta.relative_to(raiz_path).parents
                                    if (raiz_path / padre).is_symlink()):
             arbol.errores.append(ErrorCarga(relativa, None, f"enlace simbólico dentro del árbol: apunta a {ruta_resuelta}; un nodo vive en un solo sitio"))
-            continue
-        # Dentro de un pueblo —un directorio con `SKILL.md`— los demás `.md` son carga del pueblo
-        # (referencias, guías, la `SKILL.md` de un sub-paquete), no nodos: viajan con él al
-        # compilarlo y no se validan como frontmatter de COSMOS. Un nodo por pueblo, como dice
-        # `spec/PUEBLO.md`; sin esto, una skill del anfitrión con `references/` era E00 por
-        # cada fichero de apoyo.
-        if _es_carga_de_pueblo(ruta, raiz_path):
             continue
         try:
             # `utf-8-sig`: un BOM (Windows, editores con la codificación heredada) hacía

@@ -44,7 +44,8 @@ existe para quitar.
 | `E18` | El nombre de un pueblo es único en toda la galaxia: la vista plana no puede colisionar (`COMPILACION.md`) | nombre de pueblo repetido |
 | `E19` | El manifiesto de la vista plana coincide con el destino en disco (`COMPILACION.md`) | vista plana desincronizada |
 | `E20` | Todo destino de `usa:` existe y no es el propio nodo (`COMPOSICION.md`, `FRONTMATTER.md`) | vecino inexistente |
-| `E21` | Un `pueblo` nombra qué ejecutar: URL `http(s)://` en el cuerpo —o `origen: propio` si el guion vive en su directorio— y al menos un bloque de código (`PUEBLO.md`, contrato 1-3) | pueblo que no nombra nada |
+| `E21` | Un `pueblo` nombra qué ejecutar: URL `http(s)://` en el cuerpo —o `origen: propio` si el guion vive en su directorio— y al menos un bloque de código; `origen: guia` es un playbook propio que se lee, no se ejecuta, y solo se le exige cuerpo (`PUEBLO.md`, contrato 1-3) | pueblo que no nombra nada |
+| `E22` | Los ficheros de runtime generados desde nodos con `anfitrion` (reglas, agentes, comandos; `COMPILACION.md` §«Los otros ficheros de runtime») coinciden con sus nodos y con su manifiesto | runtime generado desincronizado |
 
 ### Sobre `E08`, que es el que se va a discutir
 

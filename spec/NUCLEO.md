@@ -44,7 +44,7 @@ contradicción. Y si el `padre` no resuelve, salta E02. La galaxia no declara `p
 tampoco cierra ciclos, y el agua no tiene `padre` en absoluto.
 
 > **E04 («ciclo») queda retirada.** Su hueco en la numeración **no se reutiliza**: los códigos
-> siguen siendo E00–E03 y E05–E21. La aciclicidad no se vigila porque el diseño la ganó; fingir
+> siguen siendo E00–E03 y E05–E22. La aciclicidad no se vigila porque el diseño la ganó; fingir
 > que se vigila con una comprobación que ningún árbol legal puede disparar es peor que no tenerla
 > (`GOAL.md` §7: un verde que nunca ha dado rojo no se distingue de uno roto).
 

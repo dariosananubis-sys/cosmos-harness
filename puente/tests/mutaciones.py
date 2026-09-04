@@ -723,6 +723,30 @@ MUTACIONES = (
         "puente.tests.test_sesion_autonomia.LaCartaYLaMaquinaDicenLoMismo.test_avisa_en_rojo_cuando_la_maquina_arranca_en_manual",
         "A §2.6: si G01 calla con la máquina en manual, el océano `autonomia` es una exhortación que el agente se cree",
     ),
+    Mutacion(
+        "M86",
+        "cosmos/compilar.py",
+        "        if actual != esperado:\n            errores.append(f\"{entrada} no coincide con su nodo {nodo.ruta_relativa}\")\n",
+        "        if False:\n            errores.append(f\"{entrada} no coincide con su nodo {nodo.ruta_relativa}\")\n",
+        "tests.test_anfitrion.Arbol.test_compilar_devuelve_el_runtime_byte_a_byte_y_e22_lo_vigila",
+        "E22: sin comparar el hash, un fichero de runtime editado a mano pasa por sincronizado",
+    ),
+    Mutacion(
+        "M87",
+        "cosmos/modelo.py",
+        "        quitando = clave in CLAVES_COSMOS\n",
+        "        quitando = False\n",
+        "tests.test_anfitrion.ElParserTolera.test_sin_claves_cosmos_devuelve_el_original_byte_a_byte",
+        "COMPILACION: si compilar no quita las claves de COSMOS, el runtime deja de ser el fichero original",
+    ),
+    Mutacion(
+        "M88",
+        "cosmos/validar.py",
+        "            if anfitrion is None:\n                for campo in sorted(set(nodo.datos) - permitidos):\n",
+        "            if True:\n                for campo in sorted(set(nodo.datos) - permitidos):\n",
+        "tests.test_anfitrion.Arbol.test_e00_acepta_las_claves_del_anfitrion_solo_con_la_declaracion",
+        "FRONTMATTER: si E00 no abre la puerta con `anfitrion`, ningún fichero del runtime puede ser nodo",
+    ),
 )
 
 

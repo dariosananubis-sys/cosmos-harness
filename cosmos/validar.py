@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Iterable
 
-from .compilar import errores_vista
+from .compilar import errores_runtime, errores_vista, manifiesto_runtime
 from .generar import generar_indice
 from .medir import medir_casos, veredicto_de_presupuesto
 from .modelo import (
@@ -24,6 +24,8 @@ from .modelo import (
     Configuracion,
     Nodo,
     cuerpo,
+    CLAVES_COSMOS,
+    Opaco,
 )
 
 
@@ -102,6 +104,13 @@ CAMPOS_OPCIONALES["pueblo"] = {"usa", "origen"}
 # los turnos de la vida del proyecto para ejecutarse una vez.
 CAMPOS_OPCIONALES["rio"] = {"momento"}
 MOMENTOS_DE_RIO = frozenset({"trabajo", "mantenimiento"})
+# `anfitrion: claude-code` declara que el nodo ES el fichero de runtime del anfitrión más las
+# claves de COSMOS: las demás claves (`name`, `paths`, `tools`, `mcpServers`, `metadata`…) son
+# del runtime, viajan intactas al fichero que `compilar` genera y COSMOS no las juzga. Sin la
+# declaración, un campo desconocido o un mapa anidado siguen siendo E00: la puerta es explícita.
+for _nivel in NIVELES_VALIDOS:
+    CAMPOS_OPCIONALES[_nivel] = CAMPOS_OPCIONALES.get(_nivel, set()) | {"anfitrion"}
+VALORES_ANFITRION = frozenset({"claude-code"})
 
 
 @dataclass(frozen=True)
@@ -181,15 +190,26 @@ def _comprobar_e00(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
                 campo="momento"))
         if isinstance(nodo.datos.get("nombre"), str) and not PATRON_NOMBRE.fullmatch(nodo.nombre):
             errores.append(_error("E00", nodo, f"nombre inválido: {nodo.nombre!r}", "Usa solo minúsculas ASCII, dígitos y guiones.", campo="nombre"))
+        anfitrion = nodo.datos.get("anfitrion")
+        if anfitrion is not None and anfitrion not in VALORES_ANFITRION:
+            errores.append(_error("E00", nodo, f"'anfitrion' desconocido: {anfitrion!r}",
+                                  f"Usa uno de {sorted(VALORES_ANFITRION)} o quita el campo.", campo="anfitrion"))
+            anfitrion = None
         if nivel in NIVELES_VALIDOS:
             permitidos = CAMPOS_COMUNES | CAMPOS_POR_NIVEL[nivel] | CAMPOS_OPCIONALES.get(nivel, set())
-            for campo in sorted(set(nodo.datos) - permitidos):
-                errores.append(_error("E00", nodo, f"campo no permitido para {nivel}: {campo!r}", "Elimina el campo o mueve la información al cuerpo Markdown.", campo=campo))
+            de_cosmos = permitidos | CLAVES_COSMOS
+            if anfitrion is None:
+                for campo in sorted(set(nodo.datos) - permitidos):
+                    errores.append(_error("E00", nodo, f"campo no permitido para {nivel}: {campo!r}", "Elimina el campo o mueve la información al cuerpo Markdown (o declara 'anfitrion: claude-code' si es una clave del runtime).", campo=campo))
             for campo in CAMPOS_POR_NIVEL[nivel] - {"padre"}:
                 if campo not in nodo.datos:
                     errores.append(_error("E00", nodo, f"falta el campo obligatorio {campo!r}", f"Añade {campo!r} al frontmatter."))
             for campo, valor in nodo.datos.items():
-                if campo in {"moja", "usa"} and not isinstance(valor, list):
+                if anfitrion is not None and campo not in de_cosmos:
+                    continue  # clave del anfitrión: opaca para COSMOS, viaja tal cual
+                if isinstance(valor, Opaco):
+                    errores.append(_error("E00", nodo, f"{campo!r} lleva un mapa anidado o un escalar plegado", "El subconjunto de COSMOS solo admite escalares y listas de escalares en sus claves.", campo=campo))
+                elif campo in {"moja", "usa"} and not isinstance(valor, list):
                     errores.append(_error("E00", nodo, f"{campo!r} debe ser una lista de texto", "Usa una lista YAML de escalares.", campo=campo))
                 elif campo not in {"moja", "usa"} and not isinstance(valor, str):
                     errores.append(_error("E00", nodo, f"{campo!r} debe ser texto", "Usa un escalar de texto.", campo=campo))
@@ -501,7 +521,7 @@ def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorVa
 # `https://` en cualquier prosa y 10 pueblos pasaban por accidente (revisión R-18).
 PATRON_URL = re.compile(r"^https://[A-Za-z0-9.-]+\.[A-Za-z]{2,}/[^/\s]+/[^/\s]+")
 MARCADORES_URL = ("usuario/repo", "<", ">", "example.", "ejemplo.", "localhost", "127.0.0.1", "dominio.", "tu-")
-VALORES_ORIGEN = frozenset({"propio"})
+VALORES_ORIGEN = frozenset({"propio", "guia"})
 
 
 def url_de_repositorio(texto: str) -> str | None:
@@ -540,7 +560,21 @@ def _comprobar_e21(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
                                   campo="origen"))
             continue
         texto = cuerpo(nodo)
-        if origen != "propio" and url_de_repositorio(texto) is None:
+        if origen == "guia":
+            # Una guía propia se LEE, no se ejecuta: un playbook del anfitrión sin guion ni
+            # repositorio. Lo que se le exige es que no esté vacía; el catálogo la distingue.
+            if len(texto.split()) < 40:
+                errores.append(_error("E21", nodo, "'origen: guia' con menos de 40 palabras: no hay guía que leer",
+                                      "Escribe la guía o cataloga la herramienta con su URL.", campo="origen"))
+            continue
+        # Un pueblo del anfitrión conserva su cuerpo byte a byte: la URL de origen puede estar en
+        # cualquier línea (o en `source:` de su frontmatter), no solo en la primera.
+        con_url = url_de_repositorio(texto) is not None or (
+            nodo.datos.get("anfitrion") == "claude-code"
+            and (re.search(r"https?://(?:github|gitlab)\.com/[^\s)>]+", texto) is not None
+                 or isinstance(nodo.datos.get("source"), str) and "/" in str(nodo.datos.get("source")))
+        )
+        if origen != "propio" and not con_url:
             errores.append(_error("E21", nodo, "el pueblo no nombra qué ejecutar: sin URL de repositorio en la primera línea del cuerpo ni 'origen: propio'",
                                   "Pon la URL literal del repositorio (https://host/organizacion/proyecto) en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí."))
         if origen == "propio" and not any(p.is_file() and p.name != "SKILL.md" for p in nodo.ruta.parent.rglob("*")):
@@ -660,6 +694,8 @@ def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
         config.modo_compilacion,
         nichos=config.nichos,
         config_path=config.ruta,
+        herramientas=config.herramientas,
+        solo_anfitrion=config.vista_compilacion == "anfitrion",
     )
     return [
         _error(
@@ -671,6 +707,26 @@ def _comprobar_e19(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorV
         )
         for problema in problemas
     ]
+
+
+def _comprobar_e22(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
+    """E22 — los ficheros de runtime generados (reglas, agentes, comandos) coinciden con sus nodos.
+
+    Es E19 para lo que no son skills: un nodo con `anfitrion` promete que el fichero que el
+    runtime lee es él mismo sin las claves de COSMOS. Si alguien edita el fichero generado a
+    mano, o cambia el nodo sin compilar, el runtime y el árbol dicen cosas distintas y nadie lo
+    ve: por eso es rojo, con `cosmos compilar` como arreglo.
+    """
+
+    errores: list[ErrorValidacion] = []
+    for tipo, destino in (("rules", config.rules_compilacion), ("agentes", config.agentes_compilacion),
+                          ("comandos", config.comandos_compilacion)):
+        if destino is None:
+            continue
+        for problema in errores_runtime(arbol, tipo, destino, manifiesto_runtime(config, tipo)):
+            errores.append(_error("E22", None, f"runtime generado desincronizado ({tipo}): {problema}",
+                                  "Ejecuta 'cosmos compilar'; no edites los ficheros generados a mano.", ruta=str(destino)))
+    return errores
 
 
 def _comprobar_e20(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
@@ -718,7 +774,7 @@ COMPROBACIONES: tuple[Comprobacion, ...] = (
     _comprobar_e05, _comprobar_e06, _comprobar_e07, _comprobar_e08, _comprobar_e09,
     _comprobar_e10, _comprobar_e11, _comprobar_e12, _comprobar_e13, _comprobar_e14,
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,
-    _comprobar_e19, _comprobar_e20, _comprobar_e21,
+    _comprobar_e19, _comprobar_e20, _comprobar_e21, _comprobar_e22,
 )
 
 

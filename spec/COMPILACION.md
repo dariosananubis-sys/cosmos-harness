@@ -129,3 +129,35 @@ migración e inspección; la vista que consume un runtime con carga acotada se g
 7. Un test en `--modo copia` de que no queda ningún symlink en el destino.
 8. Un test de que `--nicho web` solo aplana `web`, elimina por hash las entradas intactas de otros
    nichos y preserva las modificadas.
+
+## Los otros ficheros de runtime: reglas, agentes y comandos
+
+Un anfitrión como Claude Code lee cuatro cosas: skills (la vista plana de arriba), **reglas** que se
+cargan por rutas (`.claude/rules/*.md` con `paths:`), **agentes** (`.claude/agents/*.md`) y
+**comandos** (`.claude/commands/*.md`). Cuando COSMOS organiza un arnés que ya existía, esos tres
+también son nodos —un mar o un lago es una regla, una luna es un agente, un río con `invoca: /x` es un
+comando— y también se generan. La regla es una sola y es la que hace reversible la migración:
+
+> **El nodo es el fichero original del anfitrión más las claves de COSMOS, y compilar es quitarlas.**
+
+Un nodo con `anfitrion: claude-code` (`FRONTMATTER.md`) conserva el frontmatter del anfitrión tal
+cual —orden, comillas, mapas anidados incluidos— y añade delante `cosmos:`, `nombre:`, `resumen:` y
+lo que su nivel exija (`moja`, `orbita`, `invoca`…). `cosmos compilar` escribe en cada destino
+declarado en `cosmos.toml` (`[compilacion] rules`, `agentes`, `comandos`) el nodo **sin** esas claves
+(`modelo.sin_claves_cosmos`, textual: no se re-serializa nada); si el frontmatter queda vacío, se
+quita entero. El resultado tiene que ser, byte a byte, el fichero que el anfitrión tenía antes, y la
+prueba es `git diff` sobre el destino tras compilar: vacío. La vista de skills hace lo mismo para los
+pueblos con `anfitrion` (copia sin traducir nada: el original ya lleva `name`/`description`), y esos
+pueblos entran **siempre** en la vista, sea cual sea el nicho activo, porque son las skills que el
+anfitrión ya usaba.
+
+Cada destino lleva su manifiesto (`.cosmos/compilado-<tipo>.json`) y la misma política que la vista
+plana: lo que COSMOS escribió se actualiza o se retira cuando su nodo desaparece; lo que **no**
+escribió (ajeno) no se toca nunca, salvo para adoptarlo si es idéntico a lo que se crearía; lo que
+alguien editó después de escribirlo se preserva y se dice. **E22** comprueba que cada nodo con
+`anfitrion` tiene su fichero generado, igual a él y en el manifiesto, y que el manifiesto no nombra
+ficheros que ya no tienen nodo; el arreglo es `cosmos compilar`, nunca editar el fichero generado.
+
+Lo que no se genera: la memoria del anfitrión (`REGISTRO.md`, se indexa donde está), `CLAUDE.md`
+y los ajustes del runtime (`.claude/settings.json`, hooks): eso sigue siendo del arnés y de
+`cosmos enganchar`.

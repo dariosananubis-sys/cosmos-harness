@@ -71,19 +71,75 @@ def _resumen_deducido(cuerpo: str) -> str:
     return ""
 
 
-def indexar(raiz: str | Path | None = None) -> list[Entrada]:
+def _frontmatter_del_anfitrion(texto: str) -> dict[str, str]:
+    """`name` y `description` de una memoria del anfitrión, leídos con tolerancia.
+
+    La memoria de Claude Code lleva `metadata:` con un mapa anidado y a veces una descripción
+    con comillas a medias: no es un nodo y no pasa por el parser normativo. Solo se sacan las
+    dos claves que sirven para encontrarla; el cuerpo no se carga en el resultado.
+    """
+
+    datos: dict[str, str] = {}
+    if not texto.startswith("---"):
+        return datos
+    cabecera = texto.split("\n---", 1)[0]
+    for clave in ("name", "description"):
+        coincidencia = re.search(rf"^{clave}:\s*(.+?)\s*$", cabecera, re.M)
+        if coincidencia:
+            valor = coincidencia.group(1).strip()
+            if len(valor) >= 2 and valor[0] == valor[-1] and valor[0] in "\"'":
+                valor = valor[1:-1]
+            datos[clave] = valor
+    return datos
+
+
+def _memoria_del_anfitrion(directorio: Path, etiqueta: str) -> list[Entrada]:
+    """Las memorias de `memory/` (u otro directorio declarado en `[raiz] memoria`), sin moverlas."""
+
+    entradas: list[Entrada] = []
+    if not directorio.is_dir():
+        return entradas
+    for ruta in sorted(directorio.glob("*.md")):
+        if ruta.is_symlink() or not ruta.is_file() or ruta.name.upper() == "MEMORY.MD":
+            continue
+        try:
+            with ruta.open("rb") as manejador:
+                crudo = manejador.read(MAX_CUERPO)
+        except OSError:
+            continue
+        texto = crudo.decode("utf-8", errors="replace")
+        datos = _frontmatter_del_anfitrion(texto)
+        cuerpo = _sin_frontmatter(texto)
+        nombre = datos.get("name") or ruta.stem
+        entradas.append(Entrada(
+            ruta=f"{etiqueta}/{ruta.name}",
+            nombre=nombre,
+            resumen=(datos.get("description") or _resumen_deducido(cuerpo))[:LIMITE_RESUMEN * 3],
+            carpeta="lluvia",
+            nicho=nombre.split("-", 1)[0] if "-" in nombre else "",
+            cuerpo=cuerpo,
+        ))
+    return entradas
+
+
+def indexar(raiz: str | Path | None = None, memoria: str | Path | None = None) -> list[Entrada]:
     """Construye el índice leyendo el registro; no hay artefacto que sincronizar.
 
     El original exigía un index.json previo y fallaba pidiendo un paso de arranque.
     Aquí las entradas SON los ficheros, así que una memoria escrita hace un segundo
-    ya se encuentra, y una borrada deja de encontrarse.
+    ya se encuentra, y una borrada deja de encontrarse. `memoria` añade el directorio de
+    memoria del anfitrión (`[raiz] memoria` en `cosmos.toml`): se indexa donde está.
     """
 
     base = Path(raiz or Path(__file__).resolve().parent.parent)
     registro = (base / REGISTRO).resolve()
-    if not registro.is_dir():
-        return []
     entradas: list[Entrada] = []
+    if memoria is not None:
+        ruta_memoria = Path(memoria)
+        etiqueta = ruta_memoria.name if ruta_memoria.is_absolute() else ruta_memoria.as_posix()
+        entradas.extend(_memoria_del_anfitrion(ruta_memoria if ruta_memoria.is_absolute() else base / ruta_memoria, etiqueta))
+    if not registro.is_dir():
+        return entradas
     for ruta in sorted(registro.rglob("*.md")):
         if ruta.is_symlink() or not ruta.is_file():
             continue
@@ -262,7 +318,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.max_bytes < MIN_SALIDA:
         parser.error(f"--max-bytes debe ser al menos {MIN_SALIDA}")
-    entradas = indexar(args.raiz)
+    memoria = None
+    try:
+        from cosmos.modelo import cargar_configuracion
+
+        config = cargar_configuracion(Path(args.raiz or ".") / "cosmos.toml")
+        memoria = config.memoria if config.encontrada else None
+    except Exception:  # noqa: BLE001 — sin cosmos.toml legible, solo el registro
+        memoria = None
+    entradas = indexar(args.raiz, memoria=memoria)
     if not entradas:
         print("ERROR: el registro está vacío o no existe", file=sys.stderr)
         return 1

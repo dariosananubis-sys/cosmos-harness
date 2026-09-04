@@ -18,7 +18,7 @@ rama: main
 - **Repo intacto.** Cero ediciones, cero commits, cero push sobre `~/cosmos`. Lo único
   escrito es este fichero.
 - **Los experimentos van sobre copias del scratchpad**, siempre indicado:
-  `$SP = /private/tmp/claude-503/-Users-<usuario>-<arnes>/54013195-fe41-43d7-8dcb-a438b655d353/scratchpad`
+  `$SP = <scratchpad>`
   · `$SP/cosmos-copia` y `$SP/cosmos-copia2` (inflado de la nota) · `$SP/sab`, `$SP/sabj`,
   `$SP/sabj2` (sabotajes) · `$SP/sello` (sello roto).
 - **Intérpretes, dichos exactos.** `python` a secas **no existe** en esta máquina
@@ -46,7 +46,7 @@ sola herramienta ni corregir un solo resumen malo**. Copiar el examen a la chule
 **Reproducción** (sobre copia, nunca el repo):
 
 ```bash
-SP=/private/tmp/claude-503/-Users-<usuario>-<arnes>/54013195-fe41-43d7-8dcb-a438b655d353/scratchpad
+SP=<scratchpad>
 cp -R ~/cosmos $SP/cosmos-copia2 && rm -rf $SP/cosmos-copia2/.git
 cp $SP/control-revisorB.json $SP/cosmos-copia2/pruebas/
 cd $SP/cosmos-copia2
@@ -526,7 +526,7 @@ publique COSMOS será defendible aunque quien la calcule quiera engañarse.
 ## Anexo — cómo reproducir todo esto
 
 ```bash
-SP=/private/tmp/claude-503/-Users-<usuario>-<arnes>/54013195-fe41-43d7-8dcb-a438b655d353/scratchpad
+SP=<scratchpad>
 PYCAL=$SP/calib/bin/python        # venv con tiktoken; python3 -m venv + pip install tiktoken
 
 cd ~/cosmos

@@ -166,6 +166,29 @@ perezosa allí es la del anfitrión: nombre y descripción en el prompt, cuerpo 
 de COSMOS no viajan; el bloque lo dice y explica cómo bajar por otro oficio. `comprobar` verifica el
 contrato del anfitrión (que las vea), no solo el de COSMOS consigo mismo.
 
+### Organizar un arnés que ya existe
+
+Si el repositorio ya tiene sus skills, sus reglas, sus agentes y sus comandos, COSMOS no los reescribe:
+**cada fichero del runtime pasa a ser un nodo** (el fichero original más las claves de COSMOS,
+declarado con `anfitrion: claude-code`) y `cosmos compilar` vuelve a generar `.claude/skills`,
+`.claude/rules`, `.claude/agents` y `.claude/commands` quitando solo esas claves. El resultado es el
+fichero original byte a byte —`git diff` sobre `.claude/` tras compilar da vacío—, y desde entonces la
+fuente es el árbol: `validar` lo comprueba (E22), `medir` cuenta lo que cuesta de verdad y `buscar`
+lo encuentra. La memoria del anfitrión (`memory/`) no se mueve: `cosmos memoria` la indexa donde está.
+
+```
+[compilacion]
+destino = ".claude/skills"    # copia, y solo los pueblos del anfitrión (vista = "anfitrion")
+modo = "copia"
+vista = "anfitrion"
+rules = ".claude/rules"
+agentes = ".claude/agents"
+comandos = ".claude/commands"
+
+[raiz]
+memoria = "memory"
+```
+
 `arrancar` construye la vista y vuelve a validar el árbol entero. **No** regenera el índice: si el
 índice miente, sale en rojo y te manda a `cosmos generar`. Un bootstrap que repara en silencio lo
 que el validador debería denunciar no es un bootstrap, es un encubrimiento.
@@ -179,7 +202,7 @@ Cuatro piezas que comprueban, y cuatro enganches que las ejecutan sin que nadie 
 
 | Pieza | Qué hace |
 |---|---|
-| `cosmos validar` | E00–E21. Esquema, estructura, duplicación, presupuesto, artefactos sincronizados y el contrato de cada pueblo |
+| `cosmos validar` | E00–E22. Esquema, estructura, duplicación, presupuesto, artefactos sincronizados, el contrato de cada pueblo y el runtime generado |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
 | `cosmos compilar` | Aplana los pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
@@ -216,7 +239,7 @@ python3 -m cosmos saltar --listar
 
 | Propiedad | Regla |
 |---|---|
-| Acotada | Un código concreto (`E00`..`E21`), de sesión (`G01`..`G05`) o del gate (`P01`, `P02`); nunca «todo» |
+| Acotada | Un código concreto (`E00`..`E22`), de sesión (`G01`..`G05`) o del gate (`P01`, `P02`); nunca «todo» |
 | Con motivo | Obligatorio. Sin `--motivo` no hay salto |
 | Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
 | Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |

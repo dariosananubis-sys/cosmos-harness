@@ -11,7 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .modelo import ErrorCerrojo, cerrojo, escribir_atomico, Arbol, Nodo, nicho_de_nodo, normalizar_nichos
+from .modelo import (ErrorCerrojo, cerrojo, escribir_atomico, Arbol, Nodo, nicho_de_nodo, normalizar_nichos,
+                     parsear_frontmatter, sin_claves_cosmos)
 
 
 NIVELES_APLANADOS = frozenset({"pueblo"})
@@ -57,19 +58,36 @@ def destino_escaneado(destino: Path) -> bool:
     return any(ruta.endswith(sufijo) for sufijo in DESTINOS_ESCANEADOS)
 
 
-def _skills(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, todos: bool = False) -> dict[str, Nodo]:
+def _del_anfitrion(nodo: Nodo) -> bool:
+    return nodo.datos.get("anfitrion") == "claude-code"
+
+
+def _skills(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, todos: bool = False,
+            herramientas: tuple[str, ...] | None = None, solo_anfitrion: bool = False) -> dict[str, Nodo]:
     """Los pueblos que se aplanan. `nichos=None` es NINGUNO, como en el catálogo (NUCLEO §2);
     la vista completa se pide explícita con `todos=True` (auditoría A-04: un mismo centinela
-    significaba «nada» en un subsistema y «todo» en el otro)."""
+    significaba «nada» en un subsistema y «todo» en el otro).
+
+    Dos entradas más, y las dos son del que usa el árbol, no del árbol: las `herramientas`
+    elegidas (perfil o `[nichos] herramientas`) entran aunque su nicho duerma, y los pueblos con
+    `anfitrion: claude-code` entran SIEMPRE, porque son las skills que el anfitrión ya tenía y
+    COSMOS solo ordena; dejarlas fuera de la vista sería quitárselas.
+    """
 
     seleccion = normalizar_nichos(arbol, nichos)
-    if not todos and seleccion is None:
-        return {}
+    if solo_anfitrion:
+        seleccion, todos = None, False
+    elegidas = set(herramientas or ())
+    ordenados = sorted(arbol.nodos, key=lambda item: (item.nombre, item.ruta_cosmos, item.ruta_relativa))
     return {
         nodo.nombre: nodo
-        for nodo in sorted(arbol.nodos, key=lambda item: (item.nombre, item.ruta_cosmos, item.ruta_relativa))
+        for nodo in ordenados
         if nodo.cosmos in NIVELES_APLANADOS
-        and (todos or nicho_de_nodo(arbol, nodo) in seleccion)
+        and (
+            _del_anfitrion(nodo)
+            or nodo.nombre in elegidas
+            or (todos or (seleccion is not None and nicho_de_nodo(arbol, nodo) in seleccion))
+        )
     }
 
 
@@ -98,13 +116,202 @@ def _elementos(raiz: Path, *, filtrar: bool) -> list[Path]:
 
 
 def _traducido(relativa: bytes, contenido: bytes) -> bytes:
-    """El SKILL.md raíz de una copia lleva `name`/`description` para el anfitrión (R-22)."""
+    """El SKILL.md raíz de una copia lleva `name`/`description` para el anfitrión (R-22).
+
+    Si el pueblo declara `anfitrion: claude-code`, la copia es el fichero ORIGINAL del anfitrión
+    byte a byte: se quitan las claves de COSMOS y no se añade nada. Es lo que hace reversible
+    organizar un arnés con COSMOS: `git diff` sobre la vista tiene que dar vacío.
+    """
 
     if relativa == b"SKILL.md":
+        texto = contenido.decode("utf-8-sig", errors="replace")
+        try:
+            datos, _ = parsear_frontmatter(texto, "SKILL.md")
+        except ValueError:
+            datos = {}
+        if datos.get("anfitrion") == "claude-code":
+            return sin_claves_cosmos(texto).encode("utf-8")
         from puente.proyectar import para_el_anfitrion
 
         return para_el_anfitrion(contenido)
     return contenido
+
+
+# --- Los otros ficheros de runtime: reglas, agentes y comandos ---------------------------
+#
+# El anfitrión lee cuatro cosas: skills (la vista plana de arriba), reglas por rutas, agentes y
+# comandos. Las tres últimas se generan desde nodos con `anfitrion: claude-code` —un lago o un mar
+# es una regla, una luna es un agente, un río con `invoca: /x` es un comando— quitando las claves
+# de COSMOS. Un manifiesto por destino: lo que COSMOS escribió se actualiza o se retira; lo que
+# no escribió (ajeno) no se toca nunca, y lo que alguien editó después de escribirlo se preserva.
+
+TIPOS_RUNTIME = {
+    "rules": frozenset({"oceano", "mar", "lago"}),
+    "agentes": frozenset({"luna"}),
+    "comandos": frozenset({"rio"}),
+}
+
+
+def manifiesto_runtime(config: Any, tipo: str) -> Path:
+    base = Path(config.manifiesto_compilacion)
+    return base.with_name(f"{base.stem}-{tipo}{base.suffix}")
+
+
+def nodos_runtime(arbol: Arbol, tipo: str) -> dict[str, Nodo]:
+    niveles = TIPOS_RUNTIME[tipo]
+    elegidos = {}
+    for nodo in sorted(arbol.nodos, key=lambda n: (n.nombre, n.ruta_relativa)):
+        if nodo.cosmos not in niveles or not _del_anfitrion(nodo):
+            continue
+        if tipo == "comandos" and not str(nodo.datos.get("invoca", "")).startswith("/"):
+            continue
+        elegidos[f"{nodo.nombre}.md"] = nodo
+    return elegidos
+
+
+def contenido_runtime(nodo: Nodo) -> str:
+    return sin_claves_cosmos(nodo.contenido)
+
+
+def _hash_texto(texto: str) -> str:
+    return hashlib.sha256(texto.encode("utf-8")).hexdigest()
+
+
+def _leer_manifiesto_runtime(ruta: Path) -> dict[str, Any] | None:
+    if not ruta.is_file():
+        return None
+    try:
+        datos = json.loads(ruta.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ErrorCompilacion(f"manifiesto ilegible: {ruta} ({exc})") from exc
+    if not isinstance(datos, dict) or not isinstance(datos.get("entradas"), dict):
+        raise ErrorCompilacion(f"manifiesto con forma inesperada: {ruta}")
+    return datos
+
+
+def compilar_runtime(arbol: Arbol, tipo: str, destino: Path, manifiesto: Path, *, seco: bool = False) -> ResultadoCompilacion:
+    """Materializa un tipo de runtime en su destino. Misma política que la vista plana."""
+
+    if tipo not in TIPOS_RUNTIME:
+        raise ErrorCompilacion(f"tipo de runtime desconocido: {tipo}")
+    destino = Path(destino)
+    manifiesto = Path(manifiesto)
+    datos = _leer_manifiesto_runtime(manifiesto)
+    antiguas: dict[str, dict[str, str]] = datos["entradas"] if datos else {}
+    esperadas = nodos_runtime(arbol, tipo)
+    existentes = {p.name for p in destino.iterdir() if p.is_file()} if destino.is_dir() else set()
+    ajenas_nombres = existentes - set(antiguas)
+    acciones: list[str] = []
+    creadas = actualizadas = iguales = eliminadas = preservadas = adoptadas = 0
+    nuevas: dict[str, dict[str, str]] = {}
+
+    def _rel(ruta: Path) -> str:
+        try:
+            return os.path.relpath(ruta)
+        except ValueError:
+            return str(ruta)
+
+    def _actual(ruta: Path) -> str | None:
+        if ruta.is_symlink() or not ruta.is_file():
+            return None
+        return _hash_texto(ruta.read_text(encoding="utf-8", errors="replace"))
+
+    for nombre, nodo in esperadas.items():
+        entrada = destino / nombre
+        esperado = _hash_texto(contenido_runtime(nodo))
+        registro = antiguas.get(nombre)
+        if registro is None and entrada.exists():
+            if _actual(entrada) == esperado:
+                adoptadas += 1
+                ajenas_nombres.discard(nombre)
+                acciones.append(f"ADOPTAR {_rel(entrada)}")
+                nuevas[nombre] = {"hash": esperado, "origen": os.path.relpath(nodo.ruta, start=manifiesto.parent)}
+                continue
+            acciones.append(f"AJENA {_rel(entrada)}")
+            continue
+        if _actual(entrada) == esperado:
+            iguales += 1
+            acciones.append(f"IGUAL {_rel(entrada)}")
+        elif registro is None:
+            creadas += 1
+            acciones.append(f"CREAR {_rel(entrada)}")
+        elif _actual(entrada) != registro.get("hash"):
+            # Lo que COSMOS escribió y alguien cambió después: no se pisa, se dice.
+            preservadas += 1
+            ajenas_nombres.add(nombre)
+            acciones.append(f"PRESERVAR {_rel(entrada)}")
+            continue
+        else:
+            actualizadas += 1
+            acciones.append(f"ACTUALIZAR {_rel(entrada)}")
+        nuevas[nombre] = {"hash": esperado, "origen": os.path.relpath(nodo.ruta, start=manifiesto.parent)}
+
+    for nombre, registro in sorted(antiguas.items()):
+        if nombre in esperadas:
+            continue
+        entrada = destino / nombre
+        if _actual(entrada) == registro.get("hash"):
+            eliminadas += 1
+            acciones.append(f"ELIMINAR {_rel(entrada)}")
+        elif entrada.exists():
+            preservadas += 1
+            ajenas_nombres.add(nombre)
+            acciones.append(f"PRESERVAR {_rel(entrada)}")
+
+    resultado = ResultadoCompilacion(creadas=creadas, actualizadas=actualizadas, iguales=iguales, ajenas=len(ajenas_nombres),
+                                     eliminadas=eliminadas, preservadas=preservadas, adoptadas=adoptadas, seco=seco,
+                                     acciones=tuple(acciones))
+    if seco:
+        return resultado
+    destino.mkdir(parents=True, exist_ok=True)
+    for nombre, nodo in esperadas.items():
+        if nombre not in nuevas:
+            continue
+        entrada = destino / nombre
+        texto = contenido_runtime(nodo)
+        if _actual(entrada) != _hash_texto(texto):
+            escribir_atomico(entrada, texto)
+    for nombre, registro in sorted(antiguas.items()):
+        if nombre in esperadas:
+            continue
+        entrada = destino / nombre
+        if _actual(entrada) == registro.get("hash"):
+            entrada.unlink()
+    contenido = json.dumps({"esquema": 1, "tipo": tipo, "destino": os.path.relpath(destino, start=manifiesto.parent),
+                            "entradas": nuevas}, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    if not manifiesto.exists() or manifiesto.read_text(encoding="utf-8") != contenido:
+        escribir_atomico(manifiesto, contenido)
+    return resultado
+
+
+def errores_runtime(arbol: Arbol, tipo: str, destino: Path, manifiesto: Path) -> list[str]:
+    """Lo que E22 comprueba: cada nodo del anfitrión tiene su fichero generado, igual a él."""
+
+    esperadas = nodos_runtime(arbol, tipo)
+    try:
+        datos = _leer_manifiesto_runtime(Path(manifiesto))
+    except ErrorCompilacion as exc:
+        return [str(exc)]
+    if datos is None:
+        return [f"falta el manifiesto {manifiesto}"] if esperadas else []
+    entradas = datos["entradas"]
+    errores: list[str] = []
+    for nombre, nodo in esperadas.items():
+        entrada = Path(destino) / nombre
+        esperado = _hash_texto(contenido_runtime(nodo))
+        if not entrada.is_file():
+            errores.append(f"falta {entrada}")
+            continue
+        actual = _hash_texto(entrada.read_text(encoding="utf-8", errors="replace"))
+        if actual != esperado:
+            errores.append(f"{entrada} no coincide con su nodo {nodo.ruta_relativa}")
+        elif not isinstance(entradas.get(nombre), dict):
+            errores.append(f"{entrada} no está en el manifiesto")
+    for nombre in sorted(set(entradas) - set(esperadas)):
+        entrada = Path(destino) / nombre
+        if entrada.exists():
+            errores.append(f"{entrada} está en el manifiesto y ya no tiene nodo")
+    return errores
 
 
 def _hash_directorio(raiz: Path, *, filtrar: bool, traducir: bool = False) -> str:
@@ -240,12 +447,14 @@ def errores_vista(
     *,
     nichos: list[str] | tuple[str, ...] | None = None,
     config_path: Path | None = None,
+    herramientas: tuple[str, ...] | None = None,
+    solo_anfitrion: bool = False,
 ) -> list[str]:
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
     seleccion = normalizar_nichos(arbol, nichos)
     # Sin selección en `cosmos.toml`, la vista que se valida es la completa: es la que deja el
     # bootstrap de un clon, y el manifiesto la registra como `nichos: null`.
-    esperadas = _skills(arbol, seleccion, todos=seleccion is None)
+    esperadas = _skills(arbol, seleccion, todos=seleccion is None and not solo_anfitrion, herramientas=herramientas, solo_anfitrion=solo_anfitrion)
     try:
         datos = _leer_manifiesto(manifiesto)
     except ErrorCompilacion as exc:
@@ -289,6 +498,8 @@ def compilar_arbol(
     nichos: list[str] | tuple[str, ...] | None = None,
     config_path: Path | None = None,
     todos: bool | None = None,
+    herramientas: tuple[str, ...] | None = None,
+    solo_anfitrion: bool = False,
     _bloqueado: bool = False,
 ) -> ResultadoCompilacion:
     if modo not in {"symlink", "copia"}:
@@ -300,7 +511,7 @@ def compilar_arbol(
     # que COSMOS existe para eliminar: ahí hace falta `--todos` explícito (auditoría A-02).
     explicito = todos is True
     if todos is None:
-        todos = seleccion is None
+        todos = seleccion is None and not solo_anfitrion
     if modo == "symlink" and destino_escaneado(destino) and not _bloqueado and not seco:
         raise ErrorCompilacion(
             f"{destino} es un directorio que el runtime escanea y en modo symlink las entradas apuntan al "
@@ -326,6 +537,8 @@ def compilar_arbol(
                     seco=False,
                     nichos=seleccion,
                     todos=todos,
+                    herramientas=herramientas,
+                    solo_anfitrion=solo_anfitrion,
                     _bloqueado=True,
                 )
         except ErrorCerrojo as exc:
@@ -334,7 +547,7 @@ def compilar_arbol(
     if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")
     antiguas: dict[str, dict[str, str]] = datos["entradas"] if datos else {}
-    esperadas = _skills(arbol, seleccion, todos=todos)
+    esperadas = _skills(arbol, seleccion, todos=todos, herramientas=herramientas, solo_anfitrion=solo_anfitrion)
     existentes = {ruta.name for ruta in destino.iterdir()} if destino.is_dir() else set()
     ajenas_nombres = existentes - set(antiguas)
     acciones: list[str] = []

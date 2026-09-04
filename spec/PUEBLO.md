@@ -60,9 +60,12 @@ guardarraíl lo ejercía y 28 de 247 pueblos no nombraban qué ejecutar (auditor
 **E21** exige en todo `pueblo` la URL literal del repositorio en el cuerpo y al menos un bloque de
 código. La única excepción es la herramienta **propia** —un guion que vive en el directorio del
 pueblo, sin repositorio ajeno—, que lo declara con `origen: propio` en el frontmatter
-(`FRONTMATTER.md`) en vez de fingir una URL. Lo que sigue siendo prosa —el rival nombrado (regla 4)
-y el apartado de avisos (regla 5)— lo cuenta `cosmos estado` («Contrato de pueblo») para saldarlo
-por tandas, no lo bloquea.
+(`FRONTMATTER.md`) en vez de fingir una URL. La segunda excepción es la **guía** propia —un playbook
+que el agente lee y no ejecuta, como los que un arnés escribe para sus propios encargos—, que lo
+declara con `origen: guia`: E21 no le pide URL, guion ni bloque de código, solo cuerpo (cuarenta
+palabras), y el catálogo la distingue de una herramienta. Lo que sigue siendo prosa —el rival
+nombrado (regla 4) y el apartado de avisos (regla 5)— lo cuenta `cosmos estado` («Contrato de
+pueblo») para saldarlo por tandas, no lo bloquea.
 
 ## Reglas que no se negocian
 

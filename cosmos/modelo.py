@@ -129,6 +129,17 @@ class Configuracion:
     destino_compilacion: Path = Path(".claude/skills")
     modo_compilacion: str = "symlink"
     manifiesto_compilacion: Path = Path(".cosmos/compilado.json")
+    # `nichos`: la vista son los pueblos de los nichos activos (o todos). `anfitrion`: solo los
+    # pueblos con `anfitrion: claude-code` y las `herramientas` elegidas, nunca el catálogo entero —
+    # es la vista de un arnés que ya existía y al que COSMOS solo ordena.
+    vista_compilacion: str = "nichos"
+    # Los otros tres ficheros de runtime que un anfitrión lee: reglas por rutas, agentes y
+    # comandos. Solo se generan si se declaran, y solo desde nodos con `anfitrion`.
+    rules_compilacion: Path | None = None
+    agentes_compilacion: Path | None = None
+    comandos_compilacion: Path | None = None
+    # La memoria del anfitrión (frontmatter con mapas: no es nodo) que `cosmos memoria` indexa.
+    memoria: Path | None = None
     nichos: tuple[str, ...] | None = None
     # Herramientas del perfil local (`cosmos configurar`): acotan el catálogo y la vista del
     # usuario; no tocan el juez del presupuesto, que mira siempre el peor nicho entero.
@@ -282,8 +293,25 @@ def _separar_lista(texto: str, ruta: str, linea: int) -> list[str]:
     return [_escalar(parte, ruta, linea) for parte in partes]
 
 
+@dataclass(frozen=True)
+class Opaco:
+    """Un valor del frontmatter que COSMOS no interpreta: un mapa anidado o un escalar de varias
+    líneas, tal como lo escribió el anfitrión.
+
+    El subconjunto normativo no admite mapas (FRONTMATTER.md): un nodo que los lleve es rojo por
+    E00... salvo que declare `anfitrion: claude-code`, y entonces esas claves son del runtime,
+    viajan intactas al fichero generado y COSMOS solo exige que las suyas sean escalares.
+    """
+
+    texto: str
+
+
 def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict[str, int]]:
-    """Parsea el subconjunto normativo o levanta ``ValueError`` con línea."""
+    """Parsea el subconjunto normativo o levanta ``ValueError`` con línea.
+
+    Lo que el subconjunto no cubre (mapas, escalares plegados) no rompe el parseo: queda como
+    `Opaco` y es E00 quien decide si el nodo puede llevarlo (solo con `anfitrion`).
+    """
 
     lineas_texto = contenido.splitlines()
     if not lineas_texto or lineas_texto[0].strip() != "---":
@@ -298,6 +326,7 @@ def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict
     datos: dict[str, Any] = {}
     numeros: dict[str, int] = {}
     lista_pendiente: str | None = None
+    ultima_clave: str | None = None
     for indice in range(1, cierre):
         numero = indice + 1
         original = lineas_texto[indice]
@@ -308,10 +337,17 @@ def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict
         indentacion = len(sin_comentario) - len(sin_comentario.lstrip(" "))
         texto = sin_comentario.strip()
         if indentacion:
-            if lista_pendiente is None or not texto.startswith("-"):
+            if lista_pendiente is not None and texto.startswith("-") and not isinstance(datos.get(lista_pendiente), Opaco):
+                resto = texto[1:].strip()
+                datos[lista_pendiente].append(_escalar(resto, ruta, numero))
+                continue
+            if ultima_clave is None:
                 raise ValueError(f"{ruta}:{numero}: anidamiento o mapa no permitido")
-            resto = texto[1:].strip()
-            datos[lista_pendiente].append(_escalar(resto, ruta, numero))
+            # Un bloque anidado bajo la última clave: opaco. La lista que hubiera empezado a
+            # llenarse se convierte entera en texto crudo, línea a línea, sin interpretarla.
+            previo = datos.get(ultima_clave)
+            acumulado = previo.texto if isinstance(previo, Opaco) else ""
+            datos[ultima_clave] = Opaco(acumulado + original + "\n")
             continue
 
         lista_pendiente = None
@@ -321,12 +357,15 @@ def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict
             raise ValueError(f"{ruta}:{numero}: se esperaba 'clave: valor'")
         clave, valor_bruto = texto.split(":", 1)
         clave = clave.strip()
-        if not re.fullmatch(r"[a-z][a-z0-9_-]*", clave):
+        # Minúsculas y guiones para lo de COSMOS; el anfitrión escribe también `mcpServers` o
+        # `allowed-tools`, y esas claves se aceptan aquí para que E00 las juzgue con contexto.
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", clave):
             raise ValueError(f"{ruta}:{numero}: clave inválida {clave!r}")
         if clave in datos:
             raise ValueError(f"{ruta}:{numero}: clave duplicada {clave!r}")
         valor_bruto = valor_bruto.strip()
         numeros[clave] = numero
+        ultima_clave = clave
         if not valor_bruto:
             datos[clave] = []
             lista_pendiente = clave
@@ -334,9 +373,53 @@ def parsear_frontmatter(contenido: str, ruta: str) -> tuple[dict[str, Any], dict
             if not valor_bruto.endswith("]"):
                 raise ValueError(f"{ruta}:{numero}: lista en línea sin cerrar")
             datos[clave] = _separar_lista(valor_bruto, ruta, numero)
+        elif valor_bruto.startswith(("{", ">", "|")):
+            datos[clave] = Opaco(original + "\n")
         else:
             datos[clave] = _escalar(valor_bruto, ruta, numero)
     return datos, numeros
+
+
+# Las claves que son de COSMOS y no del anfitrión. `compilar` las quita al materializar un nodo
+# con `anfitrion: claude-code` en su fichero de runtime: lo que queda es, byte a byte, lo que el
+# anfitrión tenía antes de que COSMOS lo organizara.
+CLAVES_COSMOS = frozenset({
+    "cosmos", "nombre", "resumen", "padre", "moja", "invoca", "momento", "ilumina", "orbita", "usa",
+    "origen", "anfitrion",
+})
+
+
+def sin_claves_cosmos(contenido: str) -> str:
+    """El fichero del nodo sin las claves de COSMOS; si el frontmatter queda vacío, sin él.
+
+    Es textual a propósito —no se re-serializa nada—: el runtime recibe sus claves con el mismo
+    orden, las mismas comillas y los mismos comentarios que escribió su autor. Una línea indentada
+    pertenece a la clave que la precede, y se va o se queda con ella.
+    """
+
+    lineas = contenido.splitlines(keepends=True)
+    if not lineas or lineas[0].strip() != "---":
+        return contenido
+    cierre = next((i for i, l in enumerate(lineas[1:], start=1) if l.strip() == "---"), None)
+    if cierre is None:
+        return contenido
+    conservadas: list[str] = []
+    quitando = False
+    for linea in lineas[1:cierre]:
+        despojada = linea.lstrip(" ")
+        indentada = len(despojada) != len(linea) and linea.strip() != ""
+        if indentada or not linea.strip():
+            if not quitando:
+                conservadas.append(linea)
+            continue
+        clave = linea.split(":", 1)[0].strip() if ":" in linea else ""
+        quitando = clave in CLAVES_COSMOS
+        if not quitando:
+            conservadas.append(linea)
+    resto = "".join(lineas[cierre + 1:])
+    if not any(l.strip() for l in conservadas):
+        return resto.lstrip("\n")
+    return "---\n" + "".join(conservadas) + "---\n" + resto
 
 
 def cargar_arbol(
@@ -408,6 +491,13 @@ def _cargar_desde(
                                    if (raiz_path / padre).is_symlink()):
             arbol.errores.append(ErrorCarga(relativa, None, f"enlace simbólico dentro del árbol: apunta a {ruta_resuelta}; un nodo vive en un solo sitio"))
             continue
+        # Dentro de un pueblo —un directorio con `SKILL.md`— los demás `.md` son carga del pueblo
+        # (referencias, guías, la `SKILL.md` de un sub-paquete), no nodos: viajan con él al
+        # compilarlo y no se validan como frontmatter de COSMOS. Un nodo por pueblo, como dice
+        # `spec/PUEBLO.md`; sin esto, una skill del anfitrión con `references/` era E00 por
+        # cada fichero de apoyo.
+        if _es_carga_de_pueblo(ruta, raiz_path):
+            continue
         try:
             # `utf-8-sig`: un BOM (Windows, editores con la codificación heredada) hacía
             # que el fichero no empezara por `---` y el nodo desaparecía en silencio, con
@@ -428,6 +518,18 @@ def _cargar_desde(
             arbol.errores.append(ErrorCarga(relativa, linea, detalle))
             continue
         arbol.nodos.append(Nodo(ruta, relativa, datos, lineas, contenido))
+
+
+def _es_carga_de_pueblo(ruta: Path, raiz: Path) -> bool:
+    """¿Vive este `.md` por debajo de un `SKILL.md` que no es él mismo?"""
+
+    for padre in ruta.parents:
+        if padre == raiz or not padre.is_relative_to(raiz):
+            return False
+        skill = padre / "SKILL.md"
+        if skill.is_file() and skill != ruta:
+            return True
+    return False
 
 
 def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
@@ -467,6 +569,7 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         destino_rel = compilacion.get("destino", ".claude/skills")
         modo_compilacion = compilacion.get("modo", "symlink")
         manifiesto_rel = compilacion.get("manifiesto", ".cosmos/compilado.json")
+        vista_compilacion = compilacion.get("vista", "nichos")
         # `[nichos] activos` vivía solo en el CLI (`nichos_de_configuracion`): un llamante de la
         # librería que validaba un config con nichos activos veía E19 contra un manifiesto que sí
         # los declaraba (el test del árbol de ejemplo, ciclo 2). Un solo lector del TOML.
@@ -476,6 +579,20 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         activos = nichos_tabla.get("activos", [])
         if not isinstance(activos, list) or any(not isinstance(valor, str) for valor in activos):
             raise ErrorConfiguracion("[nichos].activos debe ser una lista de nombres")
+        # `[nichos] herramientas`: la selección por herramienta del perfil (`cosmos configurar`),
+        # pero versionada con el repositorio para un arnés que quiere la misma vista en todas sus
+        # máquinas. Vacía = sin selección (manda el perfil local si lo hay).
+        herramientas_cfg = nichos_tabla.get("herramientas", [])
+        if not isinstance(herramientas_cfg, list) or any(not isinstance(v, str) for v in herramientas_cfg):
+            raise ErrorConfiguracion("[nichos].herramientas debe ser una lista de nombres")
+        rules_rel = compilacion.get("rules")
+        agentes_rel = compilacion.get("agentes")
+        comandos_rel = compilacion.get("comandos")
+        memoria_rel = raiz.get("memoria")
+        for etiqueta, valor in (("compilacion.rules", rules_rel), ("compilacion.agentes", agentes_rel),
+                                ("compilacion.comandos", comandos_rel), ("raiz.memoria", memoria_rel)):
+            if valor is not None and not isinstance(valor, str):
+                raise ErrorConfiguracion(f"{etiqueta} debe ser texto")
     except (KeyError, TypeError) as exc:
         raise ErrorConfiguracion(f"falta un umbral o ruta obligatoria en {ruta_path}: {exc}") from exc
     if any(not isinstance(valor, int) or isinstance(valor, bool) or valor < 0 for valor in valores.values()):
@@ -490,6 +607,8 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         raise ErrorConfiguracion("medicion.metodo debe ser 'aprox' o 'exacto'")
     if modo_compilacion not in {"symlink", "copia"}:
         raise ErrorConfiguracion("compilacion.modo debe ser 'symlink' o 'copia'")
+    if vista_compilacion not in {"nichos", "anfitrion"}:
+        raise ErrorConfiguracion("compilacion.vista debe ser 'nichos' o 'anfitrion'")
     rutas_texto = (arbol_rel, indice_rel, destino_rel, manifiesto_rel)
     if any(not isinstance(valor, str) for valor in rutas_texto):
         raise ErrorConfiguracion("las rutas de raiz y compilacion deben ser texto")
@@ -505,8 +624,14 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         registro=(base / registro_rel).resolve() if registro_rel else None,
         destino_compilacion=(base / destino_rel).resolve(),
         modo_compilacion=modo_compilacion,
+        vista_compilacion=vista_compilacion,
         manifiesto_compilacion=(base / manifiesto_rel).resolve(),
+        rules_compilacion=(base / rules_rel).resolve() if rules_rel else None,
+        agentes_compilacion=(base / agentes_rel).resolve() if agentes_rel else None,
+        comandos_compilacion=(base / comandos_rel).resolve() if comandos_rel else None,
+        memoria=(base / memoria_rel).resolve() if memoria_rel else None,
         nichos=tuple(dict.fromkeys(activos)) or None,
+        herramientas=tuple(dict.fromkeys(herramientas_cfg)) or None,
         encontrada=True,
         ruta=ruta_path,
     )

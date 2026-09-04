@@ -64,6 +64,13 @@ resumen: Un backtest sin comisiones ni deslizamiento infla el resultado hasta in
 `moja: []` no es una formalidad, es **la** regla de esta carpeta: una memoria no se carga sola, se
 consulta. Y no es una convención que haya que recordar — E10 la exige.
 
+**La memoria del anfitrión no es nodo y se indexa donde está.** Claude Code guarda su memoria en un
+directorio propio (`memory/`), con un frontmatter que lleva un mapa anidado (`metadata:`) y que es
+su contrato, no el de COSMOS. No se mueve ni se reescribe: `cosmos.toml` la declara en
+`[raiz] memoria = "memory"` y `cosmos memoria` la lee con tolerancia (`name` y `description`) junto
+al registro, devolviendo dónde mirar y nunca el cuerpo. Es la única carpeta del registro que vive
+fuera de `registro/`, y por eso se dice aquí.
+
 Que sean nodos de verdad tiene tres consecuencias que valen el esfuerzo:
 
 1. El validador **también las comprueba**: nada de resúmenes vacíos ni entradas huérfanas.

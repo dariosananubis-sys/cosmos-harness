@@ -14,7 +14,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from . import __version__
-from .compilar import ErrorCompilacion, compilar_arbol, formatear_compilacion
+from .compilar import ErrorCompilacion, compilar_arbol, compilar_runtime, formatear_compilacion, manifiesto_runtime
 from .generar import escribir_indice, generar_mapa
 from .guardarrailes import (
     CODIGOS_GATE,
@@ -780,7 +780,8 @@ def _compilar(
     # interbloqueo de F11: `compilar` mandaba a `generar` por E15 y `generar`
     # mandaba a `compilar` por E19. `validar` sigue exigiéndolas las dos.
     ajenas = frozenset({"E15"}) | saltados
-    previo = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=ajenas | {"E19"})
+    # E22 (runtime generado) es lo otro que este comando repara: tampoco puede bloquearle antes.
+    previo = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=ajenas | {"E19", "E22"})
     if not previo.valido:
         sys.stdout.write(_informe(previo, config))
         return 1
@@ -793,11 +794,27 @@ def _compilar(
         nichos=nichos,
         config_path=config.ruta,
         todos=True if getattr(args, "todos", False) else None,
+        herramientas=config.herramientas,
+        solo_anfitrion=config.vista_compilacion == "anfitrion",
     )
     if not getattr(args, "quiet", False):
         sys.stdout.write(anotar_salida(
             formatear_compilacion(compilacion, detalle=bool(getattr(args, "detalle", False))), _saltos(config)[0]
         ))
+    # Los otros ficheros de runtime (reglas, agentes, comandos), solo si cosmos.toml los declara.
+    for tipo, destino_runtime in (("rules", config.rules_compilacion), ("agentes", config.agentes_compilacion),
+                                  ("comandos", config.comandos_compilacion)):
+        if destino_runtime is None:
+            continue
+        resultado_runtime = compilar_runtime(arbol, tipo, destino_runtime, manifiesto_runtime(config, tipo), seco=seco)
+        if not getattr(args, "quiet", False):
+            sys.stdout.write(
+                f"  {tipo:<9} {os.path.relpath(destino_runtime)}: "
+                f"creadas {resultado_runtime.creadas}; actualizadas {resultado_runtime.actualizadas}; "
+                f"iguales {resultado_runtime.iguales}; adoptadas {resultado_runtime.adoptadas}; "
+                f"ajenas respetadas {resultado_runtime.ajenas}; obsoletas eliminadas {resultado_runtime.eliminadas}; "
+                f"preservadas {resultado_runtime.preservadas}.\n"
+            )
     if nichos is None and not seco and not getattr(args, "quiet", False):
         # `nichos=None` aquí significa TODOS los pueblos (NUCLEO §5), al revés que en el
         # catálogo de entrada, donde significa ninguno (NUCLEO §2). Se dice cada vez que se

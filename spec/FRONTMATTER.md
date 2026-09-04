@@ -124,12 +124,13 @@ patrones casa con todas las sondas del corpus normativo, es un océano se llame 
 
 ## Campos opcionales
 
-Ninguno de los dos es obligatorio, y los dos los valida el código.
+Ninguno es obligatorio, y todos los valida el código.
 
 | Campo | Dónde | Regla |
 |---|---|---|
 | `usa` | cualquier sólido | Lista de rutas completas de nodos que existen, y nunca la propia (E20). Declara **con qué se trabaja junto** sin arrastrar carga: se valida el destino y no se carga nada, porque una dependencia automática sería la cadena de arrastre que trae medio internet. Ver `spec/COMPOSICION.md` |
-| `origen` | solo `pueblo` | Solo el valor `propio`: la herramienta es un guion que vive en el directorio del pueblo, no un repositorio ajeno, y por eso no lleva URL. Es la única excepción que admite E21 (`PUEBLO.md`); sin este campo, un pueblo sin `http(s)://` en el cuerpo es un rojo |
+| `origen` | solo `pueblo` | `propio`: la herramienta es un guion que vive en el directorio del pueblo, no un repositorio ajeno, y por eso no lleva URL. `guia`: un playbook propio que se **lee** y no se ejecuta (sin URL ni guion; E21 solo exige que tenga cuerpo). Son las dos excepciones que admite E21 (`PUEBLO.md`); sin este campo, un pueblo sin `http(s)://` en el cuerpo es un rojo |
+| `anfitrion` | cualquier nodo | Solo el valor `claude-code`. Declara que el nodo **es el fichero de runtime del anfitrión más las claves de COSMOS**: las demás claves de su frontmatter (`name`, `description`, `paths`, `tools`, `model`, `mcpServers`, `metadata`…) son del runtime, pueden llevar mapas anidados, COSMOS no las juzga y viajan intactas al fichero que `compilar` genera quitando solo las claves de COSMOS (`COMPILACION.md`). Sin esta declaración, una clave desconocida o un mapa anidado siguen siendo E00: la puerta se abre a la vista, nunca por defecto |
 | `momento` | solo `rio` | `trabajo` (por defecto) o `mantenimiento` (E00). Un río de mantenimiento cuida el repositorio y no resuelve el encargo de nadie, así que el catálogo lo **nombra sin describirlo**: su resumen dejaría de pagarse en cada sesión para usarse una vez. Ver `spec/NUCLEO.md` §2 |
 
 ## Lo que ningún nodo puede llevar

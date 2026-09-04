@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Envía un correo por SMTP directo usando un buzón propio (IONOS, Gmail app-password, etc.).
+"""Envía un correo por SMTP directo usando un buzón propio (cualquier proveedor con SMTP/IMAP,
+o Gmail con app-password).
 
-Pensado como canal por defecto para mandar documentación sin abrir
-Mail.app ni tocar el navegador. Google Chat solo cuando él lo pida expresamente.
+Pensado como canal por defecto para mandar documentación sin abrir un cliente de correo ni
+tocar el navegador. Usa otro canal (chat, etc.) solo cuando se pida expresamente.
 
 Credenciales: ~/.secrets/mail-cuenta.env  (MAIL_EMAIL, MAIL_PASSWORD, MAIL_SMTP_HOST,
 MAIL_SMTP_PORT, MAIL_SMTP_ENC, MAIL_IMAP_*). Nunca se imprimen.
 
 Uso:
-  python3 tools/enviar-correo-smtp.py --to ejemplo@dominio.com \
-      --asunto "..." --cuerpo-fichero cuerpo.txt --adjunto "/ruta/Justificacion X.zip"
+  python3 scripts/enviar-correo-smtp.py --to ejemplo@dominio.com \
+      --asunto "..." --cuerpo-fichero cuerpo.txt --adjunto "/ruta/adjunto.zip"
   (--cc admite varios separados por coma; --cuerpo acepta el texto directo)
 
 Tras enviar, sube una copia a la carpeta de Enviados por IMAP para que quede en el buzón.
@@ -48,11 +49,11 @@ def main():
     env = cargar_env()
     remitente = env.get("MAIL_EMAIL")
     clave = env.get("MAIL_PASSWORD")
-    host = env.get("MAIL_SMTP_HOST", "smtp.ionos.es")
+    host = env.get("MAIL_SMTP_HOST")
     puerto = int(env.get("MAIL_SMTP_PORT", 465))
     enc = (env.get("MAIL_SMTP_ENC") or "ssl").lower()
-    if not remitente or not clave:
-        sys.exit("faltan MAIL_EMAIL / MAIL_PASSWORD en el .env")
+    if not remitente or not clave or not host:
+        sys.exit("faltan MAIL_EMAIL / MAIL_PASSWORD / MAIL_SMTP_HOST en el .env")
 
     cuerpo = Path(a.cuerpo_fichero).read_text() if a.cuerpo_fichero else a.cuerpo
     if not cuerpo.strip():
@@ -93,8 +94,11 @@ def main():
             s.send_message(msg, from_addr=remitente, to_addrs=destinos)
     print("ENVIADO OK")
 
-    # Copia en Enviados (IONOS no la guarda al enviar por SMTP)
-    ihost = env.get("MAIL_IMAP_HOST", "imap.ionos.es")
+    # Copia en Enviados (muchos proveedores no la guardan solos al enviar por SMTP)
+    ihost = env.get("MAIL_IMAP_HOST")
+    if not ihost:
+        print("aviso: no se pudo guardar copia en Enviados (falta MAIL_IMAP_HOST)")
+        return
     try:
         with imaplib.IMAP4_SSL(ihost, int(env.get("MAIL_IMAP_PORT", 993))) as m:
             m.login(remitente, clave)

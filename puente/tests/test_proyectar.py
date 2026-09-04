@@ -11,6 +11,7 @@ from pathlib import Path
 from puente.proyectar import (
     FIN,
     INICIO,
+    ContratoPlaneta,
     ErrorProyeccion,
     bloque,
     cargar_contrato,
@@ -142,6 +143,103 @@ class Proyeccion(unittest.TestCase):
     def test_no_se_proyecta_sobre_si_mismo(self) -> None:
         with self.assertRaises(ErrorProyeccion):
             raiz_del_planeta(self.destino, propia=self.destino)
+
+
+
+
+class LoProyectadoLoVeElAnfitrion(unittest.TestCase):
+    """Auditoría E-01 / E-02 / E-15: 22 de 22 pueblos proyectados invisibles para Claude Code
+    con `comprobar` en verde; el bloque mandaba ejecutar un `cosmos` que el repo ajeno no
+    tiene; y `.claude/settings.json` se reordenaba sin cambiar nada."""
+
+    def setUp(self) -> None:
+        self.temporal = tempfile.TemporaryDirectory(prefix="puente-anfitrion-")
+        base = Path(self.temporal.name)
+        self.origen = base / "cosmos"
+        self.origen.mkdir()
+        self.arbol = arbol_minimo(self.origen)
+        self.config = configuracion(self.origen)
+        self.destino = repo_git(base / "planeta")
+        (self.destino / "planeta.toml").write_text(CONTRATO, encoding="utf-8")
+        self.contrato = cargar_contrato(self.destino, self.arbol)
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def _skill(self) -> Path:
+        skills = [p for p in (self.destino / ".claude" / "skills").iterdir() if p.is_dir()]
+        self.assertTrue(skills, "no se proyectó ningún pueblo")
+        return skills[0] / "SKILL.md"
+
+    def test_el_skill_proyectado_lleva_name_y_description(self) -> None:
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        texto = self._skill().read_text(encoding="utf-8")
+        cabecera = texto.split("\n---", 1)[0]
+        import re
+
+        self.assertIsNotNone(re.search(r"^name: [a-z0-9-]+$", cabecera, re.M), cabecera)
+        self.assertIsNotNone(re.search(r"^description: \"Pueblo de prueba", cabecera, re.M), cabecera)
+        self.assertIn("cosmos: pueblo", cabecera, "los campos de COSMOS se conservan")
+        self.assertEqual(problemas(self.destino, self.contrato, self.arbol, self.config), [])
+
+    def test_comprobar_verifica_el_contrato_del_anfitrion_no_el_de_cosmos(self) -> None:
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        skill = self._skill()
+        sin_campos = "\n".join(l for l in skill.read_text(encoding="utf-8").splitlines()
+                               if not l.startswith(("name:", "description:"))) + "\n"
+        skill.write_text(sin_campos, encoding="utf-8")
+        encontrados = problemas(self.destino, self.contrato, self.arbol, self.config)
+        self.assertTrue(any("invisible para el anfitrión" in p for p in encontrados), encontrados)
+
+    def test_el_bloque_no_manda_ejecutar_un_verbo_que_el_repo_no_tiene(self) -> None:
+        texto = bloque(self.contrato, self.arbol)
+        self.assertNotIn("rio/", texto)
+        self.assertNotIn("cosmos abrir rio", texto)
+        self.assertIn("Cómo se baja desde aquí", texto)
+        self.assertIn("NO están en este repositorio", texto)
+
+    def test_settings_no_se_reordena_si_no_cambia_nada(self) -> None:
+        ajustes = self.destino / ".claude" / "settings.json"
+        ajustes.parent.mkdir(parents=True, exist_ok=True)
+        original = '{\n  "zeta": 1,\n  "alfa": 2\n}\n'
+        ajustes.write_text(original, encoding="utf-8")
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        primera = ajustes.read_text(encoding="utf-8")
+        self.assertLess(primera.index('"zeta"'), primera.index('"alfa"'), "se reordenaron las claves ajenas")
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        self.assertEqual(ajustes.read_text(encoding="utf-8"), primera)
+        mtime = ajustes.stat().st_mtime_ns
+        sincronizar(self.destino, self.contrato, self.arbol, self.config)
+        self.assertEqual(ajustes.stat().st_mtime_ns, mtime, "se reescribió sin cambiar nada")
+
+
+
+
+class ElBloqueRealNoMandaEjecutarCosmos(unittest.TestCase):
+    """R-20: el fix de A-11 metió `cosmos buscar`/`abrir` en un océano que se inyecta verbatim en
+    repos donde `cosmos` no existe. El doble sintético no tenía océanos reales: se prueba con el árbol real."""
+
+    def test_los_oceanos_reales_no_nombran_verbos_de_cosmos(self) -> None:
+        from cosmos.modelo import cargar_arbol, cuerpo
+
+        raiz = Path(__file__).resolve().parent.parent.parent
+        arbol = cargar_arbol(raiz / "galaxia")
+        for oceano in (n for n in arbol.nodos if n.cosmos == "oceano"):
+            with self.subTest(oceano.nombre):
+                self.assertNotIn("cosmos ", cuerpo(oceano).lower(),
+                                 f"oceano/{oceano.nombre} manda ejecutar un verbo que el repo proyectado no tiene")
+
+    def test_el_bloque_real_solo_nombra_cosmos_en_la_seccion_de_como_se_baja(self) -> None:
+        from cosmos.modelo import cargar_arbol
+
+        raiz = Path(__file__).resolve().parent.parent.parent
+        arbol = cargar_arbol(raiz / "galaxia")
+        contrato = ContratoPlaneta("p", "generico", ("trading",), "", (), (), False, False, (), False)
+        texto = bloque(contrato, arbol)
+        antes, _, despues = texto.partition("## Cómo se baja desde aquí")
+        self.assertEqual(antes.lower().count("cosmos abrir") + antes.lower().count("cosmos buscar"), 0,
+                         "el bloque manda ejecutar cosmos antes de explicar que no existe aquí")
+        self.assertIn("NO están en este repositorio", despues)
 
 
 if __name__ == "__main__":

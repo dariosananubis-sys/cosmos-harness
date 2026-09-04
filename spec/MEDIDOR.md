@@ -34,7 +34,7 @@ validador.
 
 Un mar no aparece en `contexto_inicial`: entra «por `paths:` que matchea». Formalmente es correcto,
 y durante un tiempo sirvió de excusa para no contarlo. Medido en la galaxia real el 2026-09-01: los
-cinco mares suman **817 tokens**, y `mar/criterio` (298) más `mar/resistencia` (83) se activan en
+los mares sumaban **817 tokens** aquel día (hoy lo dice `cosmos medir`: «Agua condicional»), y `mar/criterio` (298) más `mar/resistencia` (83) se activan en
 **cualquier fichero `.py`**. El peor nicho publicado eran 1.771 tokens; el coste real de abrir un
 Python del proyecto, 2.152. El medidor decía «quedan 2.229» sin ver un tercio del gasto.
 
@@ -105,20 +105,20 @@ vale para la galaxia es siempre el que imprime `cosmos medir` hoy.
 ```
 COSMOS  medir
 
-  Entrada base .... 111 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5%, heurística v3)
-  Peor nicho ...... 211 tokens   (construccion, 2 pueblos)
-  Agua condicional  29 tokens   (2 aguas por paths:, fuera de la entrada)
-  Peor con agua ... 240 tokens   (el peor caso + agua condicional)
-  Universo ........ 396 tokens   (estimado, ±5%, heurística v3)
-  Descarga ........ 46,7 %
-  Presupuesto ..... 4.000     OK, quedan 3.760 tokens en el peor caso con agua
+  Entrada base .... 114 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Peor nicho ...... 183 tokens   (construccion, 2 pueblos)
+  Agua condicional  31 tokens   (2 aguas por paths:, fuera de la entrada)
+  Peor con agua ... 214 tokens   (el peor caso + agua condicional)
+  Universo ........ 354 tokens   (estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Descarga ........ 48,3 %
+  Presupuesto ..... 4.000     OK, quedan 3774 tokens con el margen calibrado (+5,2 %) en el peor caso con agua (construccion)
 
   Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
 
   Lo más caro de la entrada evaluada:
-    1.  122 tok  catálogo visible
+    1.  91 tok  catálogo visible
     2.  55 tok  índice de galaxia
-    3.  18 tok  oceano/operaciones-reversibles
+    3.  20 tok  oceano/operaciones-reversibles
 ```
 
 `--detalle` desglosa nodo a nodo. `--json` para máquinas. `--metodo exacto` falla en voz alta si no
@@ -135,7 +135,10 @@ dónde está el peso, y casi siempre son dos o tres nodos, no cincuenta.
 
 1. Un test con un árbol de tokens conocidos a mano: el medidor tiene que dar ese número.
 2. Un test de que `aprox` y `exacto` no divergen más que el error publicado, saltado
-   automáticamente —y **dicho en voz alta**, no en silencio— si no hay tokenizador local.
+   automáticamente —y **dicho en voz alta**, no en silencio— si no hay tokenizador local. Y
+   **alguien que no lo salte**: el trabajo `calibracion` del CI instala el tokenizador y corre la
+   suite con `COSMOS_EXIGE_TOKENIZADOR=1` (auditoría D-08: en ninguna instalación por defecto se
+   ejecutaba, así que el ±5,2 % llevaba días sin auditor).
 3. Un test de que `no_medido` nunca se convierte en `0` en ninguna suma, ni en la salida JSON.
 4. Un test de que un árbol vacío da entrada 0 y descarga `no_definida` — no `100 %`. Dividir entre
    cero y publicar un sobresaliente es el modo de fallo clásico de este tipo de métrica.

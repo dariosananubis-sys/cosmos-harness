@@ -24,3 +24,5 @@ navegador real con traza, nunca simulado.
 
 Se dobla el borde mas externo que resuelva el caso: cada capa de mas es un contrato sostenido a
 mano; mas de tres claves para contentar a un doble es doblar demasiado adentro.
+
+Generar la entrada que rompe: `hypothesis` (`cosmos abrir hypothesis`), aunque viva en `trading`.

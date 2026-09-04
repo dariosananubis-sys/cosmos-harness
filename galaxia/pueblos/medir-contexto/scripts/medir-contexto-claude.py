@@ -10,7 +10,8 @@ Mide tres cosas, todas leídas de los transcripts .jsonl reales (deduplicando po
 que en el .jsonl aparece 3-4 veces):
 
 1. **arranque**: coste fijo del primer request de cada sesión NUEVA reciente. Es el
-   system prompt + CLAUDE.md + ORQUESTADOR.md + catálogo de skills + hooks de SessionStart.
+   system prompt + CLAUDE.md + catálogo de skills + hooks de SessionStart + cualquier
+   prompt adicional que tu propio canal de automatización inyecte.
    Se paga entero cada vez que se abre una ventana o un subagente. Es la palanca mayor:
    bajarlo ahorra en TODAS partes.
 2. **sesiones**: contexto del último turno real de cada sesión activa (lo que se
@@ -22,12 +23,12 @@ Anthropic respecto a input). Es la unidad comparable entre "crear caché" y "rel
 
 Uso
 ---
-    python3 tools/medir-contexto-claude.py                 # informe legible
-    python3 tools/medir-contexto-claude.py --json          # JSON (para diff antes/después)
-    python3 tools/medir-contexto-claude.py --json > antes.json
+    python3 scripts/medir-contexto-claude.py                 # informe legible
+    python3 scripts/medir-contexto-claude.py --json          # JSON (para diff antes/después)
+    python3 scripts/medir-contexto-claude.py --json > antes.json
     # ... aplicar una mejora, abrir una ventana nueva ...
-    python3 tools/medir-contexto-claude.py --json > despues.json
-    python3 tools/medir-contexto-claude.py --diff antes.json despues.json
+    python3 scripts/medir-contexto-claude.py --json > despues.json
+    python3 scripts/medir-contexto-claude.py --diff antes.json despues.json
 """
 from __future__ import annotations
 
@@ -38,7 +39,9 @@ import os
 import sys
 from pathlib import Path
 
-CLAW = Path(__file__).resolve().parent.parent / ".claude" / "claudeclaw"
+# Carpeta opcional con nombres legibles de sesión (thread -> sessionId), si tu propio canal
+# de automatización guarda uno; sin ella, esto simplemente no aporta nombres y sigue funcionando.
+NOMBRES_SESION = Path(os.environ.get("SESSION_NAMES_DIR", "")) if os.environ.get("SESSION_NAMES_DIR") else None
 # Claude Code deriva el slug del proyecto sustituyendo "/" por "-" en la ruta absoluta del repo.
 PROJECT = os.environ.get("CLAUDE_PROJECT_SLUG") or str(Path(__file__).resolve().parent.parent).replace("/", "-")
 
@@ -50,17 +53,21 @@ def config_dir() -> Path:
 
 
 def session_ids() -> dict[str, str]:
-    """{sessionId: nombre} de sesiones conocidas (opcional, vía sessions.json/session.json si existen) + el global."""
+    """{sessionId: nombre} de sesiones conocidas (opcional, vía sessions.json/session.json bajo
+    SESSION_NAMES_DIR si existen) + el global. Sin SESSION_NAMES_DIR, devuelve vacío: el informe
+    sigue funcionando, solo sin nombres legibles."""
     ids: dict[str, str] = {}
+    if NOMBRES_SESION is None:
+        return ids
     try:
-        th = json.loads((CLAW / "sessions.json").read_text(encoding="utf-8")).get("threads", {})
+        th = json.loads((NOMBRES_SESION / "sessions.json").read_text(encoding="utf-8")).get("threads", {})
         for tid, s in th.items():
             if s.get("sessionId"):
                 ids[s["sessionId"]] = tid
     except (OSError, json.JSONDecodeError):
         pass
     try:
-        g = json.loads((CLAW / "session.json").read_text(encoding="utf-8"))
+        g = json.loads((NOMBRES_SESION / "session.json").read_text(encoding="utf-8"))
         if g.get("sessionId"):
             ids[g["sessionId"]] = "global"
     except (OSError, json.JSONDecodeError):

@@ -46,6 +46,13 @@ Aplicando `FACTOR_CALIBRACION` = 1.204:
 error medio 5,2 %   ·   peor caso 33,6 %
 ```
 
+Los dos números se publican en la salida de `cosmos medir` («±5,2 % medio (peor fichero 33,6 %)») y
+el **medio** se aplica al veredicto del presupuesto: E16 compara `entrada_con_agua × 1,052` con el
+techo, no la estimación desnuda. El peor caso por fichero se publica y **no** se aplica: describe un
+fichero de código suelto, no la suma de quinientos ficheros, y el sesgo de una suma está acotado por
+el error medio absoluto (desigualdad triangular). Medido el 2026-09-03 sobre la galaxia: aproximado
+3.546, exacto 3.654 → desvío agregado **3,0 %**, dentro del margen que se aplica (auditoría A-10).
+
 ## El segundo factor: lo generado no es prosa
 
 Aquella medición usó 78 ficheros de **prosa** y ni una muestra del índice ni del catálogo, que son
@@ -87,8 +94,10 @@ Es el uso menos preciso, y conviene saberlo: para medir contexto —prosa y fich
 ## Cómo rehacer esta medición
 
 ```bash
-python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
-cd <repo> && /tmp/calib/bin/python - <<'PY'
+# Fuera de /tmp: el venv que citaba el registro (/tmp/calib) se evaporó con un reinicio y el
+# margen llevó días sin verificarse en ninguna instalación (auditoría B-10 / D-08).
+python3 -m venv ~/.cosmos/calib && ~/.cosmos/calib/bin/pip install -q -r requirements-dev.txt
+cd <repo> && ~/.cosmos/calib/bin/python - <<'PY'
 import sys, pathlib, statistics; sys.path.insert(0, '.')
 import tiktoken
 from cosmos.medir import contar_aprox, FACTOR_CALIBRACION
@@ -127,21 +136,34 @@ líneas de juguete que divergían un 19,05 % contra el 5,2 % publicado (fallo **
 corpus es el árbol real y el aviso del salto es ruidoso. Para exigir que falle en vez de saltarse:
 
 ```bash
-python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
-COSMOS_EXIGE_TOKENIZADOR=1 /tmp/calib/bin/python -m unittest discover -s tests -t .
+python3 -m venv ~/.cosmos/calib && ~/.cosmos/calib/bin/pip install -q -r requirements-dev.txt
+COSMOS_EXIGE_TOKENIZADOR=1 ~/.cosmos/calib/bin/python -m unittest discover -s tests -t .
 ```
 
-### Pendiente: el veredicto exacto sigue en rojo (residuo de F01)
+Y lo hace alguien sin que haya que acordarse: el trabajo `calibracion` de
+`.github/workflows/cosmos.yml` instala el tokenizador en un venv desechable y corre la suite con
+`COSMOS_EXIGE_TOKENIZADOR=1`. El trabajo `verificar` sigue sin dependencias: el verde de un clon
+recién bajado no necesita red, y el del margen sí tiene auditor.
 
-Medido el 2026-09-02 sobre la galaxia, con los factores de arriba:
+### Cerrado: el veredicto exacto ya no está en rojo (residuo de F01)
+
+El 2026-09-02, con los factores de arriba, el árbol no cabía con el tokenizador de referencia
+(`exacto con_agua=4.323 > 4.000` frente a `aprox 3.990`), y un canario en `tests/test_medidor.py`
+afirmaba ese rojo para que no se olvidara. El commit que adelgazó el contenido ese mismo día lo
+cerró, y el canario llevó un día pidiendo que lo borraran sin que nadie lo oyera: solo hablaba con
+tokenizador (auditoría E-11). **Las cifras de abajo son del árbol de trabajo al cierre del ciclo 2
+(2026-09-03, sobre `b0c1ebd`); envejecen con cada alta y la que vale es la que imprime el comando**
+(revisión R-49):
 
 ```
-aprox    entrada=2.644  agua=1.346  con_agua=3.990   OK, quedan 10
-exacto   entrada=2.778  agua=1.545  con_agua=4.323   ROJO, excede en 323
+~/.cosmos/calib/bin/python -m cosmos medir --metodo exacto
+  Peor con agua ... 3.817 tokens   (el peor caso + agua condicional)
+  Presupuesto ..... 4.000     OK, quedan 183 tokens en el peor caso con agua (ciberseguridad); ≈ 6 herramienta(s) más en ese nicho
+python3 -m cosmos medir
+  Peor con agua ... 3.701 tokens   (el peor caso + agua condicional)
+  Presupuesto ..... 4.000     OK, quedan 106 tokens con el margen calibrado (+5,2 %) en el peor caso con agua (ciberseguridad); ≈ 3 herramienta(s) más en ese nicho
 ```
 
-Los dos factores redujeron el error pero no lo cerraron: la prosa real tokeniza hoy a **1,243** y
-los bloques generados a **≈1,455**. El árbol **no cabe** en 4.000 con el tokenizador de referencia,
-y eso no se arregla calibrando —se arregla decidiendo qué contenido sale, o qué presupuesto es el
-bueno—. `tests/test_medidor.py::test_canario_f01_el_veredicto_exacto_sigue_en_rojo` lo vigila: el
-día que se cierre, esa prueba se pone roja y se borra con el arreglo.
+El canario se sustituyó por `test_el_veredicto_exacto_y_el_aproximado_coinciden_sobre_la_galaxia`:
+los dos métodos tienen que dar el mismo veredicto y el desvío agregado no puede superar el margen
+que se aplica. Si divergen, o el contenido creció hasta el borde o la calibración caducó.

@@ -55,3 +55,5 @@ Y lo que no hace bien:
 - Proyecto joven al lado de sus rivales (2.856 estrellas frente a decenas de miles): el formato de los
   ficheros de definición ha cambiado entre versiones mayores. Fijar la versión y leer las notas antes
   de actualizar.
+
+Ojo: el instalador por `curl | sh` ejecuta código remoto sin revisar; para producción, leer el guion antes — `brew install rilldata/tap/rill` es la vía preferible.

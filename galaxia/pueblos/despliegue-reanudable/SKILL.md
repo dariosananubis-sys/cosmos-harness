@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: despliegue-reanudable
 padre: infraestructura/despliegue
 resumen: Fases con dependencias que se reanudan sin repetir efectos y paran solas en el paso irreversible.
+origen: propio
 ---
 
 Rescatado de la skill `resumable-deployment` de un arnes propio. El nucleo viaja con el pueblo:

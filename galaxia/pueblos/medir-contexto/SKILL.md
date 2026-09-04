@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: medir-contexto
 padre: agentes-ia/coste
 resumen: Lo que saben las transcripciones: cuanto costo la sesion, que entro de mas y que comandos se ejecutaron.
+origen: propio
 ---
 
 `scripts/medir-contexto-claude.py`, `scripts/barrido-transcripts.py` y `scripts/cc-history.sh` — tres

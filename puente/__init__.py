@@ -1,4 +1,4 @@
-"""Puente: piezas migradas desde <agencia>-Harness y adaptadas a COSMOS.
+"""Puente: piezas migradas desde el arnés de origen y adaptadas a COSMOS.
 
 Cinco herramientas que el árbol cosmográfico no traía y que ya estaban resueltas:
 proyectar sobre un repo ajeno, escanear secretos sobre el índice Git, verificar

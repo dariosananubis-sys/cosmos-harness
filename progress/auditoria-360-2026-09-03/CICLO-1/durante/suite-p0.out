@@ -1,0 +1,147 @@
+.......................................................................................................F..................................................................................s........s.....................................................................................F..............
+======================================================================
+FAIL: test_ningun_fichero_de_test_pierde_clases_al_ejecutarse_directo (tests.test_ejecucion_directa.ElGuardDeMainVaDespuesDeLaUltimaClase.test_ningun_fichero_de_test_pierde_clases_al_ejecutarse_directo) [puente/tests/test_secretos.py]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_ejecucion_directa.py", line 58, in test_ningun_fichero_de_test_pierde_clases_al_ejecutarse_directo
+    self.assertGreater(
+    ~~~~~~~~~~~~~~~~~~^
+        guard, ultima,
+        ^^^^^^^^^^^^^^
+        "unittest.main() está antes de la última clase: ejecutar este fichero "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        "directo daría un OK sin haber corrido las pruebas de debajo",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 86 not greater than 132 : unittest.main() está antes de la última clase: ejecutar este fichero directo daría un OK sin haber corrido las pruebas de debajo
+
+======================================================================
+FAIL: test_e16_cuenta_el_agua_que_se_carga_por_paths (tests.test_validador.PruebasInvariantes.test_e16_cuenta_el_agua_que_se_carga_por_paths)
+H14: el mar no está en la entrada y se paga igual (NUCLEO §3).
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_validador.py", line 318, in test_e16_cuenta_el_agua_que_se_carga_por_paths
+    self.assertNotIn("E16", self.validar(config=holgado).codigos())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'E16' unexpectedly found in ['E16', 'E19']
+
+----------------------------------------------------------------------
+Ran 296 tests in 82.961s
+
+FAILED (failures=2, skipped=2)
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-9zp4jm0o/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-9zp4jm0o/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-9zp4jm0o/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-9zp4jm0o/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-gscxiul0/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-gscxiul0/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-gscxiul0/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-gscxiul0/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-di4223h6/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-di4223h6/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-di4223h6/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-di4223h6/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-zfgo5sbq/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-zfgo5sbq/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-zfgo5sbq/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-enganche-zfgo5sbq/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-1bgy3mlh/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-1bgy3mlh/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-1bgy3mlh/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-1bgy3mlh/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-c4w65o0n/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-c4w65o0n/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-c4w65o0n/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-c4w65o0n/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-qp3d6_y5/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-qp3d6_y5/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-qp3d6_y5/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-qp3d6_y5/repo/arbol/COSMOS.md
+COSMOS  compilar  verde
+
+Creadas 1; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+CREAR /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-4mz9bgud/repo/.cosmos/vista/medir-anchos
+
+Índice creado en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-4mz9bgud/repo/arbol/COSMOS.md (no existía)
+COSMOS  verde  0 errores
+
+COSMOS  arrancar  verde
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-4mz9bgud/repo/.cosmos/vista
+COSMOS  generar  verde
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-4mz9bgud/repo/arbol/COSMOS.md
+
+  AVISO  SIN TOKENIZADOR: el margen publicado (±5,2 %) NO se ha verificado en esta ejecución. Instálalo en un venv temporal (docs/CALIBRACION.md) o exige el fallo con COSMOS_EXIGE_TOKENIZADOR=1.
+EXIT_SUITE=1

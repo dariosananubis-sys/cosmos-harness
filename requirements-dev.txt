@@ -1,0 +1,15 @@
+# Dependencias SOLO de desarrollo: el paquete corre con la biblioteca estándar.
+# tiktoken verifica el margen de la heurística (docs/CALIBRACION.md); sin él, dos
+# pruebas se saltan avisando. Instalar fuera de /tmp para que sobreviva al reinicio:
+#   python3 -m venv ~/.cosmos/calib && ~/.cosmos/calib/bin/pip install -r requirements-dev.txt
+# Versiones fijadas (R-21) a las medidas con `~/.cosmos/calib/bin/pip freeze` el 2026-09-03: el CI
+# las instala en cada push y un rango abierto es código de terceros sin fijar en el runner.
+# Sin `--require-hashes`: las ruedas cambian por plataforma (macOS/Linux) y el lock con hashes
+# se declara como mejora pendiente, no como hecho.
+tiktoken==0.14.0
+regex==2026.9.3
+requests==2.34.2
+charset-normalizer==3.5.1
+idna==3.19
+urllib3==2.7.0
+certifi==2026.7.22

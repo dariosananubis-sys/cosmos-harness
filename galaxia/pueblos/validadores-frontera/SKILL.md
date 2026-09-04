@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: validadores-frontera
 padre: saas/contrato
 resumen: Validadores puros de entrada: identificador, slug, URL segura, subcarpeta sin travesia e identidad fiscal.
+origen: propio
 ---
 
 `scripts/input-validators.js` y `scripts/nif-cif-validator.js` — herramientas propias, no hay

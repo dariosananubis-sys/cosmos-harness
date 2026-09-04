@@ -23,7 +23,7 @@ El guion del informe, contra el repositorio real (`PreToolUse` es solo lectura, 
 ```bash
 python3 - <<'PY'
 import json, subprocess, sys
-REPO="/Users/<usuario>/cosmos"; D=REPO+"/galaxia/COSMOS.md"
+REPO="~/cosmos"; D=REPO+"/galaxia/COSMOS.md"
 def probar(cmd):
     ev={"hook_event_name":"PreToolUse","session_id":"s1","cwd":REPO,
         "tool_name":"Bash","tool_input":{"command":cmd}}

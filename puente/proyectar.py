@@ -24,6 +24,7 @@ from cosmos.modelo import (
     cargar_configuracion,
     nicho_de_nodo,
     nombres_nichos,
+    parsear_frontmatter,
 )
 
 INICIO = "<!-- cosmos:inicio -->"
@@ -241,6 +242,36 @@ def pueblos_fuente(arbol: Arbol, nichos: tuple[str, ...]) -> dict[str, Path]:
     return fuentes
 
 
+CAMPOS_ANFITRION = ("name", "description")
+
+
+def para_el_anfitrion(contenido: bytes) -> bytes:
+    """Traduce el frontmatter de un pueblo a lo que el agente anfitrión sabe leer.
+
+    Claude Code (y los agentes que siguen su convención) descubren una skill por `name:`
+    y `description:`; COSMOS escribe `cosmos:`, `nombre:`, `padre:` y `resumen:`. Copiar el
+    fichero tal cual dejaba 22 de 22 pueblos proyectados invisibles, con `comprobar` en
+    verde (auditoría E-02). Los campos de COSMOS se conservan: no estorban y son los que
+    `comprobar` compara con el origen. Si ya trae `name` y `description`, no se toca.
+    """
+
+    # `utf-8-sig`: un pueblo con BOM cargaba y validaba dentro de COSMOS y llegaba al anfitrión
+    # sin `name`/`description` reconocibles (revisión R-43, la puerta que D-04 no cerró).
+    texto = contenido.decode("utf-8-sig")
+    try:
+        datos, _ = parsear_frontmatter(texto, "SKILL.md")
+    except ValueError:
+        return contenido
+    if all(campo in datos for campo in CAMPOS_ANFITRION):
+        return contenido
+    nombre, resumen = str(datos.get("nombre", "")), str(datos.get("resumen", ""))
+    if not nombre:
+        return contenido
+    cabecera, resto = texto.split("\n", 1)
+    extra = f"name: {nombre}\ndescription: {json.dumps(resumen, ensure_ascii=False)}\n"
+    return f"{cabecera}\n{extra}{resto}".encode("utf-8")
+
+
 def _ficheros_fuente(origen: Path) -> dict[Path, tuple[bytes, int]]:
     ficheros: dict[Path, tuple[bytes, int]] = {}
     for ruta in sorted(origen.rglob("*")):
@@ -249,9 +280,32 @@ def _ficheros_fuente(origen: Path) -> dict[Path, tuple[bytes, int]]:
         if not ruta.is_file() or any(parte in PARTES_IGNORADAS for parte in ruta.parts):
             continue
         modo = 0o755 if ruta.stat().st_mode & 0o111 else 0o644
-        ficheros[ruta.relative_to(origen)] = (ruta.read_bytes(), modo)
+        contenido = ruta.read_bytes()
+        if ruta.parent == origen and ruta.name == "SKILL.md":
+            contenido = para_el_anfitrion(contenido)
+        ficheros[ruta.relative_to(origen)] = (contenido, modo)
     ficheros[Path(MARCA)] = (CONTENIDO_MARCA.encode("utf-8"), 0o644)
     return ficheros
+
+
+def invisibles_para_el_anfitrion(base: Path, nombres: list[str]) -> list[str]:
+    """Skills proyectadas cuyo `SKILL.md` no lleva los campos que el anfitrión exige.
+
+    Es el contrato del ANFITRIÓN, no el de COSMOS consigo mismo: `comprobar` verificaba que
+    el destino coincidía con el origen y daba verde sobre 22 ficheros que Claude Code no
+    veía. Se lee el fichero que hay en el destino, no lo que se esperaba escribir.
+    """
+
+    invisibles: list[str] = []
+    for nombre in nombres:
+        skill = base / nombre / "SKILL.md"
+        if not skill.is_file():
+            continue
+        texto = skill.read_text(encoding="utf-8", errors="replace")
+        cabecera = texto.split("\n---", 1)[0]
+        if not all(re.search(rf"^{campo}:\s*\S", cabecera, re.M) for campo in CAMPOS_ANFITRION):
+            invisibles.append(nombre)
+    return invisibles
 
 
 def _gestionados(base: Path) -> dict[str, Path]:
@@ -302,7 +356,9 @@ def bloque(contrato: ContratoPlaneta, arbol: Arbol) -> str:
     """
 
     nichos = contrato.nichos or None
-    entrada = contexto_inicial(arbol, nichos).rstrip()
+    # Sin ríos: el repo ajeno no tiene el paquete `cosmos` y el bloque mandaba ejecutar
+    # `cosmos abrir rio/x` donde eso da «command not found» (auditoría E-01).
+    entrada = contexto_inicial(arbol, nichos, con_rios=False).rstrip()
     fuentes = ", ".join(contrato.fuentes_autorizadas) or "por completar; no asumir"
     escrituras = ", ".join(contrato.rutas_escritura) or "por completar; no ampliar alcance"
     comandos = "; ".join(contrato.comandos) or "por completar"
@@ -320,8 +376,15 @@ def bloque(contrato: ContratoPlaneta, arbol: Arbol) -> str:
         f"acciones externas: {'sí' if contrato.acciones_externas else 'no'}. "
         "Describen alcance; no sustituyen a los océanos.\n"
         f"- Verificación: {comandos}; visual: {'sí' if contrato.visual else 'no'}.\n"
-        f"- Nichos proyectados: {lista_nichos}. Sus pueblos están en los "
-        "directorios nativos del agente.\n"
+        f"- Nichos proyectados: {lista_nichos}.\n\n"
+        "## Cómo se baja desde aquí\n\n"
+        "- Los pueblos de los nichos proyectados son skills nativas de este repositorio "
+        "(`.claude/skills/`, `.agents/skills/`): se invocan por su nombre y su cuerpo se "
+        "carga solo al invocarlas. Eso es la carga perezosa aquí.\n"
+        "- Los verbos de COSMOS (`buscar`, `abrir`, `acertar`…) NO están en este repositorio: "
+        "viven en el repositorio COSMOS de origen (el que tiene `cosmos.toml`). Para bajar por "
+        "otro oficio, añade su nicho a `planeta.toml` y ejecuta desde el origen "
+        "`python3 -m cosmos proyectar sincronizar <ruta de este repositorio>`.\n"
         f"{FIN}\n"
     )
 
@@ -380,7 +443,22 @@ def ajustes_claude_esperados(raiz: Path) -> dict:
             raise ErrorProyeccion(".claude/settings.json debe contener un objeto JSON")
     else:
         actual = {}
-    return actual | AJUSTES_CLAUDE
+    return _fusionar_ajustes(actual, AJUSTES_CLAUDE)
+
+
+def _fusionar_ajustes(actual: dict, nuestros: dict) -> dict:
+    """Fusión recursiva: `actual | nuestros` era superficial y borraba `attribution.miCampoPropio`
+    del `settings.json` de un repositorio AJENO (revisión R-46). Lo nuestro manda en su clave; lo
+    del anfitrión dentro del mismo objeto se conserva. El orden de claves del anfitrión se respeta."""
+
+    resultado = dict(actual)
+    for clave, valor in nuestros.items():
+        previo = resultado.get(clave)
+        if isinstance(valor, dict) and isinstance(previo, dict):
+            resultado[clave] = _fusionar_ajustes(previo, valor)
+        else:
+            resultado[clave] = valor
+    return resultado
 
 
 # ------------------------------------------------------------------------ comprobar
@@ -405,7 +483,7 @@ def problemas(
         encontrados.append("desactualizado .claude/settings.json")
     else:
         actuales = json.loads(ruta_ajustes.read_text(encoding="utf-8"))
-        if any(actuales.get(clave) != valor for clave, valor in AJUSTES_CLAUDE.items()):
+        if _fusionar_ajustes(actuales, AJUSTES_CLAUDE) != actuales:
             encontrados.append("desactualizado .claude/settings.json")
     fuentes = pueblos_fuente(arbol, contrato.nichos)
     for destino in DESTINOS:
@@ -419,6 +497,8 @@ def problemas(
                 encontrados.append(f"desactualizado {destino}/skills/{nombre}")
         for obsoleta in sorted(set(gestionados) - set(fuentes)):
             encontrados.append(f"obsoleta {destino}/skills/{obsoleta}")
+        for nombre in invisibles_para_el_anfitrion(base, sorted(fuentes)):
+            encontrados.append(f"invisible para el anfitrión (sin name/description) {destino}/skills/{nombre}")
     return encontrados
 
 
@@ -482,11 +562,18 @@ def sincronizar(
                 raise ErrorProyeccion(f"no se sobrescribe lo ajeno: {destino}/skills/{nombre}")
 
     for ruta, contenido in ficheros_raiz.items():
-        _escritura_atomica(ruta, contenido)
-    _escritura_atomica(
-        _ruta_del_planeta(raiz, Path(".claude/settings.json")),
-        (json.dumps(ajustes, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
-    )
+        if not ruta.is_file() or ruta.read_bytes() != contenido:
+            _escritura_atomica(ruta, contenido)
+    # Solo si cambia algo efectivo, y sin reordenar: reescribir `.claude/settings.json` de
+    # un repo ajeno con las mismas claves en orden alfabético ensuciaba su diff con ruido
+    # cosmético (auditoría E-15). `actual | AJUSTES` conserva el orden de lo que había.
+    ruta_ajustes = _ruta_del_planeta(raiz, Path(".claude/settings.json"))
+    actuales = json.loads(ruta_ajustes.read_text(encoding="utf-8")) if ruta_ajustes.is_file() else None
+    if actuales != ajustes:
+        _escritura_atomica(
+            ruta_ajustes,
+            (json.dumps(ajustes, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+        )
     for destino in DESTINOS:
         base = _ruta_del_planeta(raiz, Path(destino) / "skills")
         gestionados = _gestionados(base)
@@ -516,11 +603,14 @@ def main(argv: list[str] | None = None) -> int:
     for orden in ("sincronizar", "comprobar"):
         hijo = subparsers.add_parser(orden)
         hijo.add_argument("repo", type=Path)
-    iniciar_parser = subparsers.add_parser("iniciar")
-    iniciar_parser.add_argument("repo", type=Path)
-    iniciar_parser.add_argument("--nombre")
-    iniciar_parser.add_argument("--tipo", default="generico")
-    iniciar_parser.add_argument("--nicho", action="append", default=[])
+    iniciar_parser = subparsers.add_parser(
+        "iniciar", help="escribe planeta.toml en el repo destino; luego edítalo y ejecuta sincronizar"
+    )
+    iniciar_parser.add_argument("repo", type=Path, help="raíz del repositorio Git ajeno")
+    iniciar_parser.add_argument("--nombre", help="nombre del planeta (por defecto, el del directorio)")
+    iniciar_parser.add_argument("--tipo", default="generico", help="tipo de proyecto, minúsculas y guiones")
+    iniciar_parser.add_argument("--nicho", action="append", default=[],
+                                help="oficio a proyectar (repetible); sin ninguno, el contrato nace vacío")
     args = parser.parse_args(argv)
 
     try:
@@ -532,6 +622,10 @@ def main(argv: list[str] | None = None) -> int:
             iniciar(raiz, arbol, args.nombre, args.tipo, list(dict.fromkeys(args.nicho)))
         contrato = cargar_contrato(raiz, arbol)
         lista = ",".join(contrato.nichos) or "ninguno"
+        if args.orden == "iniciar" and not contrato.nichos:
+            # Verde con cero proyectado es un verde que no dice nada (auditoría E-04).
+            print(f"AVISO: contrato creado con 0 oficios proyectados: declara `nichos` en {CONTRATO} "
+                  "y ejecuta sincronizar", file=sys.stderr)
         if args.orden == "comprobar":
             encontrados = problemas(raiz, contrato, arbol, config)
             if encontrados:

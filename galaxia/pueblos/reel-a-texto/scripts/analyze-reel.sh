@@ -1,6 +1,6 @@
 #!/bin/bash
-# tools/analyze-reel.sh — Pipeline análisis Instagram/YouTube reels + carousels.
-# Uso: ./tools/analyze-reel.sh <URL> [output_dir] [--high-precision]
+# scripts/analyze-reel.sh — Pipeline análisis Instagram/YouTube reels + carousels.
+# Uso: ./scripts/analyze-reel.sh <URL> [output_dir] [--high-precision]
 # Output: <output_dir>/<id>/{video.mp4, audio.mp3, transcript.txt, frame_NN.jpg, meta.txt, description.txt}
 # Robust:
 #   - carousel /p/ sin video → extrae description del caption

@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: wp-remoto
 padre: web/construccion-de-sitios
 resumen: Consola y SQL contra un gestor de contenidos remoto por conexion reutilizada, con el PHP ejecutado desde fichero.
+origen: propio
 ---
 
 `scripts/wp-ssh.sh`, `scripts/wp_sql.py` y `scripts/wpcli-remote.sh` — herramientas propias, no de
@@ -12,7 +13,7 @@ GitHub. Requieren `sshpass` y, para el índice de sitios, `jq`.
 chmod +x scripts/wp-ssh.sh scripts/wpcli-remote.sh
 export WP_SITES_JSON="$HOME/.wp-sites/sites.json"      # { "sites": { "<slug>": { "ssh": {...} } } }
 scripts/wp-ssh.sh --sitio <slug> plugin list --status=active
-python3 -c "import sys;sys.path.insert(0,'cosecha');from wp_sql import sql;print(sql('<slug>','SELECT COUNT(*) FROM wp_posts'))"
+python3 -c "import sys;sys.path.insert(0,'scripts');from wp_sql import consulta;print(consulta('<slug>','SELECT COUNT(*) FROM wp_posts'))"
 scripts/wpcli-remote.sh <slug-de-servidor> /ruta/al/docroot -- core version
 ```
 

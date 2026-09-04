@@ -54,7 +54,7 @@ estrella**. Por eso:
 - **`rendimiento`** fue la más difícil y es la única cuya verdad principal **no sale de
   `research/dominios/`**: sus dos barridos (`maestria-codigo.md`, `sistemas.md`) son catálogos de
   herramientas —perfiladores, trazadores— y sus «Lo que falta» hablan de rate-limits de la API de
-  GitHub, no del oficio. La verdad honesta la aportó el arnés de <agencia>, no el barrido.
+  GitHub, no del oficio. La verdad honesta la aportó el arnés de el arnés de origen, no el barrido.
 - **`documentos`** y **`automatizacion`** fueron las más fáciles: sus barridos traían un «criterio
   propio del encargo» ya redactado como verdad del oficio. Se usó casi literal, que es lo correcto.
 - **`analitica`** estuvo a punto de quedarse con dos frases en vez de cuatro. Su barrido

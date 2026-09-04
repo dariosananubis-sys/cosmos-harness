@@ -126,7 +126,7 @@ estructura se vuelve una mala.
 **`ciudad` y `casa`, el 2026-09-01 (hallazgo H20).** La taxonomía tenía nueve sólidos; tiene siete.
 
 El motivo no es de gusto, es de cuenta: ninguno de los dos tenía **un solo nodo** ni en la galaxia
-ni en el árbol de ejemplo, ninguno aparecía en un test que lo creara, y las 209 skills montadas son
+ni en el árbol de ejemplo, ninguno aparecía en un test que lo creara, y las 209 skills montadas entonces (hoy las cuenta `cosmos estado`) son
 un único fichero cada una —la mayor, 3,5 KB—. La prueba objetiva que separaba ciudad de pueblo
 («¿hay algo que se pueda no cargar?») no la había ganado nadie nunca, y estaba documentada aquí
 mismo como la frontera «que se discute a menudo»: una duda recurrente que no resolvía ningún caso
@@ -147,3 +147,20 @@ Qué haría falta para traerlas de vuelta, en este orden y no en otro:
 
 Mientras eso no exista, la regla de arriba manda: **un nivel existe cuando agrupa de verdad**, y
 tener sitio reservado por si acaso es la versión lenta del mismo error.
+
+## Lo que se necesita desde varios sitios es agua, no una copia
+
+Si algo hace falta a menudo desde varios sitios del árbol, **es agua y quiere un `moja`**, no una
+copia en cada sitio. Esta regla vivía en `oceano/descender` y se pagaba en toda sesión y todo
+subagente (144 tokens); es taxonomía, y su sitio es este fichero (auditoría A-11, revisión R-05).
+Lo que la hace estructural no es leerla: es E17, que pone en rojo la afirmación repetida con otras
+palabras entre dos nodos que se pagan a la vez, y E18, que impide dos pueblos con el mismo nombre.
+
+## `cosecha/` se retiró: una herramienta vive en un solo sitio
+
+`cosecha/` fue la cantera de importación de las herramientas propias (2026-09-01/02) y ninguna spec la
+nombraba. Al cerrar el ciclo 2 de la auditoría (2026-09-03) duplicaba byte a byte 76 de sus 80 ficheros
+dentro de `galaxia/pueblos/*/scripts`, y la corrección de seguridad F-08 hubo que aplicarla dos veces
+por esa duplicación (revisión §4.3). GOAL §1: «una herramienta vive en un solo sitio». El guion de
+cada pueblo vive en el directorio del pueblo; los cuatro ficheros que no eran de ningún pueblo eran
+lanzadores de una máquina concreta, fuera de un repo genérico. Retirada a la papelera, no borrada.

@@ -9,11 +9,11 @@ comando barre una lista de slugs, nada dice "oye, esta no entraba".
 Esto lo dice. Se declara el alcance al empezar y `guard-web-sin-red.py` bloquea
 (deny, no pregunta) cualquier escritura en una web que no este en la lista.
 
-    python3 tools/alcance.py proyecto-a --tarea "footer de proyecto-a"
-    python3 tools/alcance.py proyecto-a proyecto-b proyecto-c      # varias de una vez
-    python3 tools/alcance.py --anadir proyecto-d       # ampliar sobre la marcha
-    python3 tools/alcance.py --ver                      # que hay declarado
-    python3 tools/alcance.py --quitar                   # al terminar
+    python3 scripts/alcance.py proyecto-a --tarea "footer de proyecto-a"
+    python3 scripts/alcance.py proyecto-a proyecto-b proyecto-c      # varias de una vez
+    python3 scripts/alcance.py --anadir proyecto-d       # ampliar sobre la marcha
+    python3 scripts/alcance.py --ver                      # que hay declarado
+    python3 scripts/alcance.py --quitar                   # al terminar
 
 Sin fichero de alcance NO se bloquea nada: quien no lo declara trabaja como
 siempre. Caduca a final del dia por lo mismo — un alcance olvidado de ayer no
@@ -73,7 +73,7 @@ def caducado(datos):
 def pinta(datos):
     if not datos:
         print("Sin alcance declarado: no se bloquea ninguna web.")
-        print('Declararlo:  python3 tools/alcance.py <slug> [<slug>...] --tarea "<que se hace>"')
+        print('Declararlo:  python3 scripts/alcance.py <slug> [<slug>...] --tarea "<que se hace>"')
         return
     estado = "CADUCADO (no bloquea)" if caducado(datos) else "vigente"
     print(f"Alcance {estado}")
@@ -87,14 +87,14 @@ def main():
     p = argparse.ArgumentParser(
         description="Declara que webs se pueden tocar en esta tarea.",
         epilog='Ejemplos:\n'
-               '  python3 tools/alcance.py proyecto-a --tarea "footer de proyecto-a"\n'
-               '  python3 tools/alcance.py --anadir proyecto-b\n'
-               '  python3 tools/alcance.py --ver\n'
-               '  python3 tools/alcance.py --quitar',
+               '  python3 scripts/alcance.py proyecto-a --tarea "footer de proyecto-a"\n'
+               '  python3 scripts/alcance.py --anadir proyecto-b\n'
+               '  python3 scripts/alcance.py --ver\n'
+               '  python3 scripts/alcance.py --quitar',
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("slugs", nargs="*", help="webs autorizadas para esta tarea")
     p.add_argument("--tarea", default="", help="que se esta haciendo (queda escrito)")
-    p.add_argument("--quien", default=os.environ.get("CLAUDECLAW_VENTANA", "sesion Claude Code"))
+    p.add_argument("--quien", default=os.environ.get("AGENTE_SESION", "sesion Claude Code"))
     p.add_argument("--anadir", metavar="SLUG", action="append", default=[],
                    help="amplia el alcance vigente sin rehacerlo")
     p.add_argument("--quitar", action="store_true", help="borra el alcance (deja de bloquear)")
@@ -117,7 +117,7 @@ def main():
         datos = carga()
         if not datos or caducado(datos):
             print("No hay alcance vigente que ampliar. Declaralo entero:", file=sys.stderr)
-            print('  python3 tools/alcance.py <slug> [<slug>...] --tarea "<que se hace>"',
+            print('  python3 scripts/alcance.py <slug> [<slug>...] --tarea "<que se hace>"',
                   file=sys.stderr)
             return 2
         for slug in args.anadir:

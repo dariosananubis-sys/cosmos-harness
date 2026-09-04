@@ -72,7 +72,13 @@ padre: web
 resumen: Mide anchos reales en el navegador, sin opinar.
 ---
 
-Cuerpo del pueblo.
+https://github.com/pruebas-sinteticas/medir-anchos · MIT · 0★ · último push 2026-01-01 (comprobado 2026-01-01)
+
+Cuerpo del pueblo (E21 exige URL de repositorio u `origen: propio` con guion).
+
+```bash
+python3 -m cosmos abrir medir-anchos
+```
 """
 
 CONFIG = """[presupuesto]

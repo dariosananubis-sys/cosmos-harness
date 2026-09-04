@@ -1,0 +1,105 @@
+### crytic/medusa
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-05-14T17:52:53Z
+API: 485 AGPL-3.0 False crytic/medusa
+### anchore/syft
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-02T08:27:04Z
+API: 9510 Apache-2.0 False anchore/syft
+### aboutcode-org/scancode-toolkit
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-28T12:24:17Z
+API: 2617 NOASSERTION False aboutcode-org/scancode-toolkit
+### pa11y/pa11y
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-28T13:44:30Z
+API: 4501 LGPL-3.0 False pa11y/pa11y
+### yt-dlp/yt-dlp
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-30T13:58:45Z
+API: 188643 Unlicense False yt-dlp/yt-dlp
+### OHF-Voice/piper1-gpl
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-29T23:59:52Z
+API: 5438 GPL-3.0 False OHF-Voice/piper1-gpl
+### SWivid/F5-TTS
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-07-23T09:19:55Z
+API: 15188 MIT False SWivid/F5-TTS
+### blender/blender
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T09:04:18Z
+API: 19964 NOASSERTION False blender/blender
+### itchio/butler
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T06:06:22Z
+API: 980 MIT False itchio/butler
+### love2d/love
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-26T03:47:02Z
+API: 8672 NOASSERTION False love2d/love
+### apify/crawlee
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T08:38:00Z
+API: 25629 Apache-2.0 False apify/crawlee
+### firecrawl/firecrawl
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T05:52:40Z
+API: 175900 AGPL-3.0 False firecrawl/firecrawl
+### TobikoData/sqlmesh
+HTTP: HTTP/2 301 
+LOC: location: https://github.com/SQLMesh/sqlmesh
+ATOM: 
+API-ERR: Moved Permanently
+### apache/arrow
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T06:27:26Z
+API: 17078 Apache-2.0 False apache/arrow
+### nextflow-io/nextflow
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-02T18:25:19Z
+API: 3478 Apache-2.0 False nextflow-io/nextflow
+### jax-ml/jax
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T08:07:20Z
+API: 36244 Apache-2.0 False jax-ml/jax
+### casey/just
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-01T20:47:55Z
+API: 35601 CC0-1.0 False casey/just
+### pre-commit/pre-commit
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-17T23:37:06Z
+API: 15551 MIT False pre-commit/pre-commit
+### keycloak/keycloak
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-09-03T08:29:51Z
+API-ERR: API rate limit exceeded for <ip-publica-redactada>. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)
+### sitespeedio/sitespeed.io
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-27T04:58:46Z
+API-ERR: API rate limit exceeded for <ip-publica-redactada>. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)
+### projectdiscovery/katana
+HTTP: HTTP/2 200 
+LOC: 
+ATOM: <updated>2026-08-31T12:46:14Z
+API-ERR: API rate limit exceeded for <ip-publica-redactada>. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)

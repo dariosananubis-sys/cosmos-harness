@@ -314,7 +314,14 @@ class PruebasInvariantes(unittest.TestCase):
         mensaje = next(error.mensaje for error in resultado.errores if error.codigo == "E16")
         self.assertIn("agua", mensaje)
 
-        holgado = Configuracion(**{**self.config.__dict__, "entrada": casos.peor.entrada_con_agua})
+        # «Holgado» = lo que E16 compara de verdad: la estimación MÁS el margen calibrado
+        # (auditoría A-10). Con el presupuesto exactamente en la cifra estimada, E16 sigue
+        # en rojo, y eso es lo correcto: una estimación sesgada a la baja no cabe por un pelo.
+        justo = Configuracion(**{**self.config.__dict__, "entrada": casos.peor.entrada_con_agua})
+        self.assertIn("E16", self.validar(config=justo).codigos(),
+                      "el presupuesto puesto en la estimación desnuda tiene que seguir en rojo: falta el margen")
+        con_margen = medir.veredicto_de_presupuesto(casos, casos.peor.entrada_con_agua).con_margen
+        holgado = Configuracion(**{**self.config.__dict__, "entrada": con_margen})
         self.assertNotIn("E16", self.validar(config=holgado).codigos())
 
     def test_e17_parafrasis_en_contexto_permanente(self) -> None:

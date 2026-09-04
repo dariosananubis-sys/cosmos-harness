@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: alcance-y-excepcion
 padre: agentes-ia
 resumen: Declara que se puede tocar y bloquea el resto; el permiso extra se pide con motivo y caduca solo.
+origen: propio
 ---
 
 `scripts/alcance.py` y `scripts/excepcion-codigo.py` — herramientas propias, no de GitHub. Escriben en

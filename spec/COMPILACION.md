@@ -25,7 +25,7 @@ nota.
 |---|---|---|
 | Cómo | Un paso de build genera la vista plana que la plataforma sí descubre | Un servidor MCP indexa el árbol y expone `cosmos_buscar` / `cosmos_cargar` |
 | Depende de | Que la plataforma resuelva symlinks o acepte copias | Nada de la plataforma |
-| Coste en runtime | **Cero.** Es un artefacto en disco | Un servidor vivo **y sus tools en el contexto de cada sesión** |
+| Coste en runtime | **Un `resumen` por pueblo aplanado**, si el runtime escanea el destino: un directorio de skills se descubre inyectando nombre y descripción de cada entrada en el prompt. Por eso se aplana **por nicho** (17 resúmenes), no la galaxia entera (247), y `cosmos medir` publica «Vista compilada» (auditoría A-02) | Un servidor vivo **y sus tools en el contexto de cada sesión**, todas, siempre |
 | Riesgo | Comportamiento de symlinks no estandarizado entre runtimes | Infraestructura permanente que mantener |
 
 **Se elige A.** La razón no es la simplicidad, es el principio rector.

@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: gate-de-salida-web
 padre: web/calidad-de-sitio
 resumen: Dice PASA o FALLA de un sitio; lo que no se pudo medir cuenta como fallo, jamas como aprobado.
+origen: propio
 ---
 
 Destilado generico del gate de salida de webs de un arnes propio, sin nada de aquel negocio dentro.

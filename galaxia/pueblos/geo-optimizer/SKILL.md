@@ -22,7 +22,7 @@ pip install 'geo-optimizer-skill[mcp]' && claude mcp add geo-optimizer -- geo-mc
 
 Especialista dedicado al eje de respuesta generativa: extractabilidad del texto, densidad de hechos,
 bloques de respuesta, fichero de permisos para modelos (`llms.txt`) y **acceso real de los rastreadores
-de IA**. Frontera con `claude-seo-ai`: allí el eje clásico de indexación y marcado, aquí el de ser
+de IA**. Frontera con el eje clásico de indexación y marcado (`sitespeed`, `advertools`): allí aquello, aquí el de ser
 citado por un modelo. No compiten, se suman.
 
 Ojo de coste, y es una regla dura de esta casa: **la verificación de menciones reales (`geo

@@ -13,7 +13,7 @@ es invisible y el de la suma es enorme, así que la suma no la para nadie.
 
 ## El principio
 
-> **No se le pide al agente que gaste menos. Se elimina la razón para gastar.**
+> **No se le pide al agente que gaste menos. Se elimina la razón para gastar de más.**
 
 La respuesta habitual a un harness gordo es escribir reglas pidiendo mesura: «sé breve», «no leas
 ficheros enteros», «usa pocas herramientas». Son **exhortaciones**: dependen de que el modelo se
@@ -45,6 +45,22 @@ El agua nunca define jerarquía. Un lago no es menos importante que un océano: 
 superficie**. Confundir alcance con importancia es como un harness llega a 27.000 tokens de prólogo,
 un párrafo global bienintencionado cada vez.
 
+## Cómo se usa
+
+Tres verbos, y el tercero es tu terminal. Nada que adivinar: cada salida dice qué hacer después.
+
+```
+python3 -m cosmos buscar montar un bot de trading      # encuentra el nodo por intención; cuesta lo que ocupa su salida, no el árbol
+python3 -m cosmos abrir trading/bots/codigo-de-bot     # carga ESE nodo: cuerpo, estrella y por dónde seguir
+python3 -m cosmos abrir toxiproxy                      # una herramienta: URL, licencia, instalación, uso, límites
+```
+
+`buscar` es BM25 léxico sobre las mismas líneas que el agente tiene delante (no es un agente:
+`cosmos acertar` mide cuántas veces lleva a la herramienta correcta, y publica la cifra con su `n`
+y su intervalo o dice por qué no la publica). `abrir` nombra a los hijos y no los describe, salvo
+los de la última planta; `usa:` se lista solo por nombre. `cosmos estado` es el inventario y
+`cosmos mapa` el volcado entero — caro: cuesta más que el recorrido guiado, y lo dice.
+
 ## Arranque
 
 La vista plana es un **artefacto generado** y no se versiona, así que un clon recién bajado la tiene
@@ -55,6 +71,50 @@ git clone <repo> && cd cosmos
 python3 -m cosmos arrancar        # compila la vista y valida; deja el clon en verde
 python3 -m cosmos enganchar       # instala el gate de pre-commit (opcional, muy recomendable)
 ```
+
+Sobre un directorio vacío con su `cosmos.toml`, `arrancar` escribe además la galaxia mínima y el
+índice, que son los dos artefactos que un árbol nuevo no tiene, y se queda en verde. Un sistema
+solar cuelga de la galaxia con `padre: ""` y su nombre no aparece en las rutas de sus hijos
+(`spec/FRONTMATTER.md`, `spec/NUCLEO.md` §1).
+
+## El alta: `cosmos configurar`
+
+Lo primero al instalar COSMOS en una máquina. Pregunta qué **oficios** usas de verdad (los demás
+duermen), qué **herramientas** de cada uno, y deja listo el fichero de credenciales con las
+variables que esas herramientas piden, vacías y con la pista de dónde se saca cada una:
+
+```
+python3 -m cosmos configurar                 # pregunta; o --oficios trading,web --herramientas ccxt,toxiproxy
+#   se abre ~/.cosmos/credenciales.txt: rellénalo de una sentada
+python3 -m cosmos configurar --comprobar     # dice qué falta o parece un marcador, y se lo queda
+python3 -m cosmos configurar --llavero       # al llavero de macOS y el txt se vacía
+```
+
+Perfil y credenciales viven **fuera del repositorio** (`~/.cosmos/`, directorio 700, ficheros 600).
+En el repo solo hay la plantilla vacía (`docs/credenciales.plantilla.txt`); `.gitignore` y el
+escáner de secretos impiden que `credenciales*.txt` o `perfil.toml` se versionen. Con el perfil
+puesto, `cosmos medir` y la vista compilada solo llevan tus oficios y tus herramientas; el juez
+del presupuesto (E16) sigue mirando el peor nicho entero, porque el techo vale para cualquiera.
+
+## Montarlo sobre tu proyecto
+
+Es la frase de portada del `GOAL.md` y tiene un verbo: `proyectar`. Lleva los oficios elegidos a un
+repositorio Git ajeno sin pisar nada suyo.
+
+```
+python3 -m cosmos proyectar iniciar /ruta/al/repo --nicho trading    # escribe planeta.toml
+#   edita planeta.toml: nichos, objetivo, rutas de escritura, comandos de verificación
+python3 -m cosmos proyectar sincronizar /ruta/al/repo                # inyecta el bloque y las skills
+python3 -m cosmos proyectar comprobar /ruta/al/repo                  # rojo si algo se desincronizó
+```
+
+Lo que escribe en el repo ajeno: un bloque entre `<!-- cosmos:inicio -->` y `<!-- cosmos:fin -->`
+en su `CLAUDE.md` y `AGENTS.md` (índice, océanos, catálogo del nicho, contrato; lo de fuera de las
+marcas no se toca), y los pueblos de esos nichos como **skills nativas** en `.claude/skills/` y
+`.agents/skills/`, con `name:` y `description:` para que el agente anfitrión las descubra. La carga
+perezosa allí es la del anfitrión: nombre y descripción en el prompt, cuerpo al invocar. Los verbos
+de COSMOS no viajan; el bloque lo dice y explica cómo bajar por otro oficio. `comprobar` verifica el
+contrato del anfitrión (que las vea), no solo el de COSMOS consigo mismo.
 
 `arrancar` construye la vista y vuelve a validar el árbol entero. **No** regenera el índice: si el
 índice miente, sale en rojo y te manda a `cosmos generar`. Un bootstrap que repara en silencio lo
@@ -69,7 +129,7 @@ Cuatro piezas que comprueban, y tres enganches que las ejecutan sin que nadie se
 
 | Pieza | Qué hace |
 |---|---|
-| `cosmos validar` | E00–E20. Esquema, estructura, duplicación, presupuesto y artefactos sincronizados |
+| `cosmos validar` | E00–E21. Esquema, estructura, duplicación, presupuesto, artefactos sincronizados y el contrato de cada pueblo |
 | `cosmos medir` | Cuánto contexto se paga por existir, antes del primer turno. Con el método declarado: si es estimado, dice **estimado** |
 | `cosmos generar` | El índice de la galaxia se **genera**. Nunca se edita a mano, así que no puede desincronizarse ni mentir |
 | `cosmos compilar` | Aplana los pueblos en symlinks relativos o copias, con lock y manifiesto atómico |
@@ -105,7 +165,7 @@ python3 -m cosmos saltar --listar
 
 | Propiedad | Regla |
 |---|---|
-| Acotada | Un código concreto (`E00`..`E20`), nunca «todo» |
+| Acotada | Un código concreto (`E00`..`E21`), de sesión (`G01`..`G05`) o del gate (`P01`); nunca «todo» |
 | Con motivo | Obligatorio. Sin `--motivo` no hay salto |
 | Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
 | Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |
@@ -119,10 +179,23 @@ El registro es local y no se versiona: una urgencia de una persona no puede apag
 La deuda que sí es del repositorio se inventaría aparte, en `secretos-conocidos.txt`, y ahí lo que
 no está en la lista bloquea igual.
 
+## Las pruebas
+
+```
+python3 -m unittest discover -s tests -t .          # el núcleo (unittest, no pytest: cero dependencias)
+python3 -m unittest discover -s puente/tests -t .   # el puente
+python3 -m puente.tests.mutaciones                  # cada invariante, vista fallar a propósito
+```
+
+Dos pruebas verifican el margen del medidor contra un tokenizador real y se saltan avisando si no lo
+hay: `python3 -m venv ~/.cosmos/calib && ~/.cosmos/calib/bin/pip install -r requirements-dev.txt`, y
+`COSMOS_EXIGE_TOKENIZADOR=1 ~/.cosmos/calib/bin/python -m unittest discover -s tests -t .` las
+exige. El CI lo hace en cada push (`docs/CALIBRACION.md`).
+
 ## Estado
 
-En construcción. `GOAL.md` es el contrato, `PROGRESS.md` el estado real, `reviews/` las revisiones
-cruzadas.
+En construcción. `GOAL.md` es el contrato, `PROGRESS.md` el estado real (con pin de commit; las
+cifras las genera `cosmos estado`), `reviews/` las revisiones cruzadas.
 
 Lo escriben dos agentes en pareja —Claude las especificaciones, Codex la implementación— y **ninguno
 aprueba su propio trabajo**: cada pieza la revisa el otro con premisa invertida, entrando a

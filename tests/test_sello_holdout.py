@@ -59,43 +59,71 @@ class ElDetallePorEncargoNoSeEnsenaSellado(unittest.TestCase):
         self.assertIsInstance(datos["ajuste"]["resultados"], list,
                               "el ajuste no está sellado: su detalle es legítimo")
         self.assertIsInstance(datos["validacion"]["resultados"], str)
-        self.assertIn("SELLADO", datos["validacion"]["resultados"])
+        self.assertIn("REDACTADO", datos["validacion"]["resultados"])
         self.assertEqual(datos["validacion"]["aciertos"], 2, "el agregado sí se publica")
 
-    def test_sin_sello_el_detalle_sigue_saliendo(self) -> None:
-        """Pin de la diferencia: la redacción la causa el sello, no el código nuevo."""
+    def test_sin_sello_el_detalle_TAMBIEN_se_redacta(self) -> None:
+        """R-08: un holdout recién escrito se quemaba con un solo `--json` porque la redacción
+        era opt-in con el sello. El detalle de validación no se enseña nunca; el de ajuste sí."""
 
         datos = Contraste(ajuste=_puntuacion(3, 5), validacion=_puntuacion(2, 4)).como_dict()
-        self.assertIsInstance(datos["validacion"]["resultados"], list)
+        self.assertIsInstance(datos["validacion"]["resultados"], str)
+        self.assertIsInstance(datos["ajuste"]["resultados"], list)
 
     def test_el_texto_humano_dice_si_esta_sellado(self) -> None:
         sellado = formatear_contraste(Contraste(_puntuacion(3, 5), _puntuacion(2, 4), sellado=True))
-        self.assertIn("SELLADO", sellado)
+        self.assertIn("Cifra íntegra", sellado)
         sin_sellar = formatear_contraste(Contraste(_puntuacion(3, 5), _puntuacion(2, 4)))
-        self.assertIn("SIN SELLAR", sin_sellar)
+        self.assertIn("sin sellar", sin_sellar)
+        self.assertNotIn("Cifra íntegra", sin_sellar, "sin sello no hay cifra íntegra")
 
 
 class ElCliRespetaElSello(unittest.TestCase):
-    def test_json_sobre_el_repo_real_no_filtra_el_detalle_de_validacion(self) -> None:
-        r = subprocess.run([sys.executable, "-m", "cosmos", "acertar", "--json"],
-                           capture_output=True, text=True, cwd=RAIZ)
-        self.assertEqual(r.returncode, 0)
+    """Con un holdout de prueba en un temporal: el real vive fuera del repositorio y en
+    un clon recién bajado —o en CI— no existe, así que no se puede suponer."""
+
+    def test_json_con_un_holdout_sellado_no_filtra_su_detalle(self) -> None:
+        with TemporaryDirectory() as tmp:
+            ruta = Path(tmp, "validacion.json")
+            ruta.write_text('[{"peticion": "quiero un bot que opere solo", "espera": "trading"}]',
+                            encoding="utf-8")
+            sellar(ruta, procedencia="prueba")
+            r = subprocess.run([sys.executable, "-m", "cosmos", "acertar", "--json", "--validacion", str(ruta)],
+                               capture_output=True, text=True, cwd=RAIZ)
+        self.assertEqual(r.returncode, 0, r.stderr)
         datos = json.loads(r.stdout)
         self.assertIsInstance(datos["validacion"]["resultados"], str,
-                              "el holdout del repo está sellado y --json enseñó su detalle")
+                              "--json enseñó el detalle del holdout")
         self.assertIsInstance(datos["ajuste"]["resultados"], list)
+        self.assertEqual(datos["procedencia_declarada"], "prueba")
 
-    def test_un_sello_desfasado_avisa(self) -> None:
+    def test_un_sello_desfasado_avisa_y_quita_la_cifra(self) -> None:
         with TemporaryDirectory() as tmp:
             ruta = Path(tmp, "validacion.json")
             ruta.write_text('[{"peticion": "x", "espera": "web"}]', encoding="utf-8")
-            sellar(ruta)
+            sellar(ruta, procedencia="prueba")
             ruta.write_text('[{"peticion": "y", "espera": "web"}]', encoding="utf-8")
             r = subprocess.run(
                 [sys.executable, "-m", "cosmos", "acertar", "--validacion", str(ruta)],
                 capture_output=True, text=True, cwd=RAIZ,
             )
-        self.assertIn("cambió después de sellarse", r.stderr)
+        self.assertIn("sello roto", r.stdout)
+        self.assertNotIn("Cifra íntegra", r.stdout)
+
+    def test_sellar_exige_procedencia(self) -> None:
+        with TemporaryDirectory() as tmp:
+            ruta = Path(tmp, "validacion.json")
+            ruta.write_text('[{"peticion": "x", "espera": "web"}]', encoding="utf-8")
+            r = subprocess.run([sys.executable, "-m", "cosmos", "acertar", "--sellar", "--validacion", str(ruta)],
+                               capture_output=True, text=True, cwd=RAIZ)
+            self.assertEqual(r.returncode, 2)
+            self.assertIn("--procedencia", r.stderr)
+            self.assertFalse(ruta_sello(ruta).exists())
+            r = subprocess.run([sys.executable, "-m", "cosmos", "acertar", "--sellar", "--validacion", str(ruta),
+                                "--procedencia", "dictado sin ver el árbol"],
+                               capture_output=True, text=True, cwd=RAIZ)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual(leer_sello(ruta)["procedencia"], "dictado sin ver el árbol")
 
 
 if __name__ == "__main__":

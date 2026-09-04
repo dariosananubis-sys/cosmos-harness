@@ -32,4 +32,5 @@ compila: `flash` y `monitor` fallan, y un `build` verde no dice absolutamente na
 firmware funciona. Es el falso verde clasico del nicho.
 
 Aviso de maquina: `install.sh` se baja la cadena de compilacion completa y deja del orden de varios
-gigas en `~/.espressif`. En una maquina justa de memoria cabe, pero no es una instalacion que se hace por curiosidad.
+GB en `~/.espressif` — hace falta ese hueco de disco libre, y no es una instalacion que se haga
+por curiosidad.

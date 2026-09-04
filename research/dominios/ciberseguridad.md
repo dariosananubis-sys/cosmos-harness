@@ -121,7 +121,7 @@ ser potentes.
 - `malwaredllc/byob` — 9.496★. Framework de post-explotación "para estudiantes e investigadores" cuyo propio nombre (Build Your Own Botnet) apunta a construcción de botnets — capacidad de doble uso sin el contexto de red-team profesional que sí tienen Sliver/Empire.
 - `PowerShellMafia/PowerSploit` — 13.085★ pero sin `push` desde 2020-08-17: abandonado, y buena parte de sus técnicas ya están firmadas por cualquier EDR moderno — no operativo hoy.
 - `netero1010/EDRSilencer` / `TwoSevenOneT/EDRChoker` — herramientas que bloquean o estrangulan el tráfico de agentes EDR. Evasión de detección explícita: fuera del límite ético salvo purple-team muy controlado y documentado, no un uso por defecto.
-- `hacklcx/HFish`, `hashcat/hashcat` (cracking) y `vanhauser-thc/thc-hydra` (fuerza bruta de credenciales) — dobles usos legítimos en auditoría de contraseñas autorizada, pero fuera de "de primera/segunda" de este barrido por no encajar en ningún hueco que no cubran ya PEASS-ng/Impacket para el caso de uso de <agencia>; se anotan para no repetir la búsqueda si hace falta cracking puntual.
+- `hacklcx/HFish`, `hashcat/hashcat` (cracking) y `vanhauser-thc/thc-hydra` (fuerza bruta de credenciales) — dobles usos legítimos en auditoría de contraseñas autorizada, pero fuera de "de primera/segunda" de este barrido por no encajar en ningún hueco que no cubran ya PEASS-ng/Impacket para el caso de uso de <la agencia>; se anotan para no repetir la búsqueda si hace falta cracking puntual.
 - `cirosantilli/china-dictatorship` — apareció repetidamente en los resultados de búsqueda por coincidencia de palabras clave ("fuzzing", "post-exploitation", "CTF") pero es contenido político sin relación con el dominio — ruido de la propia GitHub Search API, no un hallazgo.
 
 ---
@@ -194,12 +194,12 @@ que a los otros 19 — no se listan pueblos propios porque ninguno les pertenece
    recomendar una alternativa (p. ej. combinar Velociraptor + DefectDojo).
 4. **Suricata y Zeek** solo aparecen en Segunda fila con datos básicos (estrellas, licencia, push);
    no se profundizó en su comparación mutua (IDS firma-first vs framework de análisis de tráfico
-   general) — merece su propia pasada si <agencia> monta monitorización de red para algún cliente.
+   general) — merece su propia pasada si <la agencia> monta monitorización de red para algún cliente.
 5. **Corpus de reglas YARA**: el repo más popular (`Yara-Rules/rules`) lleva sin `push` desde
    2024-04-17. No se hizo el trabajo de comparar cobertura real entre ese corpus y los más recientes
    de Trellix/ReversingLabs (listados en Segunda fila) — antes de depender de reglas YARA en
    producción, auditar cuál corpus está realmente vivo.
 6. **Herramientas de credential-cracking** (`hashcat`, `thc-hydra`) se dejaron en Humo por no encajar
-   en un hueco propio de este barrido, pero si <agencia> hace auditorías de contraseñas para cliente,
+   en un hueco propio de este barrido, pero si <la agencia> hace auditorías de contraseñas para cliente,
    merecen su propia entrada de primera fila en la próxima revisión — hoy están sub-investigadas,
    no descartadas por calidad.

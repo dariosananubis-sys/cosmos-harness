@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: catalogo-woocommerce
 padre: web/comercio-electronico
 resumen: Recorre la tienda publicada y dice que ficha no tiene precio, foto, categoria o variacion que se pueda comprar.
+origen: propio
 ---
 
 `scripts/woocommerce-verificar-catalogo.py` — herramienta propia, no de GitHub. Se apoya en

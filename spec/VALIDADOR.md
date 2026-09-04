@@ -23,6 +23,7 @@ existe para quitar.
 
 | Código | Invariante | Mensaje |
 |---|---|---|
+| `E00` | El frontmatter parsea y cumple el esquema: campos obligatorios presentes y de texto, `nombre` con `^[a-z0-9-]+$`, `momento` válido, ningún campo fuera de los permitidos para el nivel, listas bien tipadas, sin YAML fuera del subconjunto (`FRONTMATTER.md`) | error de esquema, con su línea |
 | `E01` | Todo nodo sólido salvo la galaxia declara `padre` | nodo huérfano |
 | `E02` | El `padre` declarado existe | padre inexistente |
 | `E03` | `rango(padre) < rango(hijo)`, estrictamente | contención invertida o plana |
@@ -39,6 +40,11 @@ existe para quitar.
 | `E14` | Como mucho una estrella por sólido | contexto duplicado |
 | `E15` | El índice generado coincide con el que está en disco | índice desincronizado |
 | `E16` | El presupuesto de contexto de entrada no se supera | fuga de contexto |
+| `E17` | Dos nodos que se pagan a la vez no repiten una afirmación con otras palabras (`NUCLEO.md` §10) | solapamiento entre co-cargables |
+| `E18` | El nombre de un pueblo es único en toda la galaxia: la vista plana no puede colisionar (`COMPILACION.md`) | nombre de pueblo repetido |
+| `E19` | El manifiesto de la vista plana coincide con el destino en disco (`COMPILACION.md`) | vista plana desincronizada |
+| `E20` | Todo destino de `usa:` existe y no es el propio nodo (`COMPOSICION.md`, `FRONTMATTER.md`) | vecino inexistente |
+| `E21` | Un `pueblo` nombra qué ejecutar: URL `http(s)://` en el cuerpo —o `origen: propio` si el guion vive en su directorio— y al menos un bloque de código (`PUEBLO.md`, contrato 1-3) | pueblo que no nombra nada |
 
 ### Sobre `E08`, que es el que se va a discutir
 
@@ -59,7 +65,7 @@ en `reviews/revision-adversarial-final.md` (H16): con el nombre `calidad`, tanto
 `«El pais de calidad»` como `«Cosas y mas cosas varias.»` pasaban en verde. Con la lista completa
 los dos dan cero palabras con contenido y saltan.
 
-El umbral es **una** palabra, no dos. Medido sobre los 416 nodos de la galaxia real: el resumen más
+El umbral es **una** palabra, no dos. Medido sobre los 468 nodos de la galaxia real: el resumen más
 flojo que hay hoy aporta dos palabras con contenido, así que exigir una endurece sin generar un
 solo falso positivo, y exigir dos dejaría el margen a cero. Sigue siendo una heurística y va a
 fallar en algún caso raro. La respuesta correcta a un falso positivo es escribir un resumen mejor,
@@ -80,9 +86,14 @@ de que el índice pueda estar permanentemente en contexto sin que nadie tenga qu
 ### Sobre `E16`, que es el punto entero del proyecto
 
 `cosmos medir` (ver `MEDIDOR.md`) calcula la entrada base y cada nicho por separado. El validador
-falla si el **peor nicho individual** supera `presupuesto_entrada` de `cosmos.toml`, aunque el caso
-base quepa. El error nombra el nicho culpable y los tokens exactos que excede. **No es un aviso, es
-un rojo.**
+falla si el **peor nicho** —su `entrada` más el **agua condicional** que se carga por `paths:` sin
+que nadie la invoque, es decir `entrada_con_agua`, definida en `NUCLEO.md` §3 y no repetida aquí—
+supera `[presupuesto] entrada` de `cosmos.toml`, aunque el caso base quepa. Cuando la cifra es
+estimada se compara **con el margen calibrado encima** (`MEDIDOR.md`, «Calibración»): un guardarraíl
+que compara una estimación sesgada a la baja contra el techo se equivoca a su favor justo en el
+borde. El error nombra el nicho culpable, los tokens exactos que excede y las tres partes más
+caras. **No es un aviso, es un rojo.** El juez es único —`medir.veredicto_de_presupuesto`— para E16,
+para el código de salida de `cosmos medir` y para los guardarraíles de sesión.
 
 Un aviso se ignora. La razón por la que los harness se degradan hasta 27.000 tokens de prólogo no
 es que nadie lo supiera: es que el que lo sabía tenía otra cosa que hacer y el aviso no le paraba.

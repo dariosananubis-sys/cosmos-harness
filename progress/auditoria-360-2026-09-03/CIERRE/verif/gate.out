@@ -1,0 +1,21 @@
+CONOCIDO: ruta#25dacd7d542a:356: posible clave AWS [valor 1a5d44a2dca1]
+CONOCIDO: ruta#db0d46f684d1:550: posible clave secreta AWS [valor 783b4ea9174c]
+CONOCIDO: ruta#db0d46f684d1:550: posible secreto asignado [valor 78314b11be2e]
+secretos: limpio de nuevos; 3 hallazgo(s) inventariado(s) en secretos-conocidos.txt
+COSMOS  gate  P01 saltado: 1 resumen(es) sospechoso(s) pasan con la válvula abierta
+COSMOS  gate  P02 saltado: 8 pueblo(s) retirado(s) pasan con la válvula abierta
+CONOCIDO: ruta#25dacd7d542a:356: posible clave AWS [valor 1a5d44a2dca1]
+CONOCIDO: ruta#db0d46f684d1:550: posible clave secreta AWS [valor 783b4ea9174c]
+CONOCIDO: ruta#db0d46f684d1:550: posible secreto asignado [valor 78314b11be2e]
+secretos: limpio de nuevos; 3 hallazgo(s) inventariado(s) en secretos-conocidos.txt
+COSMOS  compilar  verde (2 saltos activos: P01, caduca en 7 d; P02, caduca en 7 d)
+
+Creadas 299; actualizadas 0; iguales 0; adoptadas 0; ajenas respetadas 0; obsoletas eliminadas 0; obsoletas preservadas 0.
+(299 cambio(s); 'cosmos compilar --detalle' o '--seco' los lista uno a uno)
+(vista COMPLETA: 299 pueblos de todos los nichos; acótala con --nicho o [nichos] activos si un runtime escanea el destino)
+COSMOS  verde (2 saltos activos: P01, caduca en 7 d; P02, caduca en 7 d)  0 errores
+
+COSMOS  arrancar  verde (2 saltos activos: P01, caduca en 7 d; P02, caduca en 7 d)
+
+Vista compilada en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-gate-ce3d91sz/repo/.cosmos/vista-galaxia
+EXIT=0

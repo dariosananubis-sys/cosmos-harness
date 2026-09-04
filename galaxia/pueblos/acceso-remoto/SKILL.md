@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: acceso-remoto
 padre: infraestructura/servidores
 resumen: Vigila y vuelve a levantar el acceso remoto de la maquina, porque la que se queda sin el no puede pedir ayuda.
+origen: propio
 ---
 
 `scripts/acceso-remoto-watchdog.sh` — herramienta propia, no hay repositorio público. La ruta ES la

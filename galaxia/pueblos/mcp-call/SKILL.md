@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: mcp-call
 padre: agentes-ia/herramientas
 resumen: Invoca una sola herramienta de un servidor externo desde la consola, sin levantar un anfitrion completo.
+origen: propio
 ---
 
 `scripts/mcp-call.py` — herramienta propia, no de GitHub. Cliente JSON-RPC por STDIN/STDOUT, sin

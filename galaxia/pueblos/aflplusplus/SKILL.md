@@ -34,3 +34,6 @@ objetivo sea seguro, dice que esa hora y ese conjunto de semillas no encontraron
 está en la cobertura alcanzada (`afl-whatsup`) y en las semillas de partida, no en el reloj.
 
 Contexto de uso legítimo: fuzzing de código propio o entregado en un encargo, investigación y CTF.
+
+Ojo, doble uso declarado: un fuzzer se usa para encontrar fallos en código **propio o con permiso
+escrito**, en auditoría contratada o laboratorio, nunca contra un objetivo fuera del alcance acordado.

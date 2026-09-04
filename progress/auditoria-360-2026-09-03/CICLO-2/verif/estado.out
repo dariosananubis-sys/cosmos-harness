@@ -1,0 +1,52 @@
+COSMOS  estado
+
+  Nodos por nivel
+    galaxia             1
+    sistema-solar      22
+    continente          8
+    pais               76
+    pueblo            299
+    mar                 6
+    oceano              5
+    rio                17
+    estrella           22
+    lluvia             14
+
+  Herramientas por oficio
+    ciberseguridad         35
+    agentes-ia             25
+    trading                22
+    web                    21
+    infraestructura        16
+    automatizacion         14
+    audiovisual            13
+    modelos-locales        13
+    cumplimiento           12
+    rendimiento            12
+    ingenieria-datos       11
+    documentos             11
+    refactorizacion        10
+    juegos                 10
+    saas                   10
+    extraccion             10
+    analitica              10
+    visibilidad             9
+    blockchain              9
+    moviles                 9
+    cientifico              9
+    embebidos               8
+                                (mayor 35, menor 8)
+
+  Ríos por momento (NUCLEO §2: los de mantenimiento se nombran sin describirse)
+    mantenimiento       8   acertar, arrancar, compilar, desenganchar, enganchar, generar, mapa, proyectar
+    trabajo             9   abrir, buscar, estado, gate, medir, memoria, saltar, secretos, validar
+
+  Contrato de pueblo (spec/PUEBLO.md) — lo que E21 no bloquea y hay que saldar por tandas
+    sin rival nombrado           69 de 299   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 63 más
+    sin apartado de avisos       38 de 299   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 32 más
+    sin fecha de comprobacion    54 de 299   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
+
+  Niveles sin un solo nodo
+    lago, luna, planeta, provincia
+    (no es un fallo: son niveles que este árbol no necesita)
+    (que ninguno esté muerto lo vigila tests/test_niveles_vivos.py)

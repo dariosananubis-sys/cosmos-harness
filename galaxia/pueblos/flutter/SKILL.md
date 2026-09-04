@@ -55,5 +55,6 @@ Aviso de dinero, que no es de la herramienta: publicar cuesta cuota de desarroll
 una cuota anual y Google una alta unica. Compilar para iOS ademas exige un Mac con Xcode; no hay
 manera de esquivarlo.
 
-Aviso de maquina: `flutter doctor` completo con Xcode y el SDK de Android son decenas de gigas de
-disco. En una maquina justa de memoria corre, pero el simulador de iOS y el emulador de Android a la vez, no.
+Aviso de recursos: `flutter doctor` completo con Xcode y el SDK de Android son decenas de gigas de
+disco. Corre con normalidad, pero el simulador de iOS y el emulador de Android a la vez piden mas
+memoria de la que suele quedar libre en un portatil de desarrollo — no van los dos simultaneos.

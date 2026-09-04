@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: delegar-generacion
 padre: agentes-ia/construccion
 resumen: Un modelo redacta el encargo y otro teclea el fichero; el prompt se ve antes de correr y la cuota agotada reintenta.
+origen: propio
 ---
 
 `scripts/codex-delegate.sh` y `scripts/codex-handler.sh` — herramientas propias, no de GitHub.

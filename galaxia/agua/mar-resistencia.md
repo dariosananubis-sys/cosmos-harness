@@ -14,3 +14,5 @@ autoritativo, nunca del valor por defecto de la plantilla.
 
 Un codigo de salida cero no prueba ejecucion: detras de un binario que no existe sale igual, y una
 suite que jamas arranco pasa por aprobada: antes de creerle, se comprueba que el programa existe.
+
+Reintento con espera: `tenacity`; fallos de red a propósito: `toxiproxy`; congelar el reloj: `time-machine`.

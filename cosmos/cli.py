@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
+import os
+import re
+import subprocess
 import sys
 import tomllib
 from dataclasses import replace
@@ -31,15 +35,21 @@ from .guardarrailes import (
 from .abrir import NodoNoEncontrado, abrir, apertura_json, formatear as formatear_apertura
 from .buscar import buscar_nodos, busqueda_json, formatear_busqueda
 from .juez import ErrorJuez
-from .acertar import (Contraste, ErrorEncargos, cargar_encargos, formatear as formatear_acierto,
-                      formatear_contraste, leer_sello, puntuacion_json, puntuar, sellar,
-                      sello_vigente)
+from .acertar import (Contraste, ErrorEncargos, Puntuacion, _lineas_del_catalogo, cargar_encargos,
+                      formatear as formatear_acierto, formatear_contraste, leer_sello, puntuacion_json, puntuar,
+                      ruta_sello, sellar, sello_vigente)
 from .estado import estado_json, formatear as formatear_estado, inventariar
+from .holdout import (cobertura, comprobar_procedencia, compromiso_del_sello, esta_dentro, esta_versionado,
+                      ruta_por_defecto, solape_examen_catalogo)
 from .medir import (MetodoNoDisponible, casos_json, formatear_casos, medir_casos,
                     veredicto_de_presupuesto)
-from .modelo import Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion, normalizar_nichos
+from .modelo import (Arbol, Configuracion, ErrorConfiguracion, ErrorNicho, cargar_arbol, cargar_configuracion,
+                     nombres_nichos, normalizar_nichos)
 from .validar import (INVARIANTE_PRESUPUESTO, formatear_validacion, rango_comprobado,
                       validacion_json, validar_arbol)
+
+# El sello del holdout real se versiona aquí; el holdout, no (spec/NUCLEO.md §11).
+SELLO_POR_DEFECTO = Path("pruebas/encargos-validacion.SELLO")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -74,15 +84,22 @@ def _parser() -> argparse.ArgumentParser:
     acertar_cmd.add_argument(
         "--validacion",
         type=Path,
-        default=Path("pruebas/encargos-validacion.json"),
-        help="encargos que NO guían decisiones: la cifra honesta sale de aquí",
+        default=None,
+        help="encargos que NO guían decisiones: la cifra honesta sale de aquí. Vive FUERA del "
+             "repositorio (por defecto ~/.cosmos/holdout/encargos-validacion.json o $COSMOS_HOLDOUT): "
+             "quien tiene el repo no puede tener el examen",
     )
-    acertar_cmd.add_argument("--minimo", type=int, default=0,
-                             help="falla si se acierta menos de esto (en %%), medido en validación")
+    acertar_cmd.add_argument(
+        "--sello", type=Path, default=None,
+        help="el .SELLO versionado que ata el holdout (por defecto pruebas/encargos-validacion.SELLO; "
+             "con --validacion explícita, el .SELLO al lado del fichero)",
+    )
     acertar_cmd.add_argument("--detalle", action="store_true")
     acertar_cmd.add_argument("--json", action="store_true")
     acertar_cmd.add_argument("--sellar", action="store_true",
                              help="sella el conjunto de validación: su detalle por encargo deja de enseñarse")
+    acertar_cmd.add_argument("--procedencia", default="",
+                             help="con --sellar: quién escribió el examen y en qué condiciones (obligatorio)")
     acertar_cmd.add_argument("--juez", metavar="MODELO",
                              help="puntúa con un modelo local ya servido por ollama (no arranca ninguno)")
     acertar_cmd.add_argument("--servidor", default="http://localhost:11434",
@@ -100,6 +117,8 @@ def _parser() -> argparse.ArgumentParser:
     medir.add_argument("--metodo", choices=("aprox", "exacto"), help="solo inspección; validar usa cosmos.toml")
     medir.add_argument("--detalle", action="store_true")
     medir.add_argument("--json", action="store_true", help="emite JSON")
+    medir.add_argument("--delta", action="store_true",
+                       help="compara con el árbol de HEAD: qué contenido se retiró o creció para que el veredicto sea el que es (R-05)")
     seleccion = medir.add_mutually_exclusive_group()
     seleccion.add_argument("--nicho", action="append", help="nicho activo; anula [nichos] activos")
     seleccion.add_argument("--combinacion", help="nichos simultáneos separados por comas")
@@ -112,13 +131,44 @@ def _parser() -> argparse.ArgumentParser:
     compilar.add_argument("--destino", type=Path)
     compilar.add_argument("--seco", action="store_true", help="describe cambios sin escribir")
     compilar.add_argument("--nicho", help="aplana solo las skills del nicho indicado")
+    compilar.add_argument("--detalle", action="store_true", help="lista cada entrada (sin esto, solo el resumen)")
+    compilar.add_argument("--quiet", "-q", action="store_true", help="sin salida si todo va bien; solo el código de salida")
+    compilar.add_argument("--todos", action="store_true",
+                          help="aplana TODOS los pueblos aunque el destino sea un directorio que el runtime escanea (A-02)")
 
     arrancar = base("arrancar", "deja un árbol nuevo o recién clonado en verde: compila, genera lo que falte y valida")
     arrancar.add_argument("--modo", choices=("symlink", "copia"))
     arrancar.add_argument("--destino", type=Path)
     arrancar.add_argument("--nicho", help="aplana solo las skills del nicho indicado")
+    arrancar.add_argument("--detalle", action="store_true", help="lista cada entrada compilada (sin esto, solo el resumen)")
+    arrancar.add_argument("--quiet", "-q", action="store_true", help="sin salida si todo va bien; solo el código de salida")
+    arrancar.add_argument("--todos", action="store_true",
+                          help="aplana TODOS los pueblos aunque el destino sea un directorio que el runtime escanea (A-02)")
 
-    base("mapa", "muestra el árbol completo para inspección")
+    base("mapa", "muestra el árbol completo para inspección. CARO: sobre la galaxia real son ~3.700 tokens, el 90 %% del presupuesto de entrada, más que el recorrido guiado entero; para navegar usa 'buscar' y 'abrir'")
+
+    proyectar = subparsers.add_parser(
+        "proyectar",
+        help="lleva los oficios elegidos a un repositorio ajeno: iniciar → planeta.toml → sincronizar → comprobar",
+        add_help=False,
+    )
+
+    configurar = subparsers.add_parser(
+        "configurar",
+        help="el alta: qué oficios usas, qué herramientas de cada uno, y las credenciales que hacen falta "
+             "(perfil y claves FUERA del repositorio, en ~/.cosmos)",
+    )
+    configurar.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
+    configurar.add_argument("--oficios", help="oficios activos separados por comas (sin esto se pregunta)")
+    configurar.add_argument("--herramientas", help="herramientas separadas por comas (sin esto se pregunta por oficio)")
+    configurar.add_argument("--directorio", type=Path, default=None,
+                            help="dónde viven el perfil y las credenciales (por defecto ~/.cosmos)")
+    configurar.add_argument("--no-abrir", action="store_true", help="no abrir el fichero de credenciales en el editor")
+    configurar.add_argument("--comprobar", action="store_true",
+                            help="segunda vuelta: lee credenciales.txt, dice qué falta o parece un marcador, y se lo queda")
+    configurar.add_argument("--llavero", action="store_true",
+                            help="pasa las credenciales al llavero de macOS (security add-generic-password) y vacía el txt")
+    configurar.add_argument("--seco", action="store_true", help="con --llavero: enseña las órdenes sin ejecutarlas")
 
     engancha = subparsers.add_parser("enganchar", help="instala el gate de pre-commit en este repositorio")
     engancha.add_argument("--config", type=Path, default=Path("cosmos.toml"), help="ruta de cosmos.toml")
@@ -154,25 +204,41 @@ def _configuracion(args: argparse.Namespace) -> Configuracion:
 
 
 def nichos_de_configuracion(ruta: Path | None) -> list[str] | None:
-    """Lee `[nichos] activos`. Lista vacía o sección ausente significa «todos»."""
+    """Lee `[nichos] activos` de un `cosmos.toml`. Lista vacía o sección ausente: `None`.
+
+    Delegado en `modelo.cargar_configuracion` (ciclo 2): había DOS lectores del mismo TOML con
+    validación distinta, y el de la librería no leía la sección. Se conserva la función porque
+    los tests y el CLI la usan por nombre.
+    """
 
     if ruta is None or not Path(ruta).is_file():
         return None
-    try:
-        datos = tomllib.loads(Path(ruta).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
-        raise ErrorConfiguracion(f"no se puede leer {ruta}: {exc}") from exc
-    seccion = datos.get("nichos", {})
-    if not isinstance(seccion, dict):
-        raise ErrorConfiguracion("[nichos] debe ser una tabla TOML")
-    activos = seccion.get("activos", [])
-    if not isinstance(activos, list) or any(not isinstance(valor, str) for valor in activos):
-        raise ErrorConfiguracion("[nichos].activos debe ser una lista de nombres")
-    return activos or None
+    return list(cargar_configuracion(ruta).nichos or ()) or None
+
+
+def _perfil_local() -> dict:
+    """El perfil de `cosmos configurar` (~/.cosmos/perfil.toml, o COSMOS_PERFIL), si existe."""
+
+    from .configurar import PERFIL, leer_perfil
+
+    ruta = Path(os.environ["COSMOS_PERFIL"]).expanduser() if os.environ.get("COSMOS_PERFIL") else PERFIL
+    return leer_perfil(ruta) or {}
 
 
 def _nichos(explicitos: list[str] | None, config: Configuracion) -> list[str] | None:
-    return explicitos if explicitos else nichos_de_configuracion(config.ruta)
+    if explicitos:
+        return explicitos
+    del_toml = nichos_de_configuracion(config.ruta)
+    if del_toml:
+        return del_toml
+    # Sin nichos en cosmos.toml, mandan los oficios del alta: el resto duerme (encargo B).
+    oficios = [o for o in _perfil_local().get("oficios", []) if isinstance(o, str)]
+    return oficios or None
+
+
+def _herramientas_del_perfil() -> tuple[str, ...] | None:
+    elegidas = [h for h in _perfil_local().get("herramientas", []) if isinstance(h, str)]
+    return tuple(elegidas) or None
 
 
 def _nichos_medicion(args: argparse.Namespace) -> list[str] | None:
@@ -186,8 +252,244 @@ def _nichos_medicion(args: argparse.Namespace) -> list[str] | None:
     return partes
 
 
+def _delta_frente_a_head(arbol: Arbol, config: Configuracion, ahora) -> str:
+    """Mide el árbol tal como está en HEAD y publica la diferencia con el de trabajo.
+
+    Revisión R-05: los 91 tokens de holgura del ciclo 1 eran los 109 que se cortaron de un
+    océano, y el veredicto no lo decía. Un «cabe» que no declara qué se retiró para caber es
+    la misma clase de dato que `medir` persigue. Se exporta HEAD a un temporal con
+    `git archive` (sin tocar el árbol de trabajo) y se mide con el mismo medidor.
+    """
+
+    import tarfile
+    import tempfile
+
+    from .medir import contar_estructura
+    from .modelo import cuerpo
+
+    base = _base_repositorio(config)
+    try:
+        rel_arbol = config.arbol.resolve().relative_to(base.resolve()).as_posix()
+    except ValueError:
+        return "\n  Delta vs HEAD .. no_medido (el árbol no está dentro del repositorio)\n"
+    exportado = subprocess.run(["git", "-C", str(base), "archive", "HEAD", rel_arbol], capture_output=True, check=False)
+    if exportado.returncode:
+        return "\n  Delta vs HEAD .. no_medido (sin HEAD o sin git)\n"
+    with tempfile.TemporaryDirectory(prefix="cosmos-delta-") as tmp:
+        with tarfile.open(fileobj=io.BytesIO(exportado.stdout)) as tar:
+            tar.extractall(tmp, filter="data")
+        antes_arbol = cargar_arbol(Path(tmp) / rel_arbol)
+        antes = medir_casos(antes_arbol, metodo=config.metodo, presupuesto=config.entrada)
+        oceanos_antes = {n.nombre: contar_estructura(cuerpo(n)) for n in antes_arbol.nodos if n.cosmos == "oceano"}
+    oceanos_ahora = {n.nombre: contar_estructura(cuerpo(n)) for n in arbol.nodos if n.cosmos == "oceano"}
+    pueblos_antes = sum(1 for n in antes_arbol.nodos if n.cosmos == "pueblo")
+    pueblos_ahora = sum(1 for n in arbol.nodos if n.cosmos == "pueblo")
+    lineas = ["", "  Delta vs HEAD .. (lo que cambió para que el veredicto sea el que es)",
+              f"    entrada base      {antes.base.entrada:>6} -> {ahora.base.entrada:<6} ({ahora.base.entrada - antes.base.entrada:+d})",
+              f"    peor con agua     {antes.peor.entrada_con_agua:>6} -> {ahora.peor.entrada_con_agua:<6} ({ahora.peor.entrada_con_agua - antes.peor.entrada_con_agua:+d})",
+              f"    pueblos           {pueblos_antes:>6} -> {pueblos_ahora:<6} ({pueblos_ahora - pueblos_antes:+d})"]
+    for nombre in sorted(set(oceanos_antes) | set(oceanos_ahora)):
+        a, b = oceanos_antes.get(nombre, 0), oceanos_ahora.get(nombre, 0)
+        if a != b:
+            lineas.append(f"    oceano/{nombre:<12} {a:>5} -> {b:<5} ({b - a:+d} tokens en TODA sesión)")
+    return "\n".join(lineas) + "\n"
+
+
+def _vista_compilada(arbol: Arbol, config: Configuracion) -> dict[str, object]:
+    """Lo que paga un runtime que escanee el destino de la vista plana: nombre + resumen por entrada.
+
+    Era el único gasto grande que ninguna cifra publicada veía: `arrancar` materializaba 247
+    entradas (≈6.100 tokens, 1,5× el presupuesto) en un directorio que el medidor mandaba al
+    saco `no_medido` (auditoría A-02). Se lee el manifiesto, no el árbol: se mide lo que HAY
+    compilado, y si no hay manifiesto se dice `no_medido`, nunca cero.
+    """
+
+    from .compilar import rutas_compilacion
+    from .medir import contar_generado
+
+    destino, manifiesto = rutas_compilacion(arbol, config.destino_compilacion, config.manifiesto_compilacion, config.ruta)
+    try:
+        datos = json.loads(manifiesto.read_text(encoding="utf-8"))
+        entradas = list(datos.get("entradas", {}))
+    except (OSError, ValueError, AttributeError):
+        return {"tokens": "no_medido", "entradas": 0, "destino": str(destino), "motivo": "sin manifiesto: no hay vista compilada"}
+    resumenes = {n.nombre: n.resumen for n in arbol.nodos if n.cosmos == "pueblo"}
+    texto = "\n".join(f"{nombre}: {resumenes.get(nombre, '')}" for nombre in entradas)
+    return {"tokens": contar_generado(texto) if entradas else 0, "entradas": len(entradas), "destino": str(destino),
+            "motivo": "los paga un runtime que escanee ese directorio; fuera de E16"}
+
+
+def _linea_vista_compilada(vista: dict[str, object]) -> str:
+    tokens = vista["tokens"]
+    cifra = tokens if isinstance(tokens, str) else f"{tokens:,}".replace(",", ".") + " tokens"
+    return (f"\n  Vista compilada . {cifra}   ({vista['entradas']} entradas en {vista['destino']}; "
+            f"{vista['motivo']})\n")
+
+
+def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> int:
+    """El alta de COSMOS en una máquina (encargo de Darío, 2026-09-03).
+
+    1. Qué oficios se usan de verdad → esos nichos quedan activos en el perfil; el resto duerme.
+    2. Por cada oficio, qué herramientas → solo esas entran en el catálogo del usuario.
+    3. `~/.cosmos/credenciales.txt` con las variables que esas herramientas necesitan, ya
+       puestas y vacías, cada una con la pista de dónde se saca, y se abre en el editor.
+    4. `--comprobar`: se lee, se dice qué falta o parece un marcador, y se marca en el perfil.
+    5. Nace con 600 en un directorio 700, FUERA del repositorio. En el repo, solo la plantilla.
+    6. `--llavero`: `security add-generic-password` por cada valor y el txt se vacía.
+    """
+
+    from . import configurar as cfg
+
+    directorio = args.directorio or cfg.DIRECTORIO
+    perfil = directorio / cfg.PERFIL.name
+    credenciales = directorio / cfg.CREDENCIALES.name
+    oficios_disponibles = list(nombres_nichos(arbol))
+    pueblos = {n.nombre: n for n in arbol.nodos if n.cosmos == "pueblo"}
+
+    if args.comprobar or args.llavero:
+        datos = cfg.leer_perfil(perfil) or {}
+        herramientas = [h for h in datos.get("herramientas", []) if isinstance(h, str)]
+        oficios = [o for o in datos.get("oficios", []) if isinstance(o, str)]
+        if not herramientas and not oficios:
+            print(f"COSMOS  configurar  rojo\n\nno hay perfil en {perfil}: ejecuta primero 'cosmos configurar'", file=sys.stderr)
+            return 2
+        esperadas = cfg.credenciales_de(arbol, herramientas)
+        leidas = cfg.leer_credenciales(credenciales)
+        faltan, sospechosas = cfg.comprobar_credenciales(esperadas, leidas)
+        if args.llavero:
+            ordenes = cfg.ordenes_llavero({k: v for k, v in leidas.items() if k in {c.variable for c in esperadas}},
+                                          os.environ.get("USER", "cosmos"))
+            if not ordenes:
+                print("COSMOS  configurar  llavero\n\nno hay ningún valor que pasar al llavero", file=sys.stderr)
+                return 1
+            for orden in ordenes:
+                visible = orden[:-2] + ["********", orden[-1]]  # el valor nunca se imprime
+                if args.seco:
+                    print(" ".join(visible))
+                else:
+                    resultado = subprocess.run(orden, capture_output=True, check=False)
+                    if resultado.returncode:
+                        print(f"COSMOS  configurar  rojo\n\nno se pudo guardar {orden[5]} en el llavero", file=sys.stderr)
+                        return 1
+            if not args.seco:
+                vaciadas = cfg.vaciar_valores(credenciales)
+                print(f"COSMOS  configurar  llavero\n\n{len(ordenes)} credencial(es) en el llavero de macOS "
+                      f"(servicio cosmos/<VARIABLE>); {vaciadas} valor(es) vaciados de {credenciales}.")
+            return 0
+        lineas = ["COSMOS  configurar  comprobar", ""]
+        for variable in faltan:
+            lineas.append(f"  FALTA      {variable}")
+        for variable in sospechosas:
+            lineas.append(f"  SOSPECHOSA {variable}   (parece un marcador o es demasiado corta)")
+        completas = len({c.variable for c in esperadas}) - len(faltan) - len(sospechosas)
+        lineas.append(f"  {completas} completa(s), {len(faltan)} falta(n), {len(sospechosas)} sospechosa(s) de {len({c.variable for c in esperadas})}")
+        cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=not faltan and not sospechosas))
+        lineas.append(f"  Perfil guardado en {perfil}: no se vuelve a preguntar."
+                      + (" Cuando quieras: 'cosmos configurar --llavero'." if not faltan and not sospechosas else ""))
+        sys.stdout.write("\n".join(lineas) + "\n")
+        return 0 if not faltan and not sospechosas else 1
+
+    # Primera vuelta
+    if args.oficios:
+        oficios = [o.strip() for o in args.oficios.split(",") if o.strip()]
+    else:
+        print("¿Qué oficios usas de verdad? (números, nombres o 'todos'; el resto duerme)")
+        oficios = cfg.elegir(oficios_disponibles, "> ")
+    desconocidos = sorted(set(oficios) - set(oficios_disponibles))
+    if desconocidos:
+        raise ErrorNicho(f"oficio desconocido: {', '.join(desconocidos)}; disponibles: {', '.join(oficios_disponibles)}")
+    if not oficios:
+        print("COSMOS  configurar  rojo\n\nsin oficios no hay nada que activar", file=sys.stderr)
+        return 1
+    if args.herramientas:
+        herramientas = [h.strip() for h in args.herramientas.split(",") if h.strip()]
+    else:
+        herramientas = []
+        for oficio in oficios:
+            de_este = sorted(n.nombre for n in pueblos.values() if (n.datos.get("padre") or "").split("/")[0] == oficio)
+            if not de_este:
+                continue
+            print(f"\nHerramientas de {oficio} que usas (números, nombres o 'todos'):")
+            herramientas.extend(cfg.elegir(de_este, "> "))
+    desconocidas = sorted(set(herramientas) - set(pueblos))
+    if desconocidas:
+        raise ErrorEncargos(f"herramienta desconocida: {', '.join(desconocidas)}")
+    fuera = sorted(h for h in herramientas if (pueblos[h].datos.get("padre") or "").split("/")[0] not in oficios)
+    if fuera:
+        raise ErrorEncargos(f"herramienta de un oficio que no activaste: {', '.join(fuera)}")
+
+    cfg.escribir_privado(perfil, cfg.perfil_toml(oficios, herramientas, comprobadas=False))
+    esperadas = cfg.credenciales_de(arbol, herramientas)
+    if credenciales.is_file() and cfg.leer_credenciales(credenciales):
+        # No se pisa un fichero con valores: se dice y se para.
+        print(f"COSMOS  configurar\n\n{credenciales} ya tiene valores: no se sobrescribe. "
+              "Comprueba con 'cosmos configurar --comprobar'.")
+        return 0
+    cfg.escribir_privado(credenciales, cfg.plantilla_credenciales(esperadas))
+    lineas = [
+        "COSMOS  configurar  verde", "",
+        f"  Oficios activos ....... {', '.join(oficios)} ({len(oficios)} de {len(oficios_disponibles)}; el resto duerme)",
+        f"  Herramientas .......... {len(herramientas)} elegidas",
+        f"  Perfil ................ {perfil}  (600, fuera del repositorio)",
+        f"  Credenciales .......... {credenciales}  ({len(esperadas)} variable(s) vacía(s), con su pista)",
+    ]
+    if esperadas:
+        abierto = False if args.no_abrir else cfg.abrir_en_editor(credenciales)
+        lineas.append("  Rellénalas de una sentada y vuelve con: cosmos configurar --comprobar"
+                      + ("" if abierto or args.no_abrir else "   (no se pudo abrir el editor: ábrelo tú)"))
+    else:
+        lineas.append("  Ninguna de las herramientas elegidas pide credenciales.")
+    sys.stdout.write("\n".join(lineas) + "\n")
+    return 0
+
+
 def _base_repositorio(config: Configuracion) -> Path:
     return config.ruta.parent if config.ruta is not None else config.arbol
+
+
+def _contrastar(arbol: Arbol, ajuste: Puntuacion, validacion: Path, sello: Path | None, raiz: Path,
+                config_arbol: Path | None = None) -> Contraste:
+    """Arma el contraste con todo lo que decide si la cifra de validación vale.
+
+    Cuatro comprobaciones, y ninguna es cosmética (auditoría B-01..B-07):
+    · el holdout existe y se lee, o se dice por qué no — nunca se sustituye por el ajuste;
+    · **no está versionado** en este repositorio ni sus consultas aparecen en la historia
+      git de ningún `.json`: un examen que viaja con el sistema que evalúa —aunque sea en
+      un commit borrado— lo tiene cualquiera que clone, y eso es un ejercicio resuelto;
+    · el sello está vigente (o se dice si está roto o nunca se puso) y declara procedencia;
+    · la cobertura de oficios y de profundidad se publica junto a la cifra.
+    """
+
+    if not validacion.is_file():
+        return Contraste(ajuste=ajuste, validacion=None,
+                         ausente=f"no existe {validacion} (fuera del repositorio a propósito; "
+                                 "COSMOS_HOLDOUT o --validacion para otra ruta)")
+    encargos = cargar_encargos(validacion)
+    val = puntuar(arbol, encargos)
+    marca = validacion.with_suffix(".QUEMADO")
+    quemado = marca.read_text(encoding="utf-8") if marca.is_file() else None
+    # Trivalente (R-17): fuera del repositorio no hay nada que versionar (False, sabido);
+    # dentro, lo dice git; y si git no contesta, `None`, que se publica como tal.
+    versionado: bool | None = esta_versionado(raiz, validacion) if esta_dentro(raiz, validacion) else False
+    datos_sello = leer_sello(validacion, sello)
+    vigente = sello_vigente(validacion, sello)
+    lineas = dict(_lineas_del_catalogo(arbol))
+    return Contraste(
+        ajuste=ajuste,
+        validacion=val,
+        quemado=quemado or None,
+        sellado=vigente,
+        sello_roto=datos_sello is not None and not vigente,
+        procedencia=comprobar_procedencia(raiz, [e.peticion for e in encargos]),
+        cobertura=cobertura(nombres_nichos(arbol), [e.espera for e in encargos]),
+        declarada=str((datos_sello or {}).get("procedencia") or ""),
+        compromiso=(compromiso_del_sello(raiz, ruta_sello(validacion, sello), str(datos_sello.get("sha256", "")), config_arbol)
+                    if datos_sello else None),
+        calcado=solape_examen_catalogo((e.peticion, lineas.get(e.espera, "")) for e in encargos),
+        calcado_ajuste=solape_examen_catalogo((r.encargo.peticion, lineas.get(r.encargo.espera, "")) for r in ajuste.resultados),
+        versionado=versionado,
+        candidatos=len(lineas),
+    )
 
 
 def _salida_validacion(
@@ -266,8 +568,22 @@ def _compilar(
         seco=seco,
         nichos=nichos,
         config_path=config.ruta,
+        todos=True if getattr(args, "todos", False) else None,
     )
-    sys.stdout.write(anotar_salida(formatear_compilacion(compilacion), _saltos(config)[0]))
+    if not getattr(args, "quiet", False):
+        sys.stdout.write(anotar_salida(
+            formatear_compilacion(compilacion, detalle=bool(getattr(args, "detalle", False))), _saltos(config)[0]
+        ))
+    if nichos is None and not seco and not getattr(args, "quiet", False):
+        # `nichos=None` aquí significa TODOS los pueblos (NUCLEO §5), al revés que en el
+        # catálogo de entrada, donde significa ninguno (NUCLEO §2). Se dice cada vez que se
+        # materializa la vista completa: si un runtime escanea `destino`, paga el resumen de
+        # cada entrada, y eso no lo mide E16 (auditoría A-02 / A-04).
+        cuantos = compilacion.creadas + compilacion.actualizadas + compilacion.iguales + compilacion.adoptadas
+        sys.stdout.write(
+            f"(vista COMPLETA: {cuantos} pueblos de todos los nichos; acótala con --nicho o "
+            "[nichos] activos si un runtime escanea el destino)\n"
+        )
     if seco:
         return 0
     posterior = validar_arbol(arbol, configuracion=config_efectiva, omitir_codigos=ajenas)
@@ -288,6 +604,24 @@ def _arrancar(args: argparse.Namespace, config: Configuracion, arbol) -> int:
     lo escribe: los dos son artefactos generados, y ninguno de los dos existe.
     """
 
+    # Un árbol recién creado no tiene galaxia, y sin ella E05 deja `arrancar` en rojo
+    # cuando NUCLEO §6 promete que «es el único que deja un árbol nuevo en verde de una
+    # vez» (auditoría E-08). Una galaxia que no existe no puede mentir, como el índice:
+    # se escribe la mínima, con el nombre del directorio, y se dice. Si hay nodos pero
+    # ninguna galaxia, no se inventa nada: ese árbol tiene un problema que E05 debe decir.
+    if not arbol.nodos and config.arbol.is_dir() and not any(config.arbol.rglob("*.md")):
+        nombre = re.sub(r"[^a-z0-9-]+", "-", config.arbol.resolve().name.lower()).strip("-") or "galaxia"
+        galaxia = config.arbol / "galaxia.md"
+        galaxia.write_text(
+            f"---\ncosmos: galaxia\nnombre: {nombre}\nresumen: Nada se carga hasta entrar en ello.\n---\n\n"
+            "El indice nombra a los hijos; no los describe. Cada oficio es un sistema solar con "
+            "`padre: \"\"`.\n",
+            encoding="utf-8",
+        )
+        sys.stdout.write(f"Galaxia creada en {galaxia} (no existía): edita su nombre y su resumen\n\n")
+        arbol = cargar_arbol(config.arbol, excluir=config.indice,
+                             excluir_directorios=(config.destino_compilacion,),
+                             tambien=(config.registro,) if config.registro else ())
     # `compilar` ignora E15 porque no la puede reparar; la validación final de
     # aquí sí la exige entera, así que un índice que miente sigue saliendo en rojo.
     codigo = _compilar(args, config, arbol)
@@ -392,7 +726,15 @@ def _desenganchar(args: argparse.Namespace, config: Configuracion) -> int:
 
 
 def ejecutar(argv: list[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
+    argumentos = list(sys.argv[1:] if argv is None else argv)
+    if argumentos and argumentos[0] == "proyectar":
+        # El mecanismo que cumple GOAL §1 («clonar sobre cualquier proyecto») no era un
+        # verbo y no salía en el README: solo se descubría hurgando en `galaxia/agua/`
+        # (auditoría E-04). Delega entero en `puente.proyectar`, `--help` incluido.
+        from puente.proyectar import main as proyectar_main
+
+        return proyectar_main(argumentos[1:])
+    args = _parser().parse_args(argumentos)
     try:
         config = _configuracion(args)
     except ErrorConfiguracion as exc:
@@ -413,19 +755,36 @@ def ejecutar(argv: list[str] | None = None) -> int:
             excluir_directorios=(config.destino_compilacion,),
             tambien=(config.registro,) if config.registro else (),
         )
+        # La guarda de «la raíz del árbol no existe» se escribió para `medir` y `buscar`
+        # y `estado`/`mapa` seguían dando verde con un inventario vacío sobre un árbol que
+        # no está (auditoría D-05). Aquí, para los cuatro; `validar` ya lo dice con E00.
+        if not config.arbol.is_dir():
+            # UNA guarda para todos los verbos que cargan el árbol (R-44): `acertar` publicaba «lo
+            # ganado generaliza» sobre cero nodos, y `medir`/`buscar` tenían cada uno su copia
+            # («arreglar el que se ve y dejar al hermano»). `validar` lo dice con E00.
+            # `--config` fuera del repo resuelve `arbol` contra el directorio del propio fichero:
+            # medir cero nodos y publicar «OK, quedan 4.000» era el veredicto tranquilizador.
+            if args.comando != "validar":
+                print(f"COSMOS  {args.comando}  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
+                return 1
+        if args.comando == "configurar":
+            return _configurar(args, config, arbol)
         if args.comando == "validar":
             return _validar(args, config, arbol)
         if args.comando == "medir":
-            # `--config` fuera del repo resuelve `arbol` contra el directorio del propio
-            # fichero: si el resultado no existe, medir cero nodos y publicar «OK, quedan
-            # 4.000» era el veredicto tranquilizador sobre un árbol que no está.
-            # `puente.sesion.decidir` ya rechazaba este caso; el comando, no.
-            if not config.arbol.is_dir():
-                print(f"COSMOS  medir  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
-                return 1
             nichos = normalizar_nichos(arbol, _nichos(_nichos_medicion(args), config))
-            resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada, nichos=nichos)
-            sys.stdout.write(casos_json(resultado_medicion) if args.json else formatear_casos(resultado_medicion, detalle=args.detalle))
+            resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada,
+                                             nichos=nichos, herramientas=_herramientas_del_perfil())
+            vista = _vista_compilada(arbol, config)
+            if args.json:
+                datos = json.loads(casos_json(resultado_medicion))
+                datos["vista_compilada"] = vista
+                sys.stdout.write(json.dumps(datos, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+            else:
+                sys.stdout.write(formatear_casos(resultado_medicion, detalle=args.detalle))
+                sys.stdout.write(_linea_vista_compilada(vista))
+                if args.delta:
+                    sys.stdout.write(_delta_frente_a_head(arbol, config, resultado_medicion))
             # El codigo de salida tiene que reflejar LO QUE LA SALIDA DECLARA en rojo.
             # Antes comparaba `entrada` mientras el texto declaraba rojo por
             # `entrada_con_agua`: imprimia «ROJO, excede en 283 tokens» y devolvia 0.
@@ -480,9 +839,6 @@ def ejecutar(argv: list[str] | None = None) -> int:
             sys.stdout.write(generar_mapa(arbol))
             return 0
         if args.comando == "buscar":
-            if not config.arbol.is_dir():
-                print(f"COSMOS  buscar  rojo\n\nla raíz del árbol no existe: {config.arbol}", file=sys.stderr)
-                return 1
             consulta = " ".join(args.consulta)
             hallazgos = buscar_nodos(arbol, consulta, limite=args.limite)
             sys.stdout.write(busqueda_json(hallazgos, consulta) if args.json else formatear_busqueda(hallazgos, consulta))
@@ -494,11 +850,23 @@ def ejecutar(argv: list[str] | None = None) -> int:
             sys.stdout.write(apertura_json(ap) if args.json else formatear_apertura(ap))
             return 0
         if args.comando == "acertar":
+            explicita = args.validacion is not None
+            validacion = args.validacion if explicita else ruta_por_defecto()
+            sello = args.sello if args.sello is not None else (
+                None if explicita else SELLO_POR_DEFECTO
+            )
             if args.sellar:
-                datos = sellar(args.validacion)
+                if not args.procedencia.strip():
+                    raise ErrorEncargos(
+                        "--sellar exige --procedencia: quién escribió el examen y en qué condiciones "
+                        "(el primero lo escribió quien ajusta el árbol, con el árbol delante, y solo "
+                        "se supo leyendo el registro)"
+                    )
+                datos = sellar(validacion, sello, procedencia=args.procedencia)
                 print(
                     f"COSMOS  acertar  holdout sellado\n\n"
-                    f"{args.validacion}: {datos['encargos']} encargos, sha256 {datos['sha256'][:12]}…\n"
+                    f"{validacion}: {datos['encargos']} encargos, sha256 {datos['sha256'][:12]}…\n"
+                    f"sello en {ruta_sello(validacion, sello)}\n"
                     "Desde ahora su detalle por encargo no se enseña. Editar el fichero invalida el\n"
                     "sello; romperlo es borrar el .SELLO, y ese gesto queda en git."
                 )
@@ -511,62 +879,21 @@ def ejecutar(argv: list[str] | None = None) -> int:
                 sys.stdout.write(formatear_juicio(juicio, puntuar(arbol, encargos_ajuste), args.juez))
                 return 0
             pun = puntuar(arbol, cargar_encargos(args.encargos))
-            val = (
-                puntuar(arbol, cargar_encargos(args.validacion))
-                if args.validacion and args.validacion.exists()
-                else None
-            )
-            marca = args.validacion.with_suffix(".QUEMADO") if args.validacion else None
-            sellado = bool(val is not None and args.validacion and sello_vigente(args.validacion))
-            if val is not None and not sellado and leer_sello(args.validacion) is not None:
-                print(
-                    "AVISO: el conjunto de validación cambió después de sellarse; su cifra no es "
-                    "publicable hasta volver a sellarlo con --sellar.",
-                    file=sys.stderr,
-                )
-            contraste = Contraste(
-                ajuste=pun,
-                validacion=val,
-                quemado=marca.read_text(encoding="utf-8") if marca and marca.exists() else None,
-                sellado=sellado,
-            )
+            contraste = _contrastar(arbol, pun, validacion, sello, _base_repositorio(config), config.arbol)
 
             if args.json:
                 sys.stdout.write(
                     json.dumps(contraste.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
                 )
-            elif args.detalle or val is None:
-                sys.stdout.write(formatear_acierto(pun, detalle=args.detalle))
+            elif args.detalle:
+                # El detalle solo enseña el AJUSTE: el de validación es lo que quema.
+                sys.stdout.write(formatear_acierto(pun, detalle=True))
             else:
                 sys.stdout.write(formatear_contraste(contraste))
 
-            # El mínimo se exige sobre la validación: cobrar el listón con el conjunto que
-            # se mira al trabajar es dejar que el examinando escriba su propio examen.
-            #
-            # Y si el juez no está, NO se sustituye por el otro. Antes, `--validacion` con
-            # una ruta mal escrita hacía justo lo que estas líneas prohíben, en silencio:
-            # el fallback tranquilizador por defecto. Un examen que no aparece no se
-            # aprueba por incomparecencia.
-            if args.minimo:
-                if val is None:
-                    print(
-                        f"\n--minimo exige un conjunto de validación y no se pudo leer "
-                        f"{args.validacion}. Cobrarlo sobre los encargos de ajuste sería "
-                        f"dejar que el examinando escriba su propio examen.",
-                        file=sys.stderr,
-                    )
-                    return 2
-                if not val.total:
-                    print(
-                        f"\n--minimo exige un conjunto de validación con encargos y "
-                        f"{args.validacion} está vacío.",
-                        file=sys.stderr,
-                    )
-                    return 2
-                logrado = 100 * val.aciertos / val.total
-                if logrado < args.minimo:
-                    print(f"\nacierto {logrado:.0f} % < mínimo exigido {args.minimo} %", file=sys.stderr)
-                    return 1
+            # No hay `--minimo` (auditoría R-01): un listón sobre una cifra que describe al
+            # que escribió el examen y no al árbol es un listón que se aprueba escribiendo el
+            # examen. Cuando exista un compromiso previo verificable, se reabrirá aquí.
             return 0
         if args.comando == "estado":
             inv = inventariar(arbol)

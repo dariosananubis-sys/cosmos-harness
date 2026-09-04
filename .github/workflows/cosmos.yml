@@ -1,8 +1,12 @@
 # COSMOS se verifica solo. Este workflow es el tercer enganche de
 # spec/GUARDARRAILES.md: pre-commit (cosmos enganchar), sesión y CI.
 #
-# Sin dependencias externas: solo la biblioteca estándar de Python y el checkout.
-# Nada de pip, nada de red.
+# El trabajo `verificar` no tiene dependencias externas: solo la biblioteca estándar
+# de Python y el checkout. Nada de pip, nada de red. Es el verde que vale para un clon.
+#
+# El trabajo `calibracion` instala tiktoken (software libre, sin cuenta) en un venv
+# desechable y exige que las pruebas del margen NO se salten: sin él, el ±5,2 % que
+# publica `cosmos medir` no lo verificaba ninguna instalación (auditoría D-08 / E-07).
 name: cosmos
 
 on:
@@ -18,7 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # la comprobación de «examen quemado» necesita la historia entera (R-17)
 
       - name: Versión de Python (COSMOS exige 3.11+ por tomllib)
         run: |
@@ -65,3 +71,22 @@ jobs:
         run: |
           echo '{"hook_event_name":"SessionStart","session_id":"ci","cwd":"'"$PWD"'"}' \
             | python3 -m puente.sesion | grep -q 'tokens'
+
+  calibracion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # la comprobación de «examen quemado» necesita la historia entera (R-17)
+
+      - name: Tokenizador de referencia en un venv desechable
+        run: |
+          python3 -m venv .venv-calib
+          .venv-calib/bin/pip install -q -r requirements-dev.txt
+
+      - name: El margen publicado se verifica de verdad (sin saltos)
+        run: COSMOS_EXIGE_TOKENIZADOR=1 .venv-calib/bin/python -m unittest discover -s tests -t .
+
+      - name: El veredicto exacto coincide con el aproximado
+        run: .venv-calib/bin/python -m cosmos medir --metodo exacto

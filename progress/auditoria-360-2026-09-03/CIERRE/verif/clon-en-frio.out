@@ -1,0 +1,14 @@
+paso 0  EXIT=0  0.54s  git clone --quiet /tmp/cosmos-clon-frio.xAFFSx/trabajo /tmp/cosmos-clon-frio.xAFFSx/cold-clone
+paso 1  EXIT=0  1.92s  /usr/local/bin/python3 -m cosmos arrancar
+paso 2  EXIT=0  0.10s  /usr/local/bin/python3 -m cosmos --help
+paso 3  EXIT=0  0.72s  /usr/local/bin/python3 -m cosmos validar
+paso 4  EXIT=0  0.66s  /usr/local/bin/python3 -m cosmos medir
+paso 5  EXIT=0  0.17s  /usr/local/bin/python3 -m cosmos buscar montar un bot de trading
+paso 6  EXIT=0  0.17s  /usr/local/bin/python3 -m cosmos abrir trading/bots/codigo-de-bot/toxiproxy
+paso 7  EXIT=0  0.14s  /usr/local/bin/python3 -m cosmos enganchar --sesion
+paso 8  EXIT=0  0.84s  env COSMOS_HOLDOUT=/no/existe /usr/local/bin/python3 -m cosmos acertar
+arrancar:       10 lineas /      488 bytes
+acertar sin holdout dice NO DISPONIBLE: 1
+hooks portables (sin rutas de esta maquina): 0 ocurrencias de /Users/ en settings.json
+9/9 pasos en verde (clon + 8), 5.51s total
+clon en /tmp/cosmos-clon-frio.xAFFSx/cold-clone

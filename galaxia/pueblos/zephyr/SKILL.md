@@ -30,8 +30,8 @@ lo mas pequeno posible, alli.
 
 Y lo que no hace bien: la curva. El arbol de dispositivo y `Kconfig` son dos lenguajes de
 configuracion mas que aprender antes de encender un LED, y un `west update` se trae del orden de
-varios gigas de modulos. En una maquina justa de memoria compila, pero la primera puesta a punto es de tarde
-entera, no de rato.
+varios GB de modulos: hace falta ese hueco de disco, y la primera puesta a punto es de tarde
+entera, no de rato, compile en la maquina que compile.
 
 Ventaja real sobre el resto del nicho: `qemu_x86` y `native_sim` permiten ejecutar de verdad sin
 placa, asi que el falso verde de "compila pero no se ha probado" se puede cerrar en parte antes de

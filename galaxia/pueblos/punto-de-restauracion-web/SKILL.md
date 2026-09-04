@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: punto-de-restauracion-web
 padre: web/construccion-de-sitios
 resumen: Guarda y devuelve el maquetado de Elementor por wp-cli, vaciando el CSS generado que finge que no paso nada.
+origen: propio
 ---
 
 Destilado generico de la red de seguridad de un arnes propio, escrita despues de dejar una web peor

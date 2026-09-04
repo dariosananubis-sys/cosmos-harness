@@ -40,7 +40,7 @@ SQL: utiles, pero son piezas de este, no huecos propios.
 Y lo que no hace bien: es de un solo escritor. No es una base de datos para una aplicacion con
 varios usuarios escribiendo a la vez — abrir el mismo fichero `.duckdb` desde dos procesos en
 escritura falla. Y el falso verde de memoria: sin `SET memory_limit`, coge por defecto una fraccion
-grande de la RAM de la maquina y puede llevarse por delante todo lo demas antes de derramar. En un
-maquina justa de memoria se fija a mano, siempre.
+grande de la RAM disponible y puede llevarse por delante todo lo demas antes de derramar. Se fija
+a mano siempre, sea cual sea la RAM de la maquina.
 
 Es la base del resto del nicho: `evidence` lo usa por defecto, y `dbt-core` lo tiene como motor.

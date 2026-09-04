@@ -157,7 +157,8 @@ class LosArreglosDeRendimientoSeCuentanNoSeCreen(unittest.TestCase):
         import cosmos.validar as v
 
         cfg, arbol = self._arbol()
-        n = len(v._co_cargables(arbol))
+        # En vista anfitrión E17 compara solo los nodos del anfitrión: los que parsea son esos.
+        n = len(v._co_cargables(arbol, solo_anfitrion=cfg.vista_compilacion == "anfitrion"))
         real, cuenta = v._afirmaciones, {"n": 0}
 
         def espia(nodo):

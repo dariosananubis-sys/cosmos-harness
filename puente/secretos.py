@@ -217,7 +217,53 @@ def _entradas_del_indice(raiz: Path) -> tuple[bool, list[EntradaGit]]:
     return True, sorted(entradas, key=lambda e: (e.ruta_cruda, e.fase, e.oid))
 
 
+def _entradas_de_la_historia(raiz: Path) -> tuple[bool, list[EntradaGit]]:
+    """Todos los blobs alcanzables desde cualquier ref, con la ruta con la que se versionaron.
+
+    Es el modo `--historia`: lo que se borró del árbol sigue en la historia publicada, y el
+    escáner del índice no lo ve (auditoría F-05, revisión B §7.4). Cuesta lo que cuesta
+    recorrer todos los objetos —decenas de segundos en un repositorio mediano—, así que no va
+    en el pre-commit: es para el CI programado o para antes de una purga.
+    """
+    correcto, salida = _git(raiz, ["rev-list", "--objects", "--all"])
+    if not correcto:
+        return False, []
+    vistos: set[str] = set()
+    entradas: list[EntradaGit] = []
+    for linea in salida.split(b"\n"):
+        if b" " not in linea:
+            continue  # commits y árboles no llevan ruta
+        oid_crudo, ruta_cruda = linea.split(b" ", 1)
+        try:
+            oid = oid_crudo.decode("ascii")
+        except UnicodeDecodeError:
+            continue
+        if not ruta_cruda or oid in vistos:
+            continue
+        vistos.add(oid)
+        entradas.append(EntradaGit(ruta_cruda=ruta_cruda, modo="100644", oid=oid, fase=0))
+    # Los árboles (directorios) también salen con ruta: `_solo_blobs` los descarta por lotes.
+    return True, sorted(entradas, key=lambda e: (e.ruta_cruda, e.oid))
+
+
+def _solo_blobs(raiz: Path, entradas: list[EntradaGit]) -> list[EntradaGit]:
+    if not entradas:
+        return []
+    proceso = subprocess.run(
+        ["git", "-C", str(raiz), "cat-file", "--batch-check=%(objectname) %(objecttype)"],
+        input="\n".join(e.oid for e in entradas).encode("ascii") + b"\n",
+        capture_output=True, check=False,
+    )
+    if proceso.returncode:
+        return entradas
+    blobs = {l.split(b" ")[0].decode("ascii") for l in proceso.stdout.splitlines() if l.endswith(b" blob")}
+    return [e for e in entradas if e.oid in blobs]
+
+
 def _candidatas(raiz: Path, modo: str) -> list[EntradaGit] | None:
+    if modo == "historia":
+        correcto, entradas = _entradas_de_la_historia(raiz)
+        return _solo_blobs(raiz, entradas) if correcto else None
     correcto, entradas = _entradas_del_indice(raiz)
     if not correcto:
         return None
@@ -606,6 +652,9 @@ def main(argv: list[str] | None = None) -> int:
     grupo = parser.add_mutually_exclusive_group()
     grupo.add_argument("--indice", action="store_true", help="solo los blobs que cambian en el índice")
     grupo.add_argument("--todo", action="store_true", help="todos los blobs versionados")
+    grupo.add_argument("--historia", action="store_true",
+                       help="todos los blobs de TODA la historia (git rev-list --objects --all): lo que se borró "
+                            "del árbol y sigue publicado; lento, para el CI programado o antes de una purga")
     parser.add_argument("--raiz", default=None, help="repositorio a escanear")
     parser.add_argument(
         "--conocidos",
@@ -616,7 +665,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         raiz = raiz_git(args.raiz)
-        hallazgos = escanear("indice" if args.indice else "todo", raiz=raiz)
+        hallazgos = escanear("historia" if args.historia else "indice" if args.indice else "todo", raiz=raiz)
     except ErrorEscaneo as exc:
         print(f"ERROR: {exc}")
         return 1

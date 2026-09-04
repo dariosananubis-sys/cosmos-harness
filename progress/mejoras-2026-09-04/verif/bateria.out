@@ -1,0 +1,15 @@
+== nucleo
+
+Índice escrito en /private/var/folders/vv/_hbj4jrd3796ptvjsrrfpnrc0000gq/T/cosmos-bloqueo-xhdx6ati/repo/arbol/COSMOS.md
+
+  AVISO  SIN TOKENIZADOR: el margen publicado (±5,2 %) NO se ha verificado en esta ejecución. Instálalo en un venv temporal (docs/CALIBRACION.md) o exige el fallo con COSMOS_EXIGE_TOKENIZADOR=1.
+== puente
+----------------------------------------------------------------------
+Ran 144 tests in 7.498s
+
+OK
+== mutaciones
+M52: NO APLICABLE (el código cambió)
+
+84/85 invariantes vistas fallar
+== FIN 09:38:08

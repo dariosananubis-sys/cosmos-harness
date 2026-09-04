@@ -100,7 +100,7 @@ resumen: Formato de mensajes de commit y reglas de rama.
 
 | Campo | Obligatorio | Regla |
 |---|---|---|
-| `moja` | sí | Lista de patrones glob, no vacía. Determina cuándo se carga |
+| `moja` | sí | Lista de patrones glob. No vacía salvo en `rio` y `lluvia` (tabla siguiente). Determina cuándo se carga |
 
 | Nivel | `moja` permitido |
 |---|---|

@@ -603,6 +603,42 @@ def _con_valvula(texto: str, activos: list[Salto], caducados: list[Salto]) -> st
     return anotar_salida(texto, activos, caducados, ahora=ahora_utc())
 
 
+def coherencia_de_autonomia(config, entrada: dict | None = None) -> str | None:
+    """Si el océano `autonomia` promete no pedir permiso, la máquina tiene que cumplirlo.
+
+    La carta es un océano (se paga siempre); si la sesión arranca en manual, la carta es una
+    exhortación y encima el agente se la cree. El evento `SessionStart` NO trae el modo
+    (medido en 2.1.260: cwd, hook_event_name, session_id, source, transcript_path), así que
+    se lee `permissions.defaultMode` de los ajustes de USUARIO —el defecto, no el modo real:
+    un `--permission-mode` en la línea de comandos lo pisa y no se ve desde aquí—. Trivalente:
+    sin clave o sin fichero legible dice `desconocido`, nunca «manual».
+    """
+
+    from cosmos.configurar import grado_vigente
+
+    arbol = cargar_arbol(
+        config.arbol,
+        excluir=config.indice,
+        excluir_directorios=(config.destino_compilacion,),
+        tambien=(config.registro,) if config.registro else (),
+    )
+    if not any(n.cosmos == "oceano" and n.nombre == "autonomia" for n in arbol.nodos):
+        return None
+    modo = (entrada or {}).get("permission_mode")
+    if isinstance(modo, str) and modo:
+        grado = "libre" if modo == "bypassPermissions" else "auto" if modo == "auto" else "manual"
+        detalle = f"la sesión arrancó en {modo}"
+    else:
+        grado, detalle = grado_vigente()
+    if grado in ("auto", "libre"):
+        return None
+    if grado == "desconocido":
+        return (f"COSMOS  autonomia  desconocido  el océano `autonomia` promete no pedir permiso y no se puede leer "
+                f"el modo de arranque ({detalle}); fíjalo con: python3 -m cosmos configurar --autonomia auto")
+    return (f"COSMOS  autonomia  rojo  el océano `autonomia` promete no pedir permiso y esta máquina arranca en "
+            f"manual ({detalle}); arréglalo con: python3 -m cosmos configurar --autonomia auto")
+
+
 def al_arrancar(entrada: dict, config, base: Path) -> Decision:
     """G01 — la primera línea de la sesión dice el número real, medido."""
 
@@ -611,6 +647,9 @@ def al_arrancar(entrada: dict, config, base: Path) -> Decision:
         return Decision("informar", _con_valvula("COSMOS  sesion  verde  medición saltada", activos, caducados))
     revision = revisar_arbol(config, saltados)
     cuerpo = revision.titulo if revision.verde else f"{revision.titulo}\n{revision.detalle}"
+    aviso = coherencia_de_autonomia(config, entrada)
+    if aviso:
+        cuerpo = f"{cuerpo}\n{aviso}"
     return Decision("informar", _con_valvula(cuerpo, activos, caducados))
 
 

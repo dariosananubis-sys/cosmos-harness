@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: medir-contexto
-padre: agentes-ia/coste
+padre: agentes-ia/instrumentacion
 resumen: Lo que saben las transcripciones: cuanto costo la sesion, que entro de mas y que comandos se ejecutaron.
 origen: propio
 ---

@@ -18,8 +18,8 @@ de buenas intenciones, y ya hay muchos.
 | **Entrada de nicho** | La base + el catálogo de pueblos del nicho activo | Es el coste real al entrar en un oficio |
 | **Agua condicional** | Los mares y lagos, que se cargan solos por `paths:` sin que nadie los invoque | No está en la entrada y se paga igual; ocultarlo es la fuga que este medidor existe para cazar |
 | **Peor caso con agua** | Entrada del peor nicho + agua condicional | El techo real de una sesión de trabajo, y **el número que E16 compara con el presupuesto** |
-| **Árbol** | La suma de todo el contenido del árbol, si se cargara entero | El contrafactual: lo que costaría no tener COSMOS |
-| **Descarga** | `1 − entrada / árbol` | Qué fracción del sistema está disponible sin estar cargada |
+| **Universo** | La suma de todo el contenido del árbol, si se cargara entero (`NUCLEO.md` §3) | El contrafactual: lo que costaría no tener COSMOS |
+| **Descarga** | `1 − entrada / universo` (la fórmula normativa vive en `NUCLEO.md` §3) | Qué fracción del sistema está disponible sin estar cargada |
 
 La descarga es la métrica de cabecera. Un harness monolítico tiene descarga 0: todo lo que existe,
 está cargado. Un COSMOS sano vive por encima de 0,95.
@@ -99,25 +99,29 @@ tomará una decisión.
 
 El ejemplo es el árbol de juguete versionado (`cosmos medir --config ejemplo.toml`), no la
 galaxia: un bloque copiado a mano de un árbol que crece envejece en silencio a los cinco minutos
-—es H11, y el parte de F12 lo repitió—. Este se reproduce entero con ese comando, y el número que
-vale para la galaxia es siempre el que imprime `cosmos medir` hoy.
+—es H11, y el parte de F12 lo repitió—. Este se reproduce entero con ese comando (salvo la última
+línea, «Vista compilada», que lleva la ruta local del clon), y `tests/test_coherencia_b.py` lo
+reejecuta y compara el bloque: si divergen, la suite se pone roja (revisión B-04, que encontró
+siete cifras caducadas justo debajo de este párrafo). El número que vale para la galaxia es
+siempre el que imprime `cosmos medir` hoy.
 
 ```
 COSMOS  medir
 
-  Entrada base .... 114 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
-  Peor nicho ...... 183 tokens   (construccion, 2 pueblos)
+  Entrada base .... 134 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Peor nicho ...... 203 tokens   (construccion, 2 pueblos)
   Agua condicional  31 tokens   (2 aguas por paths:, fuera de la entrada)
-  Peor con agua ... 214 tokens   (el peor caso + agua condicional)
-  Universo ........ 354 tokens   (estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
-  Descarga ........ 48,3 %
-  Presupuesto ..... 4.000     OK, quedan 3774 tokens con el margen calibrado (+5,2 %) en el peor caso con agua (construccion)
+  Nicho activo .... 203 tokens   (construccion; 2 pueblos)
+  Peor con agua ... 234 tokens   (el peor caso + agua condicional; nicho activo: construccion)
+  Universo ........ 440 tokens   (estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Descarga ........ 53,9 %
+  Presupuesto ..... 4.000     OK, quedan 3753 tokens con el margen calibrado (+5,2 %) en el peor caso con agua (construccion); ≈ 129 herramienta(s) más en ese nicho
 
   Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
 
   Lo más caro de la entrada evaluada:
     1.  91 tok  catálogo visible
-    2.  55 tok  índice de galaxia
+    2.  75 tok  índice de galaxia
     3.  20 tok  oceano/operaciones-reversibles
 ```
 

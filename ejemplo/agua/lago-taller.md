@@ -1,7 +1,7 @@
 ---
 cosmos: lago
 nombre: artefactos-del-taller
-resumen: Acota reglas técnicas a las utilidades del taller ficticio.
+resumen: Acota reglas tecnicas a las utilidades del taller ficticio.
 moja: ["planetas/taller-herramientas/**"]
 ---
 

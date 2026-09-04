@@ -74,7 +74,7 @@ entrar en cualquier nicho y tocar un fichero de código.
 
 ## `usa:` — composición declarada
 
-Un nodo puede declarar con qué se usa habitualmente. Los 22 sistemas solares lo hacen —GOAL §1:
+Un nodo puede declarar con qué se usa habitualmente. Los 25 sistemas solares lo hacen —GOAL §1:
 *«cada nicho apunta a sus vecinos y no duplica nada»*— y un pueblo también puede:
 
 ```yaml

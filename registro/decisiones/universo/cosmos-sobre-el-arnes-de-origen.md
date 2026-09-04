@@ -2,7 +2,7 @@
 cosmos: lluvia
 nombre: cosmos-sobre-el-arnes-de-origen
 moja: []
-resumen: COSMOS se construye encima de el arnés de origen; su maquinaria ya funciona y no se reescribe.
+resumen: COSMOS se construye encima de el arnes de origen; su maquinaria ya funciona y no se reescribe.
 ---
 
 # COSMOS se construye encima de el arnés de origen

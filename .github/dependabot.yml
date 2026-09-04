@@ -1,0 +1,13 @@
+# Las acciones del CI van fijadas por SHA y requirements-dev.txt lleva versiones a mano:
+# esto abre la petición de cambio cuando haya versión nueva, en vez de esperar a que
+# alguien se acuerde. Gratis en un repositorio público; no instala nada.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"

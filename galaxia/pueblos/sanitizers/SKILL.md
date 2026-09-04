@@ -37,7 +37,7 @@ tubería, no en cada compilación de desarrollo; y **solo ven lo que el código 
 poca cobertura pasa en verde con los mismos fallos dentro: verde aquí no es «no hay errores de
 memoria», es «no los hubo en estos caminos».
 
-Y el falso verde de esta casa, **medido en este Mac** (arm64, Apple clang 21, 2026-09-01): de las
+Y el falso verde que hay que conocer, **medido en macOS arm64 con Apple clang 21** (2026-09-01): de las
 tres cosas que promete el desinfectante de direcciones, **la fuga es la que calla en macOS**. El
 programa que pierde memoria sale con 0 y sin una línea; forzar el detector lo confiesa; y pedirlo
 suelto ni siquiera compila.

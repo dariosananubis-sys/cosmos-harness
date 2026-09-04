@@ -20,26 +20,31 @@ Así que la conclusión para COSMOS es dura: `cosmos validar` **no puede depende
 acuerde de correrlo**. Si dependiera de eso, COSMOS sería una exhortación con tests — precisamente
 lo que el `GOAL.md` dice que no es.
 
-## Los tres enganches
+## Los cuatro enganches
 
 | Enganche | Cuándo corre | Qué hace |
 |---|---|---|
-| **pre-commit** | Antes de cada commit del repo que usa COSMOS | `cosmos validar`. Si rojo, el commit no ocurre |
+| **pre-commit** | Antes de cada commit del repo que usa COSMOS | `puente.gate` sobre la **instantánea del índice**, no sobre el árbol sucio: `cosmos validar`, las dos suites, el escáner de secretos y los canarios del gate (`P01`, `P02`). Si rojo, el commit no ocurre |
+| **pre-push** | Antes de cada push | `puente.secretos --todo`: la última puerta local antes de que un secreto salga del disco (un `--no-verify` salta el pre-commit, no esto) |
 | **sesión** | Mientras un agente trabaja | Cinco guardarraíles, `puente/sesion.py`. Ver la sección siguiente |
-| **CI** | En cada push, si hay CI | `cosmos validar` completo |
+| **CI** | En cada push, si hay CI | Todo lo anterior más las mutaciones y la calibración del medidor (`.github/workflows/cosmos.yml`) |
 
-Ninguno es obligatorio para usar COSMOS. El pre-commit y el de sesión se instalan con
+Ninguno es obligatorio para usar COSMOS. El pre-commit, el pre-push y el de sesión se instalan con
 `cosmos enganchar` (el de sesión, con `--sesion`) y el de CI es un workflow que se copia. Pero el
 que no instala ninguno **tiene el mismo sistema que el harness auditado**: uno que sabe detectar su
 propia degradación y no lo hace nunca.
+
+El vigilante de modelos (`cosmos configurar --modelos`) **no es un enganche**: no valida nada ni
+participa del veredicto. Repone entradas en el selector del runtime y se nombra aquí solo para que
+nadie lo confunda con uno.
 
 `cosmos enganchar` es explícito y reversible: escribe el hook, dice exactamente qué escribió y
 dónde, y `cosmos desenganchar` lo quita. Nada se instala solo al importar el paquete. Un sistema
 que se engancha sin que se lo pidan es un sistema que la gente arranca de raíz a la primera
 molestia, y con razón.
 
-Los tres primeros son **de repositorio**: miran lo que ya está escrito, cuando ya está escrito. El
-de sesión es el único que actúa mientras se decide, y por eso se trató aparte.
+Pre-commit, pre-push y CI son **de repositorio**: miran lo que ya está escrito, cuando ya está
+escrito. El de sesión es el único que actúa mientras se decide, y por eso se trató aparte.
 
 ## El enganche de sesión: cinco mecanismos
 
@@ -55,7 +60,7 @@ toca es asunto de aquel repositorio y no entra aquí.
 
 | Código | Evento | Mecanismo | Efecto |
 |---|---|---|---|
-| **G01** | `SessionStart` | Medición real al arrancar | Dice la entrada medida y, si excede, lo dice en rojo. Nunca bloquea |
+| **G01** | `SessionStart` | Medición real al arrancar | Dice la entrada medida y, si excede, lo dice en rojo. Y si el océano `autonomia` promete no pedir permiso y los ajustes de usuario arrancan en manual, lo dice también (trivalente: `desconocido` cuando no puede leer el modo; el evento no lo trae). Nunca bloquea |
 | **G02** | `Stop` | `decision: "block"` con contador propio y tope duro | No se cierra la sesión con el árbol en rojo |
 | **G03** | `PreToolUse` | `permissionDecision: "deny"` sobre rutas de veredicto | La herramienta no llega a ejecutarse |
 | **G04** | `PreToolUse` | Marca de lectura atada a sesión + SHA-256, borrada en `PreCompact` | No se escribe sin haber leído lo que el repositorio exija |
@@ -209,6 +214,7 @@ que nadie lo reabra dentro de tres meses:
 | Prohibición de capturas de pantalla completas | Política de gasto de un puesto concreto, con nombres de herramientas de ese sistema operativo |
 | Reglas de qué buzón, qué web o qué cliente se toca | Política de un negocio. Es exactamente lo que este repositorio prohíbe en `GOAL.md` §5 |
 | Verificar la lectura de una skill concreta por su nombre | El mecanismo sí se trae (G04); la lista de documentos la pone cada repositorio en su configuración, vacía por defecto |
+| Decidir los permisos del runtime desde el repositorio | El océano `autonomia` es la política («se ejecuta sin pedir permiso»); que la máquina la cumpla es el alta (`cosmos configurar --autonomia`, ajustes de **usuario**: el runtime ignora `bypassPermissions` desde el `.claude/settings.json` de un repositorio). Un guard que escribiera ahí saldría en verde sin haber podido mirar. G01 solo comprueba que las dos cosas digan lo mismo |
 
 Y lo que **no se puede** portar, distinto de lo que no se quiere: el nombre de los eventos, la forma
 del envoltorio JSON y la ruta del fichero de ajustes son del runtime que llame a los hooks. COSMOS
@@ -344,6 +350,9 @@ coste solo existe cuando las dos copias se pagan a la vez, y ahí es donde mira 
 
 1. Un test por enganche: instalarlo, romper el árbol, comprobar que **efectivamente** bloquea. Un
    hook instalado que no bloquea es peor que ninguno, porque además tranquiliza.
+   Y para la coherencia de G01 con el océano `autonomia`, la pareja obligatoria: el aviso sale
+   con `permissions.defaultMode` en manual, **no** sale con `auto` o `bypassPermissions`, y dice
+   `desconocido` —nunca «manual»— cuando no hay fichero legible.
 2. Un test de que la válvula caduca: con caducidad vencida, vuelve el rojo.
 3. Un test de que un salto activo **nunca** produce una salida que diga solo «verde».
 4. Un test de E17 con un par parafraseado de verdad —no dos copias literales— que exija el rojo.

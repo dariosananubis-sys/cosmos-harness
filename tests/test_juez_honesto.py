@@ -459,7 +459,13 @@ class ElCompromisoSeLeeDeLaHistoriaNoDelSello(unittest.TestCase):
                                  "c6e0d3a167ea9dca41644e30615addaef6ad0a6cc1ca22ad579ec4e3f1b42a6b", RAIZ / "galaxia")
         self.assertIsNotNone(c.commit)
         self.assertTrue(str(c.fecha).startswith("2026-09-02"), c.fecha)
-        self.assertEqual(c.resumenes_cambiados_despues, 0)
+        # Lo que se vigila es que el compromiso se LEE de la historia (commit y fecha) y que el
+        # recuento de resúmenes tocados después es una MEDIDA, no una promesa: afirmar «== 0»
+        # caducaba con el primer commit que tocara un resumen (revisión B-01: 37 tras el merge
+        # de la auditoría) y ponía en rojo `main` y el CI sin que nada estuviera roto.
+        self.assertIsInstance(c.resumenes_cambiados_despues, int)
+        self.assertGreaterEqual(c.resumenes_cambiados_despues, 0)
+        self.assertIn("resumen(es) cambiado(s)", c.motivo)
 
 
 

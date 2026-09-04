@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: diario-sin-duplicados
-padre: agentes-ia/memoria
+padre: agentes-ia/instrumentacion
 resumen: Quita los bloques que un enganche roto repitio, y prueba antes de escribir que lo escrito a mano sigue intacto.
 origen: propio
 ---

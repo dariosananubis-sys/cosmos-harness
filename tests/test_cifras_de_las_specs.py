@@ -314,6 +314,15 @@ class TodaInvarianteVivaTieneValvula(unittest.TestCase):
                                capture_output=True, text=True, cwd=RAIZ).stdout
         self.assertIn(rango_comprobado(), ayuda,
                       "la ayuda de la válvula enseña un rango que no es el que se comprueba")
+        # Los tres grupos, no solo el de invariantes: «G01..G05» se escribía a mano con P01/P02
+        # existiendo, la reincidencia exacta de F14 (revisión B-06).
+        from cosmos.guardarrailes import CODIGOS_GATE, CODIGOS_SESION
+
+        for codigo in (CODIGOS_SESION[0], CODIGOS_SESION[-1], *CODIGOS_GATE):
+            self.assertIn(codigo, ayuda, f"la ayuda de la válvula no nombra {codigo}")
+        readme = (RAIZ / "README.md").read_text(encoding="utf-8")
+        for codigo in CODIGOS_GATE:
+            self.assertIn(f"`{codigo}`", readme, f"el README no nombra el código de gate {codigo}")
 
 
 class LasSpecsDescribenElMecanismoQueElCodigoUsa(unittest.TestCase):
@@ -374,7 +383,7 @@ class ElReadmeNoOmiteElEngancheQueMasHace(unittest.TestCase):
 
     def test_los_enganches_del_readme_son_los_de_la_spec(self) -> None:
         spec = (RAIZ / "spec/GUARDARRAILES.md").read_text(encoding="utf-8")
-        bloque = spec[spec.index("## Los tres enganches") :][:600]
+        bloque = spec[spec.index("## Los cuatro enganches") :][:1500]
         de_la_spec = set(re.findall(r"^\| \*{0,2}([\w-]+)\*{0,2} \|", bloque, flags=re.M))
         readme = (RAIZ / "README.md").read_text(encoding="utf-8")
         for enganche in de_la_spec - {"Enganche"}:

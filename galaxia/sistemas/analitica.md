@@ -7,5 +7,6 @@ usa:
   - ingenieria-datos
   - documentos
   - web
+  - aprendizaje-automatico
 ---
 

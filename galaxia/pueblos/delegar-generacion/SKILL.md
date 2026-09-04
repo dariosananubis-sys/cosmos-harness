@@ -1,7 +1,7 @@
 ---
 cosmos: pueblo
 nombre: delegar-generacion
-padre: agentes-ia/construccion
+padre: agentes-ia/instrumentacion
 resumen: Un modelo redacta el encargo y otro teclea el fichero; el prompt se ve antes de correr y la cuota agotada reintenta.
 origen: propio
 ---

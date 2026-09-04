@@ -22,7 +22,7 @@ registro/                       ← la puerta: una sola, y se ve desde fuera qu�
     └── <nicho>/
 ```
 
-`<nicho>` es uno de los 22 sistemas solares de `spec/UNIVERSO.md`, más `universo` para lo que afecta
+`<nicho>` es uno de los 25 sistemas solares de `spec/UNIVERSO.md`, más `universo` para lo que afecta
 a todo. **La misma clasificación que el harness, aplicada a su historia.**
 
 ## Por qué por nicho y no por fecha

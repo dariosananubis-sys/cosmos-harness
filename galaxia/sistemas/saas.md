@@ -7,4 +7,6 @@ usa:
   - web
   - cumplimiento
   - infraestructura
+  - entregabilidad
+  - localizacion
 ---

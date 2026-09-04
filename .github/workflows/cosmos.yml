@@ -1,8 +1,11 @@
-# COSMOS se verifica solo. Este workflow es el tercer enganche de
-# spec/GUARDARRAILES.md: pre-commit (cosmos enganchar), sesión y CI.
+# COSMOS se verifica solo. Este workflow es el cuarto enganche de
+# spec/GUARDARRAILES.md: pre-commit (cosmos enganchar), pre-push, sesión y CI.
 #
 # El trabajo `verificar` no tiene dependencias externas: solo la biblioteca estándar
 # de Python y el checkout. Nada de pip, nada de red. Es el verde que vale para un clon.
+# Corre en una matriz (revisión B-35): Linux y macOS —la plataforma de todos los pueblos
+# que usan `brew`, `screencapture` o `launchd`— y con el Python MÍNIMO que el repo exige
+# (3.11 por `tomllib`) además del actual, porque nadie ejecutaba nunca la suite en 3.11.
 #
 # El trabajo `calibracion` instala tiktoken (software libre, sin cuenta) en un venv
 # desechable y exige que las pruebas del margen NO se salten: sin él, el ±5,2 % que
@@ -19,12 +22,21 @@ permissions:
 
 jobs:
   verificar:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0   # la comprobación de «examen quemado» necesita la historia entera (R-17)
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Versión de Python (COSMOS exige 3.11+ por tomllib)
         run: |
@@ -57,20 +69,39 @@ jobs:
       - name: Suite del puente
         run: python3 -m unittest discover -s puente/tests -t .
 
+      # La garantía que el README vende: un test por invariante que la ve fallar a propósito.
+      # No corría en el CI y por eso pudo degradarse de 79/79 a 76/79 sin que nada se pusiera
+      # rojo (revisión B-02/B-03). Devuelve exit≠0 si una sola mutación sobrevive.
+      - name: Cada invariante se ve fallar a propósito
+        run: python3 -m puente.tests.mutaciones
+
       # El gate es lo que corre en cada commit local. Si en CI no pasa, el hook
       # que la gente instala tampoco pasaría, y un gate que no se puede instalar
       # es el fallo que este proyecto documentó al auditar otro harness.
       - name: El gate se puede instalar y pasa
         run: python3 -m puente.gate --sin-pruebas
 
-      # El cuarto enganche: los guardarraíles de sesión. Aquí no hay sesión de
-      # agente, así que se comprueba lo comprobable — que el manejador responde
-      # al evento con la decisión esperada. Que bloquee de verdad lo exigen las
-      # 45 pruebas de puente/tests/test_sesion.py.
+      # El enganche de sesión. Aquí no hay sesión de agente, así que se comprueba lo
+      # comprobable — que el manejador responde al evento con la decisión esperada. Que
+      # bloquee de verdad lo exigen las pruebas de puente/tests/test_sesion.py.
       - name: Los guardarraíles de sesión responden
         run: |
           echo '{"hook_event_name":"SessionStart","session_id":"ci","cwd":"'"$PWD"'"}' \
             | python3 -m puente.sesion | grep -q 'tokens'
+
+      # El alta de máquina no escribe en el runner: solo se comprueba que responde y que el
+      # inventario es trivalente (nunca «ok» por no haber podido mirar).
+      - name: El alta de máquina responde en seco
+        run: |
+          python3 -m cosmos configurar --autonomia
+          python3 -m cosmos configurar --autonomia libre --seco
+          python3 -m cosmos configurar --modelos estado
+          python3 -m cosmos estado --maquina --json | python3 -c 'import json,sys; filas=json.load(sys.stdin); assert any(f["estado"]=="no_comprobado" for f in filas), filas'
+
+      # Cuando exista el holdout v2 ciego (PENDIENTE-DARIO §6) se descomenta y el CI cobra
+      # listón; hasta entonces `cosmos acertar --minimo` sale 1 a propósito (revisión B-36).
+      # - name: El catálogo lleva a la herramienta correcta al menos N de cada 100 veces
+      #   run: python3 -m cosmos acertar --minimo 60
 
   calibracion:
     runs-on: ubuntu-latest

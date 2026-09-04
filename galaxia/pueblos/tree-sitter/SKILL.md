@@ -23,7 +23,7 @@ print("con errores:", arbol.root_node.has_error)
 
 Análisis incremental y **tolerante a errores**: sigue devolviendo un árbol usable con el fichero a
 medio escribir, que es lo que permite consultarlo mientras se edita. Es el sustrato de media docena de
-herramientas de este arnés, no una más.
+herramientas del catálogo, no una más.
 
 Gana a `antlr/antlr4` (18.989★, último push 2026-02-16) para el caso de leer código ajeno: ANTLR sigue
 siendo mejor para **implementar un lenguaje entero** desde su gramática formal, pero exige gramática

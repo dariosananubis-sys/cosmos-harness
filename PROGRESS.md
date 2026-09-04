@@ -3,37 +3,54 @@
 Este fichero es el «estado real» que nombra `GOAL.md` §8, y por eso lleva pin: un estado sin commit
 envejece en silencio (auditoría F, afirmación 3: «sobre el mismo árbol actual» describía otro árbol).
 **Las cifras de abajo no se escriben a mano**: son la salida de `python3 -m cosmos estado` sobre el
-árbol de la rama `arreglos-2026-09-03` al cerrar el ciclo 2 de la auditoría 360 (2026-09-03; pin de
-partida `b0c1ebd`), y `tests/test_progress_generado.py` reejecuta el comando y compara el bloque:
-si divergen, la suite se pone roja (revisión R-19). Lo que cuenta hoy lo dice el comando.
+árbol al cerrar la tanda de autonomía, modelos y coherencia (2026-09-04; pin de partida `892f669`),
+y `tests/test_progress_generado.py` reejecuta el comando y compara el bloque: si divergen, la suite
+se pone roja (revisión R-19). Lo que cuenta hoy lo dice el comando.
 
-## Estado al cierre del ciclo 2 (2026-09-03)
+## Estado al cierre de la tanda del 2026-09-04 (autonomía, modelos, coherencia)
 
-- Auditoría 360 (`progress/auditoria-360-2026-09-03/`): 80 hallazgos en seis informes; el ciclo 1
-  está en `CICLO-1/FIX.md` con la tabla de los 80 y `PENDIENTE-DARIO.md` con lo que espera su sí.
+- Informes de la tanda en `progress/mejoras-2026-09-04/`: `A-autonomia.md` (15 propuestas),
+  `B-coherencia.md` (38 hallazgos, 2 críticos: la suite del núcleo estaba roja en `main` y las
+  mutaciones daban 76/79 sin que el CI lo viera) y `G-arbol.md` (tres oficios nuevos, verificados).
+- **El agente es libre**: el océano `autonomia` (fusión del antiguo `irreversible`) dice que se
+  ejecuta sin pedir permiso y solo lo irreversible espera un sí. Que la máquina lo cumpla es alta de
+  máquina, no de repositorio: `cosmos configurar --autonomia auto|libre|manual` escribe los ajustes
+  de USUARIO del runtime (desde el `.claude/settings.json` de un repo el modo se ignora), con vuelta
+  byte a byte; G01 avisa en cada arranque si la carta y la máquina no dicen lo mismo (trivalente).
+- **Todos los modelos en el selector, para siempre**: `cosmos configurar --modelos instalar` (reponedor
+  atómico en `~/.cosmos/bin`, agente de launchd en macOS, hook de arranque de sesión, atajos
+  `maxcode`/`ultracode`); la lista vive en `puente/modelos.py`; el acceso de la cuenta a cada id se
+  declara `no_comprobado`. `cosmos instalar` encadena el alta entera y `cosmos estado --maquina`
+  inventaría la máquina.
 - **El juez**: el holdout vive fuera del repositorio (`spec/NUCLEO.md` §11); la cifra de validación
-  se publica con `n` e intervalo, o no se publica. Sobre este árbol el único holdout existente (v1)
-  está QUEMADO por historia git: **la cifra honesta de acierto es DESCONOCIDA** hasta que exista
-  un holdout v2 ciego. La última medición válida antes de retirarlo: 8/20 = 40 % (IC95 22–61 %).
+  se publica con `n` e intervalo, o no se publica. El único holdout existente (v1) está QUEMADO por
+  historia git: **la cifra honesta de acierto es DESCONOCIDA** hasta que exista un holdout v2 ciego.
+  La cifra del v1 la imprime `cosmos acertar` y no se copia aquí (revisión B-11).
 - **El medidor** aplica el margen calibrado (+5,2 %) al veredicto de E16 y publica el peor caso por
-  fichero; el veredicto exacto (tiktoken) coincide con el aproximado y lo vigila el CI.
+  fichero; el veredicto exacto (tiktoken) coincide con el aproximado y lo vigila el CI. **El catálogo
+  está casi lleno**: con 25 oficios el índice de galaxia entra en todos los nichos y el peor caso
+  (`ciberseguridad`, 35 pueblos) deja ~31 tokens de margen: una herramienta más. Las salidas —subir
+  `presupuesto.entrada`, podar `ciberseguridad` o adelgazar los mares (1.233 tokens de agua
+  condicional)— son una decisión de producto, no de código.
 - Suite: `python3 -m unittest discover -s tests -t .` y `-s puente/tests`; mutaciones
-  `python3 -m puente.tests.mutaciones` (todas vistas fallar).
+  `python3 -m puente.tests.mutaciones` (la copia sobre la que mutan lleva `.git`: sin él, las
+  tres del juez se saltaban y salían verdes). El CI corre en Linux y macOS con Python 3.11 y 3.13,
+  y ejecuta las mutaciones.
 
 ```text
 COSMOS  estado
 
   Nodos por nivel
     galaxia             1
-    sistema-solar      22
+    sistema-solar      25
     continente          8
-    pais               76
-    pueblo            297
+    pais               79
+    pueblo            306
     mar                 6
     oceano              5
-    rio                17
-    estrella           22
-    lluvia             14
+    rio                19
+    estrella           25
+    lluvia             15
 
   Herramientas por oficio
     ciberseguridad         35
@@ -58,16 +75,19 @@ COSMOS  estado
     visibilidad             8
     blockchain              8
     embebidos               8
-                                (mayor 35, menor 8)
+    aprendizaje-automatico    3
+    entregabilidad          3
+    localizacion            3
+                                (mayor 35, menor 3)
 
   Ríos por momento (NUCLEO §2: los de mantenimiento se nombran sin describirse)
-    mantenimiento       8   acertar, arrancar, compilar, desenganchar, enganchar, generar, mapa, proyectar
+    mantenimiento      10   acertar, arrancar, compilar, configurar, desenganchar, enganchar, generar, instalar, mapa, proyectar
     trabajo             9   abrir, buscar, estado, gate, medir, memoria, saltar, secretos, validar
 
   Contrato de pueblo (spec/PUEBLO.md) — lo que E21 no bloquea y hay que saldar por tandas
-    sin rival nombrado           69 de 297   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 63 más
-    sin apartado de avisos       38 de 297   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 32 más
-    sin fecha de comprobacion    54 de 297   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
+    sin rival nombrado           68 de 306   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 62 más
+    sin apartado de avisos       37 de 306   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 31 más
+    sin fecha de comprobacion    54 de 306   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
 
   Niveles sin un solo nodo
     lago, luna, planeta, provincia

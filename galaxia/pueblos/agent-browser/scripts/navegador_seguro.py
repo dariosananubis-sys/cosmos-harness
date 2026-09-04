@@ -13,10 +13,12 @@ para que ningún script futuro tenga que acordarse.
     cerrar_si_es_mia(sesion, mia)
 """
 import json
+import os
 import subprocess
 import time
 
-TOPE_SESIONES = 3          # ajusta al límite de RAM de tu máquina, no es un valor mágico
+# El tope depende de la RAM de la máquina, no de una regla universal: se ajusta sin tocar el guion.
+TOPE_SESIONES = int(os.environ.get("AGENT_BROWSER_TOPE_SESIONES", "3"))
 
 
 def _cli(sesion, *orden, espera=240):

@@ -5,9 +5,9 @@ padre: cientifico/reproducible
 resumen: Empaqueta lo que la ejecucion uso de verdad rastreando sus llamadas al sistema, no lo que alguien declaro.
 ---
 
-https://github.com/VIDA-NYU/reprozip · BSD-3-Clause · 362★ · último push 2026-02-04 (comprobado 2026-09-01)
-(comprobado por API de GitHub el 2026-09-01). Siete meses sin movimiento: es el mas pequeno y el
-menos activo de este nicho, y se dice.
+https://github.com/VIDA-NYU/reprozip · BSD-3-Clause · 362★ · último push 2026-02-04 (comprobado
+2026-09-04, API de GitHub y `commits/HEAD.atom`: el último commit de HEAD es de 2026-01-18, casi ocho
+meses; no archivado). Es el más pequeño y el menos activo de este país, y se dice.
 
 ```bash
 pip install reprozip reprounzip reprounzip-docker    # el trazador exige Linux
@@ -29,7 +29,7 @@ verdad. La diferencia con un `requirements.txt` o con `pixi` no es de comodidad,
 aquellos declaran lo que alguien cree necesario, este captura lo que hizo falta. Para volver a
 correr en otra maquina algo que ya funciono una vez, es la via corta.
 
-Y lo que no hace bien, que es mucho y hay que decirlo entero:
+Ojo, y es mucho — lo que no hace bien, dicho entero:
 
 - El trazado usa `ptrace`, asi que **solo traza en Linux**: en macOS no se puede empaquetar nada
   nativamente, hay que trazar dentro de un contenedor o en una maquina Linux. `reprounzip` —la
@@ -40,4 +40,14 @@ Y lo que no hace bien, que es mucho y hay que decirlo entero:
 - Congela una ejecucion, no un proyecto. No es sustituto de `pixi` para trabajar a diario; es el
   sello que se pone cuando el resultado ya esta y hay que poder demostrarlo dentro de dos anos.
 
-Por su tamano y su ritmo, entra como herramienta de sellado puntual, no como pieza del flujo diario.
+Gana a `pixi` y a `dvc`, sus dos vecinos de este país, en la única pregunta que ninguno de los dos
+contesta: **qué usó de verdad la ejecución**. `pixi` reproduce el entorno que alguien declaró en un
+fichero de bloqueo; `dvc` reproduce la cadena de etapas con los datos que alguien enganchó. Los dos
+parten de una declaración humana, y lo que no está declarado no viaja: la biblioteca del sistema que
+se instaló a mano, el fichero de `/etc` que el guion lee, el binario auxiliar que se llama por
+`subprocess`. `reprozip` no pregunta, observa.
+
+Por eso se queda pese a su tamaño y su ritmo, y con el papel acotado: `pixi` para trabajar a diario,
+`dvc` para encadenar etapas y versionar datos, y `reprozip` una sola vez, cuando el resultado ya está
+y hay que poder demostrarlo dentro de dos años. Si ese sello no hace falta, este pueblo sobra —y esa
+es la condición con la que se queda.

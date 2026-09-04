@@ -14,10 +14,10 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 openclaw onboard --install-daemon
 ```
 
-Es el origen del canal autónomo que ya se usa en esta casa. Su arquitectura declarada —«gateway
-confiable, ejecución no confiable, política determinista»— es la razón de que entre: la política de
-permisos vive **separada** de la ejecución de herramientas, así que un canal de mensajería no autoriza
-por sí mismo lo que el agente puede hacer.
+Es el origen del canal autónomo —mensajería que despierta a un agente— que después replican otros
+arneses. Su arquitectura declarada —«gateway confiable, ejecución no confiable, política
+determinista»— es la razón de que entre: la política de permisos vive **separada** de la ejecución de
+herramientas, así que un canal de mensajería no autoriza por sí mismo lo que el agente puede hacer.
 
 Gana a `scripts/telegram-bridge.py`, el puente propio que reenvía a la consola del asistente y
 devuelve la salida: aquello resuelve el mismo hueco para un solo canal, y esto atiende consola, chat y

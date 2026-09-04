@@ -39,7 +39,7 @@ REPO_COSMOS = Path(__file__).resolve().parents[1]
 GALAXIA = """---
 cosmos: galaxia
 nombre: prueba
-resumen: Galaxia mínima para probar los guardarraíles.
+resumen: Galaxia minima para probar los guardarrailes.
 ---
 
 Cuerpo de la galaxia.

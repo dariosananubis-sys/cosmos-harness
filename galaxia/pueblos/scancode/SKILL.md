@@ -7,7 +7,8 @@ resumen: Escanea codigo fuente linea a linea y encuentra la licencia aunque no e
 
 https://github.com/aboutcode-org/scancode-toolkit · Apache-2.0 AND CC-BY-4.0 (el código bajo
 Apache-2.0, los datos de licencias bajo CC-BY-4.0; leído en su `NOTICE`) · 2.617★ · último push
-2026-08-28 (comprobado 2026-09-03)
+2026-09-04 (comprobado 2026-09-04, API de GitHub y `commits/HEAD.atom`: el último commit de HEAD —la
+rama `develop`— es de 2026-08-28, el push más reciente es de otra rama; no archivado)
 
 ```bash
 pipx install scancode-toolkit
@@ -20,6 +21,12 @@ scancode -clip --json-pp resultado.json ./proyecto
 # solo licencias, en paralelo con 4 procesos
 scancode -l -n 4 --json resultado.json ./proyecto
 ```
+
+`ort` también lo invoca por dentro como escáner de ficheros, y ahí está la frontera con él: `ort`
+resuelve el **grafo de dependencias** del gestor de paquetes y aplica una política de licencias sobre
+lo declarado; `scancode` mira el **texto de cada fichero** del árbol, incluido el código copiado que
+no aparece en ningún manifiesto. Se encadenan: `ort` para la tubería de dependencias, `scancode`
+cuando hay que auditar el código que está dentro del repositorio.
 
 `fossology` **usa este motor por dentro** para detectar licencias en su interfaz de revisión humana
 — `scancode` es el escáner suelto, de línea de comandos, sin la base de datos ni el flujo de decisión

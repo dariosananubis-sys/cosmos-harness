@@ -24,8 +24,8 @@ datos, así que valen las mismas reglas que servirlo (4-bit, ≤7B). El `--limit
 que hace la evaluación viable aquí — con la salvedad de abajo.
 
 Gana a `promptfoo/promptfoo` (24.722★) y a las herramientas de evaluación por criterio subjetivo en lo
-que importa para esta casa: corre **entero en local** contra el modelo servido, sin pagar un modelo
-juez. Y su frontera con `mlflow` es limpia: aquel registra qué pasó en cada corrida, este dice si el
+que importa cuando no se paga por uso: corre **entero en local** contra el modelo servido, sin un
+modelo juez. Y su frontera con `mlflow` es limpia: aquel registra qué pasó en cada corrida, este dice si el
 modelo es mejor o peor que otro en la misma prueba.
 
 Ojo: un resultado con `--limit` **no es comparable** con las cifras publicadas, que corren la tarea

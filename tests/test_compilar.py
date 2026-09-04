@@ -41,10 +41,10 @@ class PruebasCompilacion(unittest.TestCase):
         self.skill_dir = self.arbol_dir / "skills" / "revisar"
         self.skill_dir.mkdir(parents=True)
         archivos = {
-            self.arbol_dir / "galaxia.md": documento("galaxia", "raiz", "Organiza un árbol sintético compilable."),
+            self.arbol_dir / "galaxia.md": documento("galaxia", "raiz", "Organiza un arbol sintetico compilable."),
             self.arbol_dir / "sistema.md": documento("sistema-solar", "modo", "Agrupa capacidades ficticias compilables.", padre=""),
             self.arbol_dir / "provincia.md": documento("provincia", "grupo", "Agrupa una capacidad ficticia invocable.", padre="modo"),
-            self.skill_dir / "SKILL.md": documento("pueblo", "revisar", "Inspecciona una salida sintética controlada.", padre="modo/grupo"),
+            self.skill_dir / "SKILL.md": documento("pueblo", "revisar", "Inspecciona una salida sintetica controlada.", padre="modo/grupo"),
             # Un fichero de referencia dentro de la skill NO es un nodo (`casa` se
             # retiró en H20): es un fichero suelto que el pueblo abre cuando lo
             # necesita. Aquí se comprueba que `compilar` lo exporta igual.
@@ -117,7 +117,7 @@ manifiesto = ".cosmos/compilado.json"
 
     def test_arbol_invalido_no_escribe_en_destino(self) -> None:
         (self.skill_dir / "SKILL.md").write_text(
-            documento("pueblo", "revisar", "Inspecciona una salida sintética controlada.", padre="modo/ausente"),
+            documento("pueblo", "revisar", "Inspecciona una salida sintetica controlada.", padre="modo/ausente"),
             encoding="utf-8",
         )
         self.sincronizar_indice()
@@ -251,12 +251,12 @@ manifiesto = ".cosmos/compilado.json"
         web = self.arbol_dir / "skills" / "web-only"
         saas = self.arbol_dir / "skills" / "saas-only"
         archivos = {
-            self.arbol_dir / "web.md": documento("sistema-solar", "web", "Agrupa capacidades web sintéticas.", padre=""),
-            self.arbol_dir / "saas.md": documento("sistema-solar", "saas", "Agrupa capacidades SaaS sintéticas.", padre=""),
+            self.arbol_dir / "web.md": documento("sistema-solar", "web", "Agrupa capacidades web sinteticas.", padre=""),
+            self.arbol_dir / "saas.md": documento("sistema-solar", "saas", "Agrupa capacidades SaaS sinteticas.", padre=""),
             self.arbol_dir / "web-provincia.md": documento("provincia", "calidad-web", "Agrupa una capacidad web invocable.", padre="web"),
             self.arbol_dir / "saas-provincia.md": documento("provincia", "calidad-saas", "Agrupa una capacidad SaaS invocable.", padre="saas"),
-            web / "SKILL.md": documento("pueblo", "web-only", "Comprueba una interfaz web sintética.", padre="web/calidad-web"),
-            saas / "SKILL.md": documento("pueblo", "saas-only", "Comprueba un servicio SaaS sintético.", padre="saas/calidad-saas"),
+            web / "SKILL.md": documento("pueblo", "web-only", "Comprueba una interfaz web sintetica.", padre="web/calidad-web"),
+            saas / "SKILL.md": documento("pueblo", "saas-only", "Comprueba un servicio SaaS sintetico.", padre="saas/calidad-saas"),
         }
         for ruta, contenido in archivos.items():
             ruta.parent.mkdir(parents=True, exist_ok=True)

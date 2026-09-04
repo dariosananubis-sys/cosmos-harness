@@ -180,3 +180,136 @@ def formatear(inv: Inventario) -> str:
 
 def estado_json(inv: Inventario) -> str:
     return json.dumps(inv.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+
+
+# --- La máquina: qué falta en ESTE ordenador ---------------------------------------------
+#
+# El inventario de arriba cuenta el árbol; este cuenta la máquina en la que se instaló, y es
+# lo que hace verificable el alta en un ordenador nuevo. Cada fila es trivalente —`ok`,
+# `falta`, `no_comprobado`— y jamás dice `ok` por no haber podido mirar: un `ok` en el
+# llavero por haber encontrado el binario sería una bandera de seguridad que mide una
+# ausencia. No cambia el veredicto de `validar`: es inventario, como el resto de `estado`.
+
+
+@dataclass(frozen=True)
+class FilaMaquina:
+    nombre: str
+    estado: str  # ok | falta | no_comprobado | desactualizado | ajeno | auto | libre | manual | desconocido
+    detalle: str
+
+
+def _version_de(orden: list[str]) -> str | None:
+    import subprocess
+
+    try:
+        resultado = subprocess.run(orden, capture_output=True, text=True, check=False, timeout=15)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if resultado.returncode:
+        return None
+    salida = (resultado.stdout or resultado.stderr).strip().splitlines()
+    return salida[0].strip() if salida else ""
+
+
+def inventariar_maquina(arbol: Arbol, *, directorio=None, raiz_clon=None) -> list[FilaMaquina]:
+    import os
+    import shutil
+    import sys
+    from pathlib import Path
+
+    from . import configurar as cfg
+
+    directorio = Path(directorio) if directorio else cfg.DIRECTORIO
+    filas: list[FilaMaquina] = []
+
+    version = ".".join(str(v) for v in sys.version_info[:3])
+    filas.append(FilaMaquina("python3", "ok" if sys.version_info >= (3, 11) else "falta",
+                             f"{version}  (>= 3.11 exigido por tomllib)"))
+    for nombre, orden, nota in (("git", ["git", "--version"], "obligatorio: el gate, el juez y el escáner preguntan a git"),
+                                ("claude", ["claude", "--version"], "el runtime al que se engancha COSMOS"),
+                                ("tmux", ["tmux", "-V"], "opcional; solo para el pueblo de consola interactiva")):
+        if shutil.which(nombre) is None:
+            filas.append(FilaMaquina(nombre, "falta", nota))
+        else:
+            salida = _version_de(orden)
+            filas.append(FilaMaquina(nombre, "ok" if salida is not None else "no_comprobado",
+                                     (salida or "instalado; no respondió a --version") + f"  ({nota})"))
+    if sys.platform != "darwin":
+        filas.append(FilaMaquina("llavero", "no_comprobado", "solo macOS (security add-generic-password)"))
+    elif shutil.which("security") is None:
+        filas.append(FilaMaquina("llavero", "falta", "no está `security`"))
+    else:
+        filas.append(FilaMaquina("llavero", "no_comprobado", "`security` existe; no se prueba una escritura sin permiso"))
+
+    perfil = directorio / cfg.PERFIL.name
+    datos = cfg.leer_perfil(perfil)
+    if datos is None:
+        filas.append(FilaMaquina("perfil", "falta", f"{perfil} no existe -> cosmos configurar"))
+        herramientas: list[str] = []
+    else:
+        oficios = [o for o in datos.get("oficios", []) if isinstance(o, str)]
+        herramientas = [h for h in datos.get("herramientas", []) if isinstance(h, str)]
+        filas.append(FilaMaquina("perfil", "ok", f"{perfil}  ({len(oficios)} oficio(s), {len(herramientas)} herramienta(s))"))
+    credenciales = directorio / cfg.CREDENCIALES.name
+    esperadas = cfg.credenciales_de(arbol, herramientas) if herramientas else []
+    if not esperadas:
+        filas.append(FilaMaquina("credenciales", "ok" if datos is not None else "no_comprobado",
+                                 "ninguna herramienta elegida pide credenciales" if datos is not None else "sin perfil no se sabe cuáles hacen falta"))
+    elif not credenciales.is_file():
+        filas.append(FilaMaquina("credenciales", "falta", f"{credenciales} no existe -> cosmos configurar"))
+    else:
+        faltan, sospechosas = cfg.comprobar_credenciales(esperadas, cfg.leer_credenciales(credenciales))
+        total = len({c.variable for c in esperadas})
+        if faltan or sospechosas:
+            filas.append(FilaMaquina("credenciales", "falta",
+                                     f"{len(faltan)} vacía(s) y {len(sospechosas)} sospechosa(s) de {total} -> cosmos configurar --comprobar"))
+        else:
+            filas.append(FilaMaquina("credenciales", "ok", f"{total} de {total} rellenas ({credenciales})"))
+
+    grado, detalle = cfg.grado_vigente()
+    filas.append(FilaMaquina("autonomia", grado, f"{cfg.ajustes_usuario()}  {detalle}"
+                             + ("" if grado in ("auto", "libre") else "  -> cosmos configurar --autonomia auto")))
+
+    from puente import modelos as mod
+
+    de_modelos = mod.estado(perfil=cfg.leer_modelos(perfil))
+    reponedor = next((f for f in de_modelos if f.nombre == "reponedor"), None)
+    if reponedor is None or reponedor.estado == "falta":
+        filas.append(FilaMaquina("modelos", "falta", "vigilante no instalado -> cosmos configurar --modelos instalar"))
+    else:
+        malos = [f for f in de_modelos if f.estado in ("falta", "desactualizado", "ajeno")]
+        if malos:
+            filas.append(FilaMaquina("modelos", malos[0].estado, f"{malos[0].nombre}: {malos[0].detalle}  -> cosmos configurar --modelos estado"))
+        else:
+            filas.append(FilaMaquina("modelos", "ok", f"vigilante instalado ({len(mod.MODELOS)} modelos; acceso de la cuenta no_comprobado)"))
+
+    lanzador = cfg.LANZADOR
+    if not lanzador.exists():
+        filas.append(FilaMaquina("lanzador", "falta", f"{lanzador} no existe -> cosmos configurar --lanzador"))
+    elif not cfg.es_lanzador_nuestro(lanzador):
+        filas.append(FilaMaquina("lanzador", "ajeno", f"{lanzador} existe y no es nuestro"))
+    else:
+        apunta = cfg.raiz_del_lanzador(lanzador)
+        if apunta is None or not (apunta / "cosmos" / "__main__.py").is_file():
+            filas.append(FilaMaquina("lanzador", "falta", f"{lanzador} apunta a un clon que ya no existe ({apunta}) -> cosmos configurar --lanzador"))
+        elif raiz_clon is not None and Path(raiz_clon).resolve() != apunta.resolve():
+            filas.append(FilaMaquina("lanzador", "desactualizado", f"{lanzador} apunta a {apunta}, no a este clon"))
+        else:
+            en_path = str(lanzador.parent) in os.environ.get("PATH", "").split(os.pathsep)
+            filas.append(FilaMaquina("lanzador", "ok" if en_path else "falta",
+                                     f"{lanzador} -> {apunta}" + ("" if en_path else f"  ({lanzador.parent} no está en el PATH)")))
+    return filas
+
+
+def formatear_maquina(filas: list[FilaMaquina]) -> str:
+    from .configurar import abreviar_home
+
+    lineas = ["COSMOS  estado  maquina", ""]
+    for fila in filas:
+        lineas.append(f"  {fila.nombre + ' ':.<20} {fila.estado:<15} {abreviar_home(fila.detalle)}")
+    return "\n".join(lineas) + "\n"
+
+
+def maquina_json(filas: list[FilaMaquina]) -> str:
+    return json.dumps([{"nombre": f.nombre, "estado": f.estado, "detalle": f.detalle} for f in filas],
+                      ensure_ascii=False, indent=2) + "\n"

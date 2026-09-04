@@ -25,9 +25,10 @@ bloques de respuesta, fichero de permisos para modelos (`llms.txt`) y **acceso r
 de IA**. Frontera con el eje clásico de indexación y marcado (`sitespeed`, `advertools`): allí aquello, aquí el de ser
 citado por un modelo. No compiten, se suman.
 
-Ojo de coste, y es una regla dura de esta casa: **la verificación de menciones reales (`geo
-citations`, `geo snapshots`) llama a modelos de pago por uso**. No se usa. Todo lo del bloque de
-arriba funciona sin clave y sin gasto; en cuanto una orden pida un proveedor, se para y se pregunta.
+Ojo de coste, y es la línea que no se cruza sin permiso explícito: **la verificación de menciones
+reales (`geo citations`, `geo snapshots`) llama a modelos de pago por uso**. No se usa. Todo lo del
+bloque de arriba funciona sin clave y sin gasto; en cuanto una orden pida un proveedor, se para y se
+pregunta.
 
 Ojo de fondo: lo que mide es **si te pueden leer y citar**, que es una hipótesis razonable, no una
 señal confirmada por ningún buscador con IA. No hay documentación oficial que diga que un `llms.txt`

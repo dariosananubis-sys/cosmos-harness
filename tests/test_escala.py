@@ -25,6 +25,8 @@ from tempfile import TemporaryDirectory
 from cosmos.medir import medir_arbol
 from cosmos.modelo import cargar_arbol
 
+RAIZ = Path(__file__).resolve().parent.parent
+
 PRESUPUESTO = 4000
 
 
@@ -134,6 +136,93 @@ class ElCosteDelMapaCreceConElUniverso(unittest.TestCase):
                 return medir_arbol(cargar_arbol(base), nichos=["oficio00"]).entrada
 
         self.assertEqual(entrada(2), entrada(30), "un pueblo de otro oficio está costando")
+
+
+
+
+class LosArreglosDeRendimientoSeCuentanNoSeCreen(unittest.TestCase):
+    """Revisión R-47: cuatro arreglos de rendimiento sin ninguna prueba, y por ahí se coló D-06
+    entregado sin hacer (un `setdefault` que no cacheaba: 1.056 → 1.089 parseos, firmado por
+    las 320 pruebas). Se cuentan llamadas, que es inmune a la contención de CPU."""
+
+    def _arbol(self):
+        from cosmos.modelo import cargar_arbol, cargar_configuracion
+
+        cfg = cargar_configuracion(RAIZ / "cosmos.toml")
+        return cfg, cargar_arbol(cfg.arbol, tambien=(cfg.registro,) if cfg.registro else ())
+
+    def test_d06_e17_parsea_cada_co_cargable_una_sola_vez(self) -> None:
+        from unittest import mock
+
+        import cosmos.validar as v
+
+        cfg, arbol = self._arbol()
+        n = len(v._co_cargables(arbol))
+        real, cuenta = v._afirmaciones, {"n": 0}
+
+        def espia(nodo):
+            cuenta["n"] += 1
+            return real(nodo)
+
+        with mock.patch.object(v, "_afirmaciones", espia):
+            v._comprobar_e17(arbol, cfg, cfg.arbol)
+        self.assertEqual(cuenta["n"], n, f"E17 parseó {cuenta['n']} veces {n} nodos: la caché no cachea")
+
+    def test_d01_el_conjunto_de_nichos_se_construye_una_vez_por_arbol(self) -> None:
+        from unittest import mock
+
+        import cosmos.modelo as m
+        from cosmos.medir import medir_casos
+
+        cfg, arbol = self._arbol()
+        real, cuenta = m.nombres_nichos, {"n": 0}
+
+        def espia(a):
+            cuenta["n"] += 1
+            return real(a)
+
+        with mock.patch.object(m, "nombres_nichos", espia):
+            medir_casos(arbol, metodo="aprox", presupuesto=cfg.entrada)
+        # una por la caché del árbol + las que `medir_casos` hace a propósito (una vez por llamada)
+        self.assertLessEqual(cuenta["n"], 3, f"nombres_nichos se reconstruyó {cuenta['n']} veces: volvió el cúbico")
+
+    def test_d07_generar_mapa_no_recorre_el_arbol_por_cada_nodo(self) -> None:
+        from cosmos.generar import generar_mapa
+
+        cfg, arbol = self._arbol()
+        clase = type(arbol.nodos)
+        iteraciones = {"n": 0}
+        original = clase.__iter__
+
+        class Vigilada(list):
+            def __iter__(self):
+                iteraciones["n"] += 1
+                return original(self)
+
+        arbol.nodos = Vigilada(arbol.nodos)
+        generar_mapa(arbol)
+        self.assertLessEqual(iteraciones["n"], 4, f"generar_mapa iteró la lista de nodos {iteraciones['n']} veces")
+
+    def test_d10_el_error_de_lectura_lleva_ruta_relativa(self) -> None:
+        import os
+        import tempfile
+
+        from cosmos.modelo import cargar_arbol
+
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            (raiz / "galaxia.md").write_text("---\ncosmos: galaxia\nnombre: g\nresumen: Nada se carga.\n---\n", encoding="utf-8")
+            ilegible = raiz / "prohibido.md"
+            ilegible.write_text("---\ncosmos: oceano\n---\n", encoding="utf-8")
+            os.chmod(ilegible, 0)
+            try:
+                arbol = cargar_arbol(raiz)
+            finally:
+                os.chmod(ilegible, 0o644)
+        lectura = [e for e in arbol.errores if "no se puede leer" in e.mensaje]
+        if not lectura:
+            self.skipTest("este usuario puede leer ficheros con modo 000 (root)")
+        self.assertEqual(lectura[0].ruta, "prohibido.md", "el error de lectura volvió a llevar la ruta absoluta")
 
 
 if __name__ == "__main__":

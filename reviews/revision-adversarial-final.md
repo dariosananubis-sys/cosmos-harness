@@ -399,7 +399,7 @@ Su propia cabecera dice «cada línea sale de contar el repo». La conté:
 | «el árbol está en rojo: entrada 4.070, presupuesto 4.000» | verde; 1.128 base / 1.771 peor | `python3 -m cosmos medir galaxia --config galaxia.toml` |
 | «Dieciséis nichos sin estrella» | 0 sin estrella (21 estrellas / 21 sistemas) | `ls galaxia/estrellas \| wc -l` → 21 |
 | «64 scripts… y ningún pueblo los referencia» | 79 scripts, 27 ficheros de `galaxia/` los referencian | `ls cosecha \| wc -l`; `grep -rl 'cosecha/' galaxia/ \| wc -l` |
-| «Las cuatro piezas de VanguardIA… ninguna migrada» | `puente/` con 5 módulos, 1.446 líneas, 35 tests | `wc -l puente/*.py` |
+| «Las cuatro piezas de el arnés de origen… ninguna migrada» | `puente/` con 5 módulos, 1.446 líneas, 35 tests | `wc -l puente/*.py` |
 | «COSMOS no está en GitHub» | `origin` configurado | `git remote -v` |
 | «127 herramientas · 50 países · 47 tests» | 189 · 56 · 52 | conteos por `cosmos:` |
 
@@ -580,7 +580,7 @@ Lo que sí hay, sin transcribir nada:
    (`git log --all --format='%an <%ae>'`). Van en cada objeto, no se borran editando ficheros.
 2. **Rutas absolutas del usuario**: 12 apariciones de `<inicio>` en 6 ficheros
    versionados (`PROGRESS.md`, `QUEDA.md`, `registro/commits/universo/2026/09/montaje-tanda-1.md`,
-   `registro/commits/universo/2026/09/trading-a-fondo.md`, `research/VANGUARDIA-HARNESS.md`,
+   `registro/commits/universo/2026/09/trading-a-fondo.md`, `research/ARNES-DE-ORIGEN.md`,
    `reviews/claude-revisa-codigo-ronda1.md`). `research/HERRAMIENTAS-PROPIAS.md` ya está redactado a
    `/Users/<usuario>` — así que el criterio existe y se aplicó a medias.
 3. **Correo personal de un tercero en la historia**: el commit `ef26ad4` añadió
@@ -613,7 +613,7 @@ Lo que quedó dentro, y es real:
 
 - `puente/proyectar.py:34-35`: `FICHEROS_RAIZ = ("AGENTS.md", "CLAUDE.md")` y
   `DESTINOS = (".agents", ".claude")`. `grep -rn '\.agents\|AGENTS\.md' spec/ GOAL.md README.md
-  QUEDA.md PROGRESS.md` → **vacío**. `.agents` es vocabulario de VanguardIA-Harness que COSMOS no
+  QUEDA.md PROGRESS.md` → **vacío**. `.agents` es vocabulario de el arnés de origen que COSMOS no
   define en ninguna parte.
 - Ese `DESTINOS` está **cableado**, no derivado de `compilacion.destino`. Con `galaxia.toml`
   (`destino = ".cosmos/vista-galaxia"`), `compilar` y `proyectar` escriben en sitios distintos.
@@ -805,7 +805,7 @@ querer— y también lo cazan: 4 tests.
 
 **El puente, migrado.** Comparé fichero a fichero contra `<harness-de-referencia>/scripts/` (solo
 lectura). Ratios de 0,24 a 0,47: está reescrito. Busqué lógica muerta y vocabulario ajeno con grep
-de `vanguardia|harness|pack|AGENTS.md|memory/|\.agents` y solo salieron los dos casos de H19.
+de `arnes-de-origen|harness|pack|AGENTS.md|memory/|\.agents` y solo salieron los dos casos de H19.
 **Aguanta.**
 
 **El escáner de secretos, contra sus propios cebos.** Ejecuté `puente/tests/mutaciones.py` completo:

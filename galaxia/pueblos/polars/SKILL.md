@@ -31,9 +31,9 @@ q.sink_parquet("salida.parquet", engine="streaming")
 
 Entra junto a `duckdb` y no en su lugar porque el modelo mental es distinto: aqui se encadenan
 transformaciones tipadas, alli se escribe una consulta. Gana a `pandas` —que es el rival de verdad,
-no un rival de paja— en lo que decide en una maquina justa de memoria: `pandas.read_csv` lee el fichero
-entero a memoria antes de que puedas filtrarlo; `scan_csv`/`scan_parquet` no lee nada hasta
-`collect()` y puede saltarse columnas y grupos de filas completos.
+no un rival de paja— en datasets que no caben enteros en RAM: `pandas.read_csv` lee el fichero
+entero a memoria antes de que puedas filtrarlo; `scan_csv`/`scan_parquet` planifica antes de leer y
+puede saltarse columnas y grupos de filas completos.
 
 Y una ventaja de correccion, no de velocidad: el esquema se fija al inferirse, asi que una columna
 con un valor raro falla en voz alta en vez de convertirse en `object` de texto en silencio, que es

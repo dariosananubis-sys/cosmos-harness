@@ -25,8 +25,11 @@ política escrita en Kotlin sobre el árbol de dependencias resuelto y devuelve 
 distinto de cero cuando aparece una licencia prohibida. Es lo que `fossology` no hace —allí la
 decisión la toma una persona en una interfaz— y por eso entran los dos.
 
-El generador de inventario de materiales más citado (`syft`) no entra: el inventario ya lo produce el
-escáner de imágenes del nicho de seguridad, y duplicarlo sería pagar dos líneas por lo mismo.
+Actualizado 2026-09-03: `syft` sí tiene pueblo propio ahora, porque el hueco que se daba por cubierto
+no lo estaba — ningún pueblo de este país emitía un SBOM suelto sin pasar por el ciclo completo de
+`ort`. Frontera: `syft` solo inventaría (CycloneDX o SPDX, rápido, sin política); aquí se sigue
+viniendo cuando además hace falta **evaluar** esa política y que la build falle por una licencia
+prohibida — eso `syft` no lo hace.
 
 **Norma que cubre**: igual que su vecino, cumplimiento contractual de licencias, no norma legal.
 Emite **SPDX 2.3 y CycloneDX**, y encaja con **OpenChain ISO/IEC 5230**. Sin territorio.

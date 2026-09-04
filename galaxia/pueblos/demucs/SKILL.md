@@ -38,7 +38,7 @@ Y lo que no hace bien:
 
 - **Sin gráfica dedicada es lento**: del orden de minutos de proceso por minuto de audio, y
   sin `--segment` el consumo crece con la duración de la pista hasta llenar la memoria. Con
-  `--segment 10` va, a costa de más tiempo. Estos números no se han medido en esta máquina: son la
+  `--segment 10` va, a costa de más tiempo. Estos números no se han medido de forma local: son la
   guía del propio proyecto y hay que comprobarlos antes de prometer un plazo.
 - **La voz separada NO es una grabación limpia.** Deja artefactos metálicos y se come consonantes;
   para transcribir eso da igual y ayuda mucho, para una entrega final puede sonar peor que el

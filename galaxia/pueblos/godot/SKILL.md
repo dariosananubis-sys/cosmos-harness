@@ -46,6 +46,7 @@ Y lo que no hace bien: el 3D pesado. Para un juego 3D con exigencias graficas al
 estando por delante en herramientas y en iluminacion, y hay que decirlo. El 2D de Godot, en cambio,
 es de los mejores que hay.
 
-Aviso de maquina: el editor abre en una maquina justa de memoria sin problema, pero la exportacion a web y a movil
-requiere descargar las plantillas de exportacion (varios cientos de megas por version, y hay que
+Aviso de recursos, como dato y no como criterio de eleccion: el editor es liviano y abre bien
+incluso con poca memoria libre, pero la exportacion a web y a movil requiere descargar las
+plantillas de exportacion aparte (varios cientos de megas por version, y hay que
 bajarlas otra vez en cada actualizacion del motor).

@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: plan-auditado
 padre: agentes-ia/construccion
 resumen: Audita el plan antes de creerselo: campos, tipos, dependencias que existen y rastro de lo que dice estar hecho.
+origen: propio
 ---
 
 `scripts/audit-harness.sh` — herramienta propia, no de GitHub. Solo lectura.

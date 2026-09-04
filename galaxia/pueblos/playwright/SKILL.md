@@ -35,4 +35,5 @@ selectores.
 
 Ojo: no incluye evasión de detección de bots **por diseño**, y los forks «stealth» que la añaden están
 descartados por el filtro legal de este árbol. Y `playwright install` descarga navegadores de cientos
-de MB: en una máquina justa de memoria conviene instalar solo `chromium`, no los tres.
+de MB cada uno: instalar solo `chromium` en vez de los tres ahorra ese espacio y esa RAM en
+cualquier máquina, y es obligatorio en una con poco disco o memoria libre.

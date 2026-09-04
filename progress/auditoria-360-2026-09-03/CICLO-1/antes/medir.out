@@ -1,0 +1,17 @@
+COSMOS  medir
+
+  Entrada base .... 1.343 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5%, heurística v3)
+  Peor nicho ...... 2.383 tokens   (ciberseguridad, 27 pueblos)
+  Agua condicional  1.163 tokens   (6 aguas por paths:, fuera de la entrada)
+  Peor con agua ... 3.546 tokens   (el peor caso + agua condicional)
+  Universo ........ 140.862 tokens   (estimado, ±5%, heurística v3)
+  Descarga ........ 98,3 %
+  Presupuesto ..... 4.000     OK, quedan 454 tokens en el peor caso con agua (ciberseguridad)
+
+  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
+
+  Lo más caro de la entrada evaluada:
+    1.  1.315 tok  catálogo visible
+    2.  555 tok  índice de galaxia
+    3.  158 tok  oceano/descender
+EXIT_MEDIR=0

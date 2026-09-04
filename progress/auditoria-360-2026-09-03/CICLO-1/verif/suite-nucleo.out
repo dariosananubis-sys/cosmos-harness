@@ -1,0 +1,439 @@
+................................................................................F.................FFF....FF........F...................FFFF...FFFF..........FFFFF............................................s........s.........................................................................................................
+======================================================================
+FAIL: test_cada_cifra_declarada_coincide_con_la_calculada (tests.test_cifras_de_las_specs.LasSpecsDicenLoQueElArbolCuenta.test_cada_cifra_declarada_coincide_con_la_calculada) [spec/VALIDADOR.md: los (\d+) nodos de la galaxia real]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_cifras_de_las_specs.py", line 103, in test_cada_cifra_declarada_coincide_con_la_calculada
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        declarada, cifra.calcular(),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"{cifra.fichero} afirma {declarada} y el árbol cuenta "
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        f"{cifra.calcular()} — importa porque {cifra.por_que}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 416 != 477 : spec/VALIDADOR.md afirma 416 y el árbol cuenta 477 — importa porque el umbral de E08 se calibró sobre ese corpus
+
+======================================================================
+FAIL: test_arrancar_no_repara_un_indice_que_existe_y_miente (tests.test_compilar.PruebasCompilacion.test_arrancar_no_repara_un_indice_que_existe_y_miente)
+La contrapartida: `arrancar` escribe el índice que FALTA, no el que miente.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 376, in test_arrancar_no_repara_un_indice_que_existe_y_miente
+    self.assertIn("E15", salida)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'E15' not found in "COSMOS  rojo  2 errores\n\nE21  skills/revisar/SKILL.md\n     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'\n     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.\n\nE21  skills/revisar/SKILL.md\n     sin bloque de código: no hay nada que copiar y pegar\n     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).\n\nCOSMOS  arrancar  rojo\n"
+
+======================================================================
+FAIL: test_compilar_nicho_aplana_solo_web_y_aplica_hash_a_otros_nichos (tests.test_compilar.PruebasCompilacion.test_compilar_nicho_aplana_solo_web_y_aplica_hash_a_otros_nichos)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 280, in test_compilar_nicho_aplana_solo_web_y_aplica_hash_a_otros_nichos
+    self.assertEqual(0, codigo, salida)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : COSMOS  rojo  6 errores
+
+E21  skills/revisar/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/revisar/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+E21  skills/saas-only/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/saas-only/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+E21  skills/web-only/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/web-only/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+
+======================================================================
+FAIL: test_compilar_repara_e19_sin_interbloqueo (tests.test_compilar.PruebasCompilacion.test_compilar_repara_e19_sin_interbloqueo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 294, in test_compilar_repara_e19_sin_interbloqueo
+    self.assertEqual(0, codigo, salida)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : COSMOS  rojo  2 errores
+
+E21  skills/revisar/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/revisar/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+
+======================================================================
+FAIL: test_generar_no_declara_verde_sin_revalidar_lo_que_acaba_de_escribir (tests.test_compilar.PruebasCompilacion.test_generar_no_declara_verde_sin_revalidar_lo_que_acaba_de_escribir)
+F07: desactivar la revalidación posterior no ponía roja ni una prueba.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 340, in test_generar_no_declara_verde_sin_revalidar_lo_que_acaba_de_escribir
+    self.assertIn("E15", salida)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'E15' not found in "COSMOS  rojo  2 errores\n\nE21  skills/revisar/SKILL.md\n     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'\n     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.\n\nE21  skills/revisar/SKILL.md\n     sin bloque de código: no hay nada que copiar y pegar\n     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).\n"
+
+======================================================================
+FAIL: test_generar_repara_e15_y_no_lo_bloquea_una_e19_que_no_puede_reparar (tests.test_compilar.PruebasCompilacion.test_generar_repara_e15_y_no_lo_bloquea_una_e19_que_no_puede_reparar)
+F11: cada comando se eximía de SU invariante, no de la del otro.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 312, in test_generar_repara_e15_y_no_lo_bloquea_una_e19_que_no_puede_reparar
+    self.assertEqual(0, codigo, salida)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : COSMOS  rojo  2 errores
+
+E21  skills/revisar/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/revisar/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+
+======================================================================
+FAIL: test_un_arbol_nuevo_llega_a_verde_con_un_solo_arrancar (tests.test_compilar.PruebasCompilacion.test_un_arbol_nuevo_llega_a_verde_con_un_solo_arrancar)
+F11: el caso que GOAL §1 vende — clonar COSMOS sobre otro proyecto.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_compilar.py", line 359, in test_un_arbol_nuevo_llega_a_verde_con_un_solo_arrancar
+    self.assertEqual(0, codigo, salida)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : COSMOS  rojo  2 errores
+
+E21  skills/revisar/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  skills/revisar/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+
+
+======================================================================
+FAIL: test_desenganchar_deja_el_repositorio_identico (tests.test_guardarrailes.Enganche.test_desenganchar_deja_el_repositorio_identico)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 274, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_desenganchar_sin_hook_no_es_error (tests.test_guardarrailes.Enganche.test_desenganchar_sin_hook_no_es_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 274, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_no_pisa_un_pre_commit_ajeno (tests.test_guardarrailes.Enganche.test_no_pisa_un_pre_commit_ajeno)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 274, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_reenganchar_es_idempotente (tests.test_guardarrailes.Enganche.test_reenganchar_es_idempotente)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 274, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_la_valvula_desbloquea_el_paso_de_validacion_del_gate (tests.test_guardarrailes.HookQueBloquea.test_la_valvula_desbloquea_el_paso_de_validacion_del_gate)
+El salto tiene que llegar al hook, o la válvula no existe donde duele.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 366, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_un_commit_sano_pasa (tests.test_guardarrailes.HookQueBloquea.test_un_commit_sano_pasa)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 366, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_un_fichero_sensible_nuevo_no_llega_a_commit (tests.test_guardarrailes.HookQueBloquea.test_un_fichero_sensible_nuevo_no_llega_a_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 366, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_un_indice_roto_no_llega_a_commit (tests.test_guardarrailes.HookQueBloquea.test_un_indice_roto_no_llega_a_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 366, in setUp
+    self.repo = _repo_cosmos(Path(self.temporal.name) / "repo")
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/cosmos/tests/test_guardarrailes.py", line 122, in _repo_cosmos
+    assert codigo == 0, "el árbol de prueba tiene que nacer en verde"
+           ^^^^^^^^^^^
+AssertionError: el árbol de prueba tiene que nacer en verde
+
+======================================================================
+FAIL: test_con_un_salto_activo_la_salida_nunca_dice_solo_verde (tests.test_guardarrailes.ValvulaEnLaSalida.test_con_un_salto_activo_la_salida_nunca_dice_solo_verde)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 218, in setUp
+    self.assertEqual(0, self.ejecutar(["generar", "--config", str(self.config)])[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_el_json_tambien_declara_los_saltos (tests.test_guardarrailes.ValvulaEnLaSalida.test_el_json_tambien_declara_los_saltos)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 218, in setUp
+    self.assertEqual(0, self.ejecutar(["generar", "--config", str(self.config)])[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_ninguna_salida_dice_verde_a_secas_con_un_salto_vivo (tests.test_guardarrailes.ValvulaEnLaSalida.test_ninguna_salida_dice_verde_a_secas_con_un_salto_vivo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 218, in setUp
+    self.assertEqual(0, self.ejecutar(["generar", "--config", str(self.config)])[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_sin_saltos_la_salida_dice_verde_a_secas (tests.test_guardarrailes.ValvulaEnLaSalida.test_sin_saltos_la_salida_dice_verde_a_secas)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 218, in setUp
+    self.assertEqual(0, self.ejecutar(["generar", "--config", str(self.config)])[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_un_salto_caducado_no_omite_nada_y_lo_dice (tests.test_guardarrailes.ValvulaEnLaSalida.test_un_salto_caducado_no_omite_nada_y_lo_dice)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/tests/test_guardarrailes.py", line 218, in setUp
+    self.assertEqual(0, self.ejecutar(["generar", "--config", str(self.config)])[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 320 tests in 65.701s
+
+FAILED (failures=20, skipped=2)
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+COSMOS  arrancar  rojo
+COSMOS  rojo  2 errores
+
+E21  pueblos/medir-anchos/SKILL.md
+     el pueblo no nombra qué ejecutar: sin URL de repositorio ni 'origen: propio'
+     Pon la URL literal del repositorio en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí.
+
+E21  pueblos/medir-anchos/SKILL.md
+     sin bloque de código: no hay nada que copiar y pegar
+     Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3).
+
+  AVISO  SIN TOKENIZADOR: el margen publicado (±5,2 %) NO se ha verificado en esta ejecución. Instálalo en un venv temporal (docs/CALIBRACION.md) o exige el fallo con COSMOS_EXIGE_TOKENIZADOR=1.
+EXIT=1

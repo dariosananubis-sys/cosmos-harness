@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: panel-auth-cookie
 padre: saas/identidad
 resumen: Entrada por cookie a un panel interno con sesion aleatoria revocable, sin montar un servidor de identidad.
+origen: propio
 ---
 
 `scripts/docker-secret-cookie-auth.js` — herramienta propia, no hay repositorio público. La ruta ES

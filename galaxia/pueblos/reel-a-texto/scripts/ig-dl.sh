@@ -1,6 +1,6 @@
 #!/bin/bash
 # ig-dl.sh — descarga posts/reels/carruseles de Instagram con sesion del navegador.
-# Uso: tools/ig-dl.sh <url> [outdir]
+# Uso: scripts/ig-dl.sh <url> [outdir]
 # Requiere: login en instagram.com en Chrome o Firefox (una vez). Auto-detecta el perfil con sessionid.
 # yt-dlp para video; gallery-dl para carruseles de imagen (yt-dlp los ve como "0 items").
 set -euo pipefail

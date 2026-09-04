@@ -1,6 +1,6 @@
 """PRUEBA ADVERSARIAL 10: ¿E17 ve la duplicacion que de verdad se paga siempre?"""
 import sys, subprocess, shutil, os
-sys.path.insert(0,'/Users/dariosatino/cosmos')
+sys.path.insert(0,'~/cosmos')
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from cosmos.modelo import cargar_arbol, cargar_configuracion

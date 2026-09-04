@@ -1,13 +1,13 @@
 # Herramientas propias — extracción para COSMOS
 
 Inventario de la cosecha en `cosecha/`: herramientas genéricas y limpias extraídas de los repos
-propios de el responsable (`<la-agencia>-deploy`, `ClawArmy`, `seo-guardian`, `Chronos`, y el `tools/` local de
+propios de el responsable (`<la-agencia>-deploy`, `<catálogo interno>`, `seo-guardian`, `Chronos`, y el `tools/` local de
 este workspace), para arrancar COSMOS sin partir de cero. Regla dura aplicada en todo el barrido:
 **cero datos de cliente** — nombres reales, dominios, NIF, direcciones, credenciales, rutas de
 vault, IPs de servidor o IDs de expediente. Lo que no se pudo limpiar sin destripar su lógica
 central se descartó (ver `## Descartadas`).
 
-Repos revisados, en el orden pedido: `<la-agencia>-deploy` (yo), `ClawArmy` (yo, descartado entero),
+Repos revisados, en el orden pedido: `<la-agencia>-deploy` (yo), `<catálogo interno>` (yo, descartado entero),
 `seo-guardian` (yo), `Chronos` (yo), y `tools/` local dividido en 3: un tercio yo y dos clústeres en
 paralelo (`cluster-A-webops-legal.md`, `cluster-B-automatizacion-infra.md`, en `research/scratch/`).
 
@@ -66,7 +66,7 @@ sesión-hija, bypass de permisos opt-in) se conserva intacta.
 | `wp-rest-base.js` | Resuelve la URL base de la REST de un WordPress que no vive en la raíz del dominio (WP en subcarpeta) | `seo-guardian/lib/rest-base.js` | `web` | Dominio de cliente real del docstring sustituido por ejemplo genérico |
 | `bws-secret-get.js` | Busca un secreto por `key` en uno o varios proyectos de Bitwarden Secrets Manager | `seo-guardian/lib/bws.js` | `custodia` | Dos UUID de proyecto reales → `BWS_PROJECT_IDS` (env, coma-separado); nombres de proyecto reales en comentarios genericizados |
 | `wpcli-remote.sh` | Ejecuta wp-cli remoto probando binario+versión de PHP de Plesk en orden hasta encontrar uno ejecutable | `seo-guardian/tools/wpcli-remote.sh` | `web` | UUID de secreto BWS real → `SERVERS_MAP_SECRET_ID` (env); nombres de servidor/cliente reales del incidente documentado genericizados (se conserva la lección: un `wp` que es wrapper de shell puede pasarse a PHP y "funcionar" imprimiendo texto sin ejecutar nada) |
-| `bootstrap-app-pass.py` | Automatiza la creación de una Application Password de WordPress: login headless con `agent-browser`, crea la password en `profile.php`, la guarda en BWS, la verifica por REST | `seo-guardian/tools/bootstrap-app-pass.py` | `web` | UUID de proyecto real → `BWS_PROJECT_ID` (env); ruta `src/<la agencia>/.env` (fallback específico del workspace) eliminada; dominio de ejemplo real del comentario del gotcha `/users/me` vs `/settings` genericizado; ruta de `sites.yaml` parametrizada |
+| `bootstrap-app-pass.py` | Automatiza la creación de una Application Password de WordPress: login headless con `agent-browser`, crea la password en `profile.php`, la guarda en BWS, la verifica por REST | `seo-guardian/tools/bootstrap-app-pass.py` | `web` | UUID de proyecto real → `BWS_PROJECT_ID` (env); ruta `src/<la agencia>/.env` (fallback específico del workspace) eliminada; dominio de ejemplo real del comentario del gotcha `~` vs `/settings` genericizado; ruta de `sites.yaml` parametrizada |
 | `save-app-pass.py` | Hermano de `bootstrap-app-pass.py` sin login: registra en BWS una Application Password creada a mano, verifica y borra el fichero temporal | `seo-guardian/tools/save-app-pass.py` | `web` | Atribución a una persona real + fecha del comentario eliminada; misma limpieza de rutas que su hermano |
 
 ### `Chronos` — mío, 9 ficheros extraídos y genericizados de un control-plane de orquestación de contenedores efímeros (sobre pg-boss + dockerode)
@@ -79,7 +79,7 @@ sesión-hija, bypass de permisos opt-in) se conserva intacta.
 | `docker-ephemeral-runner.js` | Ciclo de vida completo de un contenedor efímero (create→start→wait-con-timeout→logs→demux→remove) + seguimiento de progreso en vivo, evitando la race condition de `AutoRemove` | `Chronos/src/container.js` (extracto) | `infraestructura` | Se extrajo SOLO el núcleo genérico (`runEphemeralContainer` + `followStepMarkers` + limpieza de huérfanos); se descartaron las 6 funciones de lanzamiento específicas del negocio (imágenes, redes, mounts y env vars reales) — ver Descartadas |
 | `docker-secret-cookie-auth.js` | Login propio (página + cookie de sesión) para una UI web interna: password desde Docker secret-file, comparación en tiempo constante, sesiones aleatorias revocables (no un hash de la password como token), rate-limit de login por IP | `Chronos/src/auth.js` | `infraestructura` (también útil en `saas`) | Quitada la dependencia de `logo.js` (logo/marca real embebida); branding "Chronos"/"<la agencia>" → `APP_NAME`/`APP_SUBTITLE`/`APP_LOGO_URI` configurables por env, con defaults genéricos |
 | `google-chat-oauth-notify.js` | DM a un equipo por Google Chat al terminar un job, usando OAuth de un usuario real (no Service Account) — refresca el token en cada llamada | `Chronos/src/notify.js` | `agentes` | Referencias a la cuenta/proyecto real del comentario ("claudio.<la-agencia>", "<la-agencia>-mail-drafter") genericizadas |
-| `nif-cif-validator.js` | Normaliza un NIF/CIF español y resuelve el slug de una lista de negocios por NIF | `Chronos/src/nif.js` | `legal` | Referencia a "Omnia"/`config/businesses` del comentario genericizada |
+| `nif-cif-validator.js` | Normaliza un NIF/CIF español y resuelve el slug de una lista de negocios por NIF | `Chronos/src/nif.js` | `legal` | Referencia a "<cliente>"/`config/businesses` del comentario genericizada |
 | `input-validators.js` | Validadores puros de boundary: UUID, slug, URL https-only (anti-XSS en href), rango de lote, subcarpeta segura dentro de un mount (anti path-traversal, más robusto que `startsWith`) | `Chronos/src/validate.js` (subconjunto) | `infraestructura` | Se copiaron solo los validadores genéricos; se descartaron `MESES`/`FLUJOS`/`FLUJO_DISPLAY`/`validateJustificacion` — taxonomía específica del programa de subvención Kit Digital, no genérica |
 | `pg-secret-file-connection.js` | Construye el connection string de Postgres desde un Docker secret-file (nunca una env var en claro, visible en `docker inspect`), con `DATABASE_URL` como override explícito para tests | `Chronos/src/db.js` (extracto) | `infraestructura` | Se extrajo solo `buildConnectionString`; se descartó el resto (CRUD de una tabla `jobs` con columnas específicas del negocio) |
 
@@ -137,7 +137,7 @@ sesión-hija, bypass de permisos opt-in) se conserva intacta.
 
 ### Repos enteros
 
-- **`ClawArmy`** (repo completo): fork de un proyecto OSS público con licencia MIT + una capa de negocio propietaria fina encima (`bin/empresa-*`). La parte genérica ya está pública en el proyecto original; la parte propietaria no es separable ni reutilizable fuera de ese negocio concreto. Se descarta el repo entero en vez de minarlo parcialmente.
+- **`<catálogo interno>`** (repo completo): fork de un proyecto OSS público con licencia MIT + una capa de negocio propietaria fina encima (`bin/empresa-*`). La parte genérica ya está pública en el proyecto original; la parte propietaria no es separable ni reutilizable fuera de ese negocio concreto. Se descarta el repo entero en vez de minarlo parcialmente.
 
 ### `<la-agencia>-deploy`
 
@@ -161,8 +161,8 @@ sesión-hija, bypass de permisos opt-in) se conserva intacta.
 - `worker.js`: registra workers atados a `container.js` (imágenes/negocio específicos) y `db.js` (tabla `jobs` específica); glue, no herramienta aislada.
 - `just-status.js`: taxonomía de estados de "justificación" específica del programa Kit Digital.
 - `logo.js`: logo real de la agencia en base64 — asset de marca, no una herramienta.
-- `omnia-adapters.js`: allowlist anti-inyección de una lista fija de directorios de negocio (citiservi, hotfrog...) — patrón demasiado fino/específico para justificar un fichero aparte (el principio general de "nunca aceptar un valor externo sin contrastarlo contra una allowlist" ya queda documentado como advertencia en `docker-ephemeral-runner.js`).
-- `container.js` (resto, tras extraer `docker-ephemeral-runner.js`): las 6 funciones de lanzamiento (`runScreenshotsJob`, `runJustificacionesJob`, `runDirectoriosJob`, `listOmniaBusinesses`, `listPendingRows`, `listPendingClients`) tienen nombres de imagen, red, volumen, rutas de secret-file y hasta un ID de proyecto GCP real hardcodeados — no genéricas.
+- `<cliente>-adapters.js`: allowlist anti-inyección de una lista fija de directorios de negocio (citiservi, hotfrog...) — patrón demasiado fino/específico para justificar un fichero aparte (el principio general de "nunca aceptar un valor externo sin contrastarlo contra una allowlist" ya queda documentado como advertencia en `docker-ephemeral-runner.js`).
+- `container.js` (resto, tras extraer `docker-ephemeral-runner.js`): las 6 funciones de lanzamiento (`runScreenshotsJob`, `runJustificacionesJob`, `runDirectoriosJob`, `list<cliente>Businesses`, `listPendingRows`, `listPendingClients`) tienen nombres de imagen, red, volumen, rutas de secret-file y hasta un ID de proyecto GCP real hardcodeados — no genéricas.
 - `db.js` (resto, tras extraer `pg-secret-file-connection.js`): CRUD de la tabla `jobs` con columnas específicas del negocio (`domain`, `razon_social`, `drive_url`) y su máquina de estados particular.
 - `validate.js` (resto, tras extraer `input-validators.js`): `MESES`/`FLUJOS`/`FLUJO_DISPLAY`/`validateJustificacion` — taxonomía del programa de subvención Kit Digital, no genérica.
 - `progress/` (11 MB) y `assets/` (1 MB): histórico de trabajo específico y assets de marca; no código.
@@ -235,7 +235,7 @@ Las 5 herramientas de más valor para arrancar un harness genérico, y por qué:
 4. **`bootstrap-app-pass.py` + `save-app-pass.py`** (de `seo-guardian`) — automatiza por completo el
    punto más manual de integrar con la REST de WordPress: crear una Application Password. Login
    headless, creación en `profile.php`, guardado en un gestor de secretos, y verificación contra
-   `/wp/v2/settings` en vez de `/users/me` — con el gotcha real documentado de que algunas webs
+   `/wp/v2/settings` en vez de `~` — con el gotcha real documentado de que algunas webs
    capan la enumeración de usuarios y devuelven 403 aunque la credencial sea válida. Ahorra la
    sesión entera de "por qué no me deja crear la Application Password por API" (WordPress no
    expone esa creación por REST — solo por UI — así que hay que automatizar la UI).

@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: dominios-libres
 padre: web/construccion-de-sitios
 resumen: Dice si un dominio esta libre cruzando tres fuentes publicas, y admite no saberlo en vez de inventarselo.
+origen: propio
 ---
 
 `scripts/domain-suggester.py` — herramienta propia, no de GitHub. Solo fuentes públicas, sin API de

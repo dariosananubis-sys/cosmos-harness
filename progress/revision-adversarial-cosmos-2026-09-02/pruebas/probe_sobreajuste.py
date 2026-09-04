@@ -7,7 +7,7 @@ def puntos(raiz):
     return json.loads(out.stdout)
 
 antes = puntos("/tmp/advcosmos/mix")        # codigo HEAD + galaxia a4f880e
-ahora = puntos("/Users/dariosatino/cosmos") # codigo HEAD + galaxia HEAD
+ahora = puntos("~/cosmos") # codigo HEAD + galaxia HEAD
 
 for cual in ("ajuste", "validacion"):
     a, b = antes[cual], ahora[cual]
@@ -26,7 +26,7 @@ for cual in ("ajuste", "validacion"):
     print()
 
 # Palabras que 8479933 ANADIO a cada resumen de sistema, y su solape con los encargos
-sys.path.insert(0, "/Users/dariosatino/cosmos")
+sys.path.insert(0, "~/cosmos")
 from cosmos.acertar import _normalizar
 def resumenes(base):
     import pathlib
@@ -35,8 +35,8 @@ def resumenes(base):
         for l in f.read_text().splitlines():
             if l.startswith("resumen:"): d[f.stem] = l[8:].strip(); break
     return d
-ra, rb = resumenes("/tmp/advcosmos/mix"), resumenes("/Users/dariosatino/cosmos")
-val = json.load(open("/Users/dariosatino/cosmos/pruebas/encargos-validacion.json"))
+ra, rb = resumenes("/tmp/advcosmos/mix"), resumenes("~/cosmos")
+val = json.load(open("~/cosmos/pruebas/encargos-validacion.json"))
 print("=== palabras ANADIDAS al resumen del sistema esperado que ESTAN en la peticion de validacion ===")
 total_lift = 0
 for e in val:

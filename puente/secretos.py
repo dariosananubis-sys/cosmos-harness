@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import os
 import re
 import subprocess
@@ -32,8 +33,11 @@ NOMBRES_PROHIBIDOS = (
     re.compile(rb".*\.(?:pem|p12|pfx|key)$", re.IGNORECASE),
     re.compile(rb"^(?:credentials|service-account).*\.json$", re.IGNORECASE),
     re.compile(rb".*\.(?:jsonl|log)$", re.IGNORECASE),
+    # El fichero de claves del alta (`cosmos configurar`) vive fuera del repo; dentro solo la plantilla.
+    re.compile(rb"^credenciales(?:\..+)?\.txt$", re.IGNORECASE),
+    re.compile(rb"^perfil\.toml$", re.IGNORECASE),
 )
-NOMBRES_PERMITIDOS = {b".env.example"}
+NOMBRES_PERMITIDOS = {b".env.example", b"credenciales.plantilla.txt"}
 TROZO = 64 * 1024
 SOLAPE = 4096
 LIMITE_PREFIJO_TABLA = 64 * 1024
@@ -113,6 +117,17 @@ PATRONES = (
     ),
     ("correo electrónico", PATRON_CORREO),
     ("teléfono", PATRON_TELEFONO),
+    (
+        # Auditoría F-11: 64 rutas absolutas del Mac del autor en el árbol, y ningún patrón
+        # las veía; un commit anterior las había limpiado y volvieron en silencio. Revelan
+        # usuario y disposición del disco. Los nombres de las cuentas de servicio habituales
+        # (`/home/node/.n8n` en un `docker run`) no son de nadie y no cuentan.
+        "ruta de máquina personal",
+        re.compile(
+            rb"/(?:Users|home)/(?!(?:runner|node|user|app|ubuntu|root|git|deploy|www|admin|"
+            rb"pi|ec2-user|<[^/]*>)(?:/|$))[A-Za-z0-9._-]+/"
+        ),
+    ),
 )
 CABECERAS_PERSONALES = {
     "address",
@@ -217,11 +232,30 @@ def _candidatas(raiz: Path, modo: str) -> list[EntradaGit] | None:
     return [entrada for entrada in entradas if entrada.ruta_cruda in cambiadas]
 
 
+def huella_de_valor(valor: bytes) -> str:
+    """Doce hexadecimales del sha256 del valor detectado, para nombrarlo sin enseñarlo.
+
+    La lista de excepciones comparaba `(fichero × clase de patrón)`, y eso indultaba el
+    fichero entero para esa clase, con cualquier valor y para siempre: dos credenciales
+    nuevas y distintas atravesaron el gate con exit 0 y «limpio de nuevos» (auditoría
+    F-01). Con la huella, un valor distinto es un hallazgo distinto, y mover el mismo
+    valor de línea sigue sin convertirlo en nuevo.
+    """
+
+    return hashlib.sha256(valor).hexdigest()[:12]
+
+
 def _hallazgo(ruta_cruda: bytes, descripcion: str, linea: int | None = None) -> str:
     lugar = etiqueta_de_ruta(ruta_cruda)
     if linea is not None:
         lugar = f"{lugar}:{linea}"
     return f"{lugar}: {descripcion}"
+
+
+def _valor_detectado(coincidencia: re.Match[bytes]) -> bytes:
+    grupos = coincidencia.groupdict()
+    valor = grupos.get("valor")
+    return valor if valor is not None else coincidencia.group(0)
 
 
 def _es_expresion(valor: bytes) -> bool:
@@ -410,7 +444,7 @@ def _parece_tabla_personal(ruta_cruda: bytes, prefijo: bytes) -> bool:
 
 def escanear_flujo(flujo: BinaryIO, ruta_cruda: bytes) -> list[str]:
     hallazgos = []
-    reportadas: set[str] = set()
+    reportadas: set[tuple[str, str]] = set()
     prefijo = bytearray()
     cola = b""
     saltos = 0
@@ -425,14 +459,17 @@ def escanear_flujo(flujo: BinaryIO, ruta_cruda: bytes) -> list[str]:
             datos = cola + trozo
             saltos_previos = saltos - cola.count(b"\n")
             for etiqueta, patron in PATRONES:
-                if etiqueta in reportadas:
-                    continue
-                coincidencia = _primera_sensible(patron, etiqueta, datos)
-                if coincidencia is None:
-                    continue
-                linea = saltos_previos + datos.count(b"\n", 0, coincidencia.start()) + 1
-                hallazgos.append(_hallazgo(ruta_cruda, f"posible {etiqueta}", linea))
-                reportadas.add(etiqueta)
+                for coincidencia in patron.finditer(datos):
+                    if _permitida(etiqueta, coincidencia):
+                        continue
+                    huella = huella_de_valor(_valor_detectado(coincidencia))
+                    # Un fichero con dos secretos de la misma clase confesaba uno solo:
+                    # la clave de «ya reportado» es el valor, no la clase.
+                    if (etiqueta, huella) in reportadas:
+                        continue
+                    linea = saltos_previos + datos.count(b"\n", 0, coincidencia.start()) + 1
+                    hallazgos.append(_hallazgo(ruta_cruda, f"posible {etiqueta} [valor {huella}]", linea))
+                    reportadas.add((etiqueta, huella))
             saltos += trozo.count(b"\n")
             cola = datos[-SOLAPE:]
     except OSError as exc:

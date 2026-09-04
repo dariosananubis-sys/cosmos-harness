@@ -2,8 +2,8 @@
 # Abre una copia del perfil real de Chrome con puerto CDP, para reutilizar
 # la sesión ya iniciada del usuario sin pedirle credenciales.
 #
-# Receta de memory/reference-cdp-perfil-chrome-google.md. Chrome 136+ ignora
-# --remote-debugging-port sobre el user-data-dir por defecto; por eso se copia.
+# Chrome 136+ ignora --remote-debugging-port sobre el user-data-dir por defecto;
+# por eso se copia el perfil antes de lanzarlo con el puerto CDP abierto.
 #
 #   ./chrome_cdp.sh abrir  [puerto]   -> lanza y deja el puerto escuchando
 #   ./chrome_cdp.sh cerrar [puerto]   -> mata el proceso y BORRA la copia

@@ -63,7 +63,7 @@ Se ejecuta el **mismo scorer** (código de HEAD) contra dos `galaxia/` distintas
 cambia son los 21 resúmenes de oficio que reescribió `8479933`.
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 mkdir -p /tmp/advcosmos/at_a4f880e /tmp/advcosmos/mix
 git archive a4f880e | tar -x -C /tmp/advcosmos/at_a4f880e
 git archive HEAD    | tar -x -C /tmp/advcosmos/mix
@@ -166,7 +166,7 @@ definió en `cosmos/validar.py` hasta `8479933`. Los tres commits intermedios es
 de árbol.
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 for c in b45560c a4f880e 15e2727 0b1a533 8479933; do
   echo "$c  def_en_validar=$(git show "${c}:cosmos/validar.py" | grep -c 'def rango_comprobado')" \
        " usado_en_cli=$(git show "${c}:cosmos/cli.py" | grep -c rango_comprobado)"
@@ -231,24 +231,24 @@ destino del daño vive en `tool_input.command`, que `_rutas_del_evento` nunca le
 Mismo comando, dos `cwd`:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 
 # A) cwd = raiz del repo  -> DENIEGA (control)
 echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"adv",
- "cwd":"/Users/dariosatino/cosmos",
- "tool_input":{"command":"echo x > /Users/dariosatino/cosmos/galaxia/COSMOS.md"}}' \
+ "cwd":"~/cosmos",
+ "tool_input":{"command":"echo x > ~/cosmos/galaxia/COSMOS.md"}}' \
  | python3 -m puente.sesion --formato exit2; echo "EXIT=$?"
 
-# B) cwd = /Users/dariosatino  (el PADRE real del repo) -> SILENCIO
+# B) cwd = ~  (el PADRE real del repo) -> SILENCIO
 echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"adv",
- "cwd":"/Users/dariosatino",
- "tool_input":{"command":"echo x > /Users/dariosatino/cosmos/galaxia/COSMOS.md"}}' \
+ "cwd":"~",
+ "tool_input":{"command":"echo x > ~/cosmos/galaxia/COSMOS.md"}}' \
  | python3 -m puente.sesion --formato exit2; echo "EXIT=$?"
 ```
 
 ```
 A)  COSMOS  sesion  rojo  escritura a mano sobre una ruta de veredicto
-    /Users/dariosatino/cosmos/galaxia/COSMOS.md  (protegida: …/galaxia/COSMOS.md)
+    ~/cosmos/galaxia/COSMOS.md  (protegida: …/galaxia/COSMOS.md)
     EXIT=2                       <- bloquea
 
 B)  <sin una sola linea de salida>
@@ -258,15 +258,15 @@ B)  <sin una sola linea de salida>
 Reproducido igual con `tee` y con `cp`:
 
 ```
-D3) echo x | tee /Users/dariosatino/cosmos/galaxia/COSMOS.md   cwd=/Users/dariosatino -> exit=0, salida VACIA
-D5) cp /tmp/falso.md /Users/dariosatino/cosmos/galaxia/COSMOS.md  cwd=/Users/dariosatino -> exit=0, salida VACIA
+D3) echo x | tee ~/cosmos/galaxia/COSMOS.md   cwd=~ -> exit=0, salida VACIA
+D5) cp /tmp/falso.md ~/cosmos/galaxia/COSMOS.md  cwd=~ -> exit=0, salida VACIA
 ```
 
 Y es **silencio total**: la rama `SinCosmos` de `main()` hace `return 0` sin escribir siquiera en
 `.cosmos/cierres.log` (a propósito: «escribir un log en el repositorio de otro sería peor»). Con
 las palabras del propio módulo: *«un guard que no está no se distingue de uno que aprobó»*.
 
-`cwd=/Users/dariosatino` no es un caso rebuscado: es el padre del checkout, y es exactamente
+`cwd=~` no es un caso rebuscado: es el padre del checkout, y es exactamente
 donde se sitúa una sesión lanzada desde el home o desde otro repo hermano.
 
 **Contraste honesto:** la mitad de `Write` sí quedó bien cerrada y sí está guardada por un test.
@@ -309,7 +309,7 @@ arbol_es_fichero  -> exit2 EXIT=2  idem
 Pero el mismo principio no se aplica a la entrada:
 
 ```bash
-printf '%s' '{"hook_event_name":"PreToolUse","tool_name":"Write","cwd":"/Users/dariosatino/cosmos","tool_input":{"file_path":"galaxia/COSM' \
+printf '%s' '{"hook_event_name":"PreToolUse","tool_name":"Write","cwd":"~/cosmos","tool_input":{"file_path":"galaxia/COSM' \
  | python3 -m puente.sesion --formato exit2; echo "EXIT=$?"
 ```
 
@@ -333,7 +333,7 @@ La afirmación 4 se sostiene, y la discriminé de verdad en vez de conformarme c
 salga 1 (con 66 y 75 los dos están por debajo de 80: ese exit 1 no distingue nada):
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 for m in 66 70 76 80; do python3 -m cosmos acertar --minimo $m >/dev/null 2>&1; echo "--minimo $m -> EXIT=$?"; done
 ```
 
@@ -371,7 +371,7 @@ python3 -m cosmos acertar --validacion /tmp/advcosmos/vacio.json --minimo 70 2>&
 ```
 
 ```
-  File "/Users/dariosatino/cosmos/cosmos/acertar.py", line 306, in formatear_contraste
+  File "~/cosmos/cosmos/acertar.py", line 306, in formatear_contraste
     va = 100 * c.validacion.aciertos / c.validacion.total
 ZeroDivisionError: division by zero
 ```
@@ -404,8 +404,8 @@ python3 -m cosmos abrir ciberseguridad --tocando tests/test_x.py --json | …   
 glob relativo a la raíz. Una ruta absoluta no casa nunca:
 
 ```bash
-cd /Users/dariosatino/cosmos
-for f in /Users/dariosatino/cosmos/cosmos/abrir.py ./cosmos/abrir.py Makefile "" ; do
+cd ~/cosmos
+for f in ~/cosmos/cosmos/abrir.py ./cosmos/abrir.py Makefile "" ; do
   echo -n "$f -> "
   python3 -m cosmos abrir ciberseguridad --tocando "$f" --json \
    | python3 -c "import sys,json;print([a['nombre'] for a in json.load(sys.stdin)['agua']])"
@@ -413,7 +413,7 @@ done
 ```
 
 ```
-/Users/dariosatino/cosmos/cosmos/abrir.py -> []          <-- ruta absoluta: VACIO
+~/cosmos/cosmos/abrir.py -> []          <-- ruta absoluta: VACIO
 ./cosmos/abrir.py                         -> ['mar/criterio','mar/resistencia','mar/revision']
 Makefile                                  -> []
 (cadena vacia)                            -> []
@@ -450,7 +450,7 @@ son rutas de proyectos ajenos citadas dentro de un bloque de código, no guiones
 patrón correcto (cita que **empieza** en `scripts/`):
 
 ```bash
-cd /Users/dariosatino/cosmos && python3 - <<'PY'
+cd ~/cosmos && python3 - <<'PY'
 import re, pathlib
 p = re.compile(r'(?<![\w/.-])scripts/[A-Za-z0-9_.\-]+')
 ok=rotas=0; pueblos=set()
@@ -504,7 +504,7 @@ citaban guiones **inexistentes**, no a las que cambiaron de prefijo.)*
 La afirmación 8 es literalmente cierta y lo verifiqué entera:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 python3 -m cosmos validar                                   # COSMOS  verde  0 errores   EXIT=0
 python3 -m unittest discover -s tests -t . 2>&1      | grep -E '^(Ran|OK)'   # Ran 140  OK (skipped=2)
 python3 -m unittest discover -s puente/tests -t . 2>&1 | grep -E '^(Ran|OK)' # Ran 111  OK
@@ -603,7 +603,7 @@ y lo que el código comprueba, que es justo lo que E17 existe para no dejar pasa
 La afirmación 9 se sostiene:
 
 ```bash
-cd /Users/dariosatino/cosmos && python3 progress/revision-adversarial-cosmos-2026-09-02/pruebas/probe_escala.py
+cd ~/cosmos && python3 progress/revision-adversarial-cosmos-2026-09-02/pruebas/probe_escala.py
 ```
 
 ```
@@ -636,7 +636,7 @@ Dos matices, ambos disciplinados por el propio comentario del test pero que conv
 # H11 (BAJO) — Recuentos rancios en las specs, fuera del alcance de `test_spec_al_dia`
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 python3 -c "
 from cosmos.modelo import cargar_arbol, cargar_configuracion
 c=cargar_configuracion('cosmos.toml'); a=cargar_arbol(c.arbol, tambien=(c.registro,))

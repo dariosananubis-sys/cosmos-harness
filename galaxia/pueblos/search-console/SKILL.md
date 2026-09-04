@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: search-console
 padre: visibilidad/buscadores
 resumen: Da de alta y verifica el sitio en el buscador, envia el mapa y pregunta por que una URL no esta indexada.
+origen: propio
 ---
 
 `scripts/gsc-search-console.py` y `scripts/gsc-service-account-token.js` — herramientas propias, no

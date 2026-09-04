@@ -200,9 +200,18 @@ def formatear(ap: Apertura) -> str:
         lineas.append("  ── por dónde seguir bajando ──")
         for h in ap.hijos:
             lineas.append(f"    {h.referencia}  ({h.cosmos})")
-            if h.cosmos in {"pueblo", "ciudad", "rio"}:
+            # Los hijos hoja (pueblo, rio) se describen: es el último salto y hay que elegir
+            # entre herramientas parecidas. Los intermedios solo se nombran (COMPOSICION.md,
+            # «Qué se ve al abrir»; auditoría E-13).
+            if h.cosmos in {"pueblo", "rio"}:
                 lineas[-1] += f"\n      {h.resumen}"
         lineas.append("")
+
+    usa = ap.nodo.datos.get("usa")
+    if isinstance(usa, list) and usa:
+        # Solo nombres, ~10 tokens: la relación declarada en el modelo era invisible para
+        # quien navega, y una relación que nadie ve no existe (auditoría E-14). No carga nada.
+        lineas.extend(["  ── oficios que este usa (solo nombres; no se cargan) ──", "    " + ", ".join(str(u) for u in usa), ""])
 
     if ap.agua:
         lineas.append("  ── agua que moja ese fichero ──")

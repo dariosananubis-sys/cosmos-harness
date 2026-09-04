@@ -1,0 +1,23 @@
+COSMOS  acertar
+
+  Ajuste ......... 38/50 (76 %; IC95 63–86 %) sobre 415 líneas de catálogo   los encargos que SÍ se miran al trabajar
+  Validación ..... 6/20 (30 %; IC95 14–52 %; n=20)   escritos aparte; no guían ninguna decisión
+  Cobertura ...... 20/22 oficios (sin encargo: rendimiento, visibilidad); 1/20 a profundidad ≥ 3
+  Procedencia .... v1, 2026-09-02: escrito por el mismo agente que ajusta el arbol, con el arbol entero delante (registro/commits/universo/2026/09/camino-al-diez.md). Versionado en git hasta b0c1ebd: el juez lo declara QUEMADO por historia. El v2 lo dicta Dario o sale de encargos reales, sin ver el arbol (PENDIENTE-DARIO, auditoria B-05).   (declarada, NO verificada)
+  Compromiso ..... sello commiteado en 1f9375c588c1 (2026-09-02); 53 commit(s) después; 0 resumen(es) cambiado(s) desde entonces
+  Calcado ........ solape petición↔línea esperada 6% (validación), 13% (ajuste)
+  Historia git ... QUEMADO: 20 de 20 peticiones ya están en el repositorio: examen visto
+  Versionado ..... no (fuera del repositorio o sin trackear)
+
+  La cifra de validación NO es íntegra:
+    · QUEMADO: 20 de 20 peticiones ya están en el repositorio: examen visto
+  Mientras no haya un conjunto ciego, sellado y con procedencia, la cifra honesta es DESCONOCIDA.
+  Y la brecha es de 46 puntos: parte de lo ganado es puntería sobre
+  las preguntas conocidas, no un árbol que lleve mejor. Se corrige mejorando
+  resúmenes en general, no los que salen en esta lista.
+
+  Método ......... BM25 léxico con recorte de sufijos, sobre la línea literal del
+                   índice y del catálogo. NO es un agente: mide si esa línea
+                   contiene las palabras del encargo, no si un modelo elegiría
+                   bien. Necesario, no suficiente.
+EXIT=0

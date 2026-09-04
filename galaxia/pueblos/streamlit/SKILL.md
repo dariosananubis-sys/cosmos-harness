@@ -38,10 +38,11 @@ streamlit run panel.py        # http://localhost:8501
 ```
 
 Para el caso en que hace falta que alguien toque un filtro y vea el resultado, sin escribir nada de
-interfaz. Descartados `metabase/metabase` y `apache/superset`, las dos plataformas de inteligencia
-de negocio con servidor: Metabase tiene licencia doble —AGPL fuera de `enterprise/`, comercial
-dentro— y corre sobre JVM, y Superset necesita varios servicios; ninguna de las dos cabe comoda en
-una maquina justa de memoria, y las dos anaden un proceso permanente que mantener.
+interfaz. Frontera con `metabase` (pueblo vecino) y con `apache/superset`, las dos plataformas de
+inteligencia de negocio con servidor: aquellas ganan cuando quien necesita el dato **no programa**
+y quiere autoservicio —su propio corte, sin pedirlo— sobre un catálogo ya cargado y con permisos
+por usuario; esto gana cuando el panel lo construye alguien que sí escribe código y quiere control
+total sobre la lógica y la visualización, sin aprender el editor visual de una plataforma ajena.
 
 Y lo que no hace bien, que es la trampa clasica: **reejecuta el guion entero en cada interaccion**.
 Un `pandas.read_csv()` de 5 GB dentro del guion se vuelve a cargar cada vez que alguien mueve el
@@ -53,3 +54,8 @@ Y el otro aviso, de seguridad: `streamlit run` sirve en `localhost` por defecto,
 publicar en Internet tal cual.
 
 Frontera con `evidence`: aqui cuando el informe se explora; alli cuando el informe se manda.
+
+Ojo de maquina, como dato y no como criterio de eleccion: Metabase corre sobre JVM con su propia
+base de metadatos, y Superset necesita varios servicios propios — dos procesos permanentes mas que
+mantener frente a esto, que no anade ninguno. Eso pesa cuando la memoria del anfitrion ya esta
+repartida entre otros procesos; no descarta a ninguno de los dos para el caso que resuelven mejor.

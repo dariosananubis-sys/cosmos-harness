@@ -1,5 +1,5 @@
 """PRUEBA ADVERSARIAL 2: la estrella, ¿solo por ruta completa?"""
-import sys; sys.path.insert(0, '/Users/dariosatino/cosmos')
+import sys; sys.path.insert(0, '~/cosmos')
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from cosmos.abrir import abrir

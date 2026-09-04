@@ -43,7 +43,7 @@ consumo real triplica al del modelo.
 
 Gana a `ollama` para este caso concreto, aunque aquel también sirva modelos con visión: `mlx-vlm` corre
 sobre la memoria unificada de Apple sin copia entre procesador y gráfica, que es el mismo motivo por el
-que `mlx-lm` gana en esta máquina, y llega antes a los modelos nuevos porque `mlx-community` los
+que `mlx-lm` gana en Apple Silicon, y llega antes a los modelos nuevos porque `mlx-community` los
 convierte el día que salen. Frontera con `PaddleOCR` y con `ocrmypdf`, que están anotados en el nicho
 de extracción: aquellos **transcriben** un documento entero y son mejores en eso; esto **responde una
 pregunta** sobre una imagen suelta.
@@ -53,8 +53,8 @@ Y lo que no hace bien:
 - **Un modelo de visión pequeño lee mal el texto pequeño.** Números de una factura, matrículas o un
   identificador largo salen plausibles y cambiados, sin ningún aviso. Para transcribir, OCR de verdad;
   esto es para entender la escena.
-- **Solo Apple Silicon.** En cualquier otra máquina no arranca, y no hay alternativa dentro de este
-  pueblo.
+- **Solo corren en Apple Silicon.** En cualquier otra máquina no arranca, y no hay alternativa
+  dentro de este pueblo; el estándar portable, el que corre en cualquier máquina, es `llama-cpp`.
 - **Los nombres de modelo cambian y las conversiones no siempre están al día**: un identificador de
   `mlx-community` que hoy existe puede no tener versión 4 bits mañana, y la descarga es de gigas por la
   red la primera vez.

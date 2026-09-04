@@ -94,7 +94,7 @@ No entra nada que no se pueda separar de su cliente, su buzón o su subvención:
   persona sobre su tarjeta.
 - `informe-seo-kitdigital.md`, `informe-seo-kitdigital-operativa.md`, `marcar-web-hecha-drive.md` —
   una subvención concreta, sus plantillas, sus destinatarios y su hoja de cálculo.
-- `anuubis-backend.md`, `anuubis-deploy.md`, `elementor-multicliente.md`, `seo-wordpress.md`,
+- `<producto>-backend.md`, `<producto>-deploy.md`, `elementor-multicliente.md`, `seo-wordpress.md`,
   `seo-2026.md` — un producto, un CMS y un panel concretos. Se rescató de ellas lo genérico (13).
 - `mac2.md` — dos máquinas concretas con su RAM y su clave SSH.
 - `specialist-learning-privacy.md` — el contrato de un producto propio.
@@ -123,7 +123,7 @@ duele dejar:
 3. **Anti-convergencia falsa: dos revisiones seguidas que mejoran menos de un 5 % escalan a
    diagnóstico de raíz aunque queden iteraciones de presupuesto** (`harness-sdd.md`). ~40 tokens.
 4. **Una evidencia compuesta a mano deja de ser evidencia: la captura sale del propio navegador con
-   su barra real, nunca sintética** (`anuubis-deploy.md` §3). ~35 tokens.
+   su barra real, nunca sintética** (`<producto>-deploy.md` §3). ~35 tokens.
 5. **Un arreglo no alcanza a lo ya emitido: se dice en tiempo verbal explícito («ya no llevará»,
    no «ya no lleva»)** (`informes-casos-raros.md` §2). ~40 tokens.
 6. **Un bloqueo se separa por naturaleza —falta tiempo, falta permiso, falta código por escribir— y

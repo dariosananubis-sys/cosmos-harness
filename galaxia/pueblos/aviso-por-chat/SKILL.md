@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: aviso-por-chat
 padre: automatizacion/avisos
 resumen: Avisa en el chat de trabajo donde ya esta la gente, por cuenta de servicio o por permiso de un usuario real.
+origen: propio
 ---
 
 `scripts/google-chat-dm.py` y `scripts/google-chat-oauth-notify.js` — herramienta propia, no hay

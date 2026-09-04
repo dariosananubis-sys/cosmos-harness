@@ -1,5 +1,7 @@
 {
   "encargos": 20,
+  "fichero": "~/.cosmos/holdout/encargos-validacion.json (fuera del repositorio; COSMOS_HOLDOUT lo cambia)",
+  "procedencia": "v1, 2026-09-02: escrito por el mismo agente que ajusta el arbol, con el arbol entero delante (registro/commits/universo/2026/09/camino-al-diez.md). Versionado en git hasta b0c1ebd: el juez lo declara QUEMADO por historia. El v2 lo dicta Dario o sale de encargos reales, sin ver el arbol (PENDIENTE-DARIO, auditoria B-05).",
   "sellado": "2026-09-02",
   "sha256": "c6e0d3a167ea9dca41644e30615addaef6ad0a6cc1ca22ad579ec4e3f1b42a6b"
 }

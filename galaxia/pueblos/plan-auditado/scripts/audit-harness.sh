@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: ./tools/audit-harness.sh [path-al-proyecto]
+# Usage: ./scripts/audit-harness.sh [path-al-proyecto]
 # Uses jq when available for strict JSON validation; otherwise falls back to a
 # small awk/sed parser for the pretty-printed feature_list.json used here.
 

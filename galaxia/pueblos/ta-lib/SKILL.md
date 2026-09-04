@@ -25,7 +25,10 @@ Entra porque es la **referencia contra la que se comparan las demás**: cuando d
 discrepan en una media móvil, la que suele tener razón es esta. Su único roce real es la instalación,
 que exige la librería de C por debajo (de ahí el `brew install` antes del `pip`). Calcula sobre la
 serie entera, que es lo que hace falta al estudiar y lo que sobra en el bucle en vivo — para eso
-está `talipp`: lote para estudiar, incremental para operar.
+está `talib.stream`, la variante incremental de la misma biblioteca (`from talib import stream;
+stream.RSI(close)` devuelve solo el último valor): lote para estudiar, incremental para operar, y el
+mismo número en los dos porque es el mismo C por debajo. (`talipp` cubría ese hueco; retirado del
+catálogo el 2026-09-03 por llevar un año parado.)
 
 Ojo, caso raro comprobado que ahorra buscar un 404: la librería de indicadores sobre dataframes más
 citada durante años, `pandas-ta`, **ya no existe en su dirección original** (`twopirllc/pandas-ta`

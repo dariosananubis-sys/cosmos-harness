@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: revision-cruzada
 padre: agentes-ia/evaluacion
 resumen: Tres familias de modelos revisan el mismo cambio a la vez; el codigo de salida sale del acuerdo, no de una opinion.
+origen: propio
 ---
 
 `scripts/multi-review.py` — herramienta propia, no de GitHub. Habla con tres familias de modelos por
@@ -21,9 +22,9 @@ código de salida por consenso se puede colgar de un enganche y parar de verdad,
 otro informe que nadie lee.
 
 Familias distintas y no tres pasadas del mismo modelo, porque un modelo se equivoca de forma
-consistente consigo mismo: repetirlo confirma el error en vez de encontrarlo. Es lo mismo que exige la
-regla del revisor adversarial de esta casa — encadenar revisores con ángulos distintos, nunca clonar
-uno.
+consistente consigo mismo: repetirlo confirma el error en vez de encontrarlo. Es lo mismo que exige
+cualquier regla seria de revisor adversarial — encadenar revisores con ángulos distintos, nunca
+clonar uno.
 
 Ojo: los identificadores de modelo que trae escritos **envejecen en semanas** y una capa gratuita que
 desaparece se ve igual que un fallo de red (sale 3, no 1). Lo que no envejece es la regla: tres

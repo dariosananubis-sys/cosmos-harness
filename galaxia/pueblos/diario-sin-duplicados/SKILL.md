@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: diario-sin-duplicados
 padre: agentes-ia/memoria
 resumen: Quita los bloques que un enganche roto repitio, y prueba antes de escribir que lo escrito a mano sigue intacto.
+origen: propio
 ---
 
 `scripts/dedupe-daily-autocapture.py` — herramienta propia, no de GitHub. Por defecto **no escribe**.

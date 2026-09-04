@@ -610,8 +610,11 @@ def _afirmaciones(nodo: Nodo) -> list[tuple[frozenset[str], str]]:
         # al normalizar y pasaban por afirmaciones con las que solapar.
         if len(frase.split()) < MINIMO_PALABRAS_AFIRMACION:
             continue
+        # Un número tampoco es contenido: una fecha se parte en «2026 08 06» al normalizar y
+        # dos frases que solo comparten la fecha de una orden solapaban al 36 %.
         palabras = frozenset(
-            palabra for palabra in _normalizar(frase).split() if palabra not in PALABRAS_VACIAS_E17
+            palabra for palabra in _normalizar(frase).split()
+            if palabra not in PALABRAS_VACIAS_E17 and not palabra.isdigit()
         )
         if len(palabras) >= MINIMO_PALABRAS_AFIRMACION:
             afirmaciones.append((palabras, " ".join(frase.split())))

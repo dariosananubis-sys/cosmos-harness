@@ -245,5 +245,28 @@ class LosMdDeApoyoDeUnPuebloNoSonNodos(unittest.TestCase):
             self.assertEqual(resultado.codigos(), [])
 
 
+class LaVistaNoCambiaPorEjecutarSusGuiones(unittest.TestCase):
+    def test_un_pycache_en_la_vista_no_la_vuelve_ajena_pero_un_fichero_nuevo_si(self) -> None:
+        from cosmos import compilar as compilador
+
+        with tempfile.TemporaryDirectory() as tmp:
+            origen = Path(tmp) / "galaxia" / "pueblos" / "x"
+            vista = Path(tmp) / ".claude" / "skills" / "x"
+            (origen / "scripts").mkdir(parents=True)
+            (vista / "scripts").mkdir(parents=True)
+            cabecera = "---\ncosmos: pueblo\nnombre: x\npadre: web\nresumen: Prueba.\nanfitrion: claude-code\nname: x\ndescription: d\n---\ncuerpo\n"
+            (origen / "SKILL.md").write_text(cabecera, encoding="utf-8")
+            (vista / "SKILL.md").write_text(sin_claves_cosmos(cabecera), encoding="utf-8")
+            for base in (origen, vista):
+                (base / "scripts" / "x.py").write_text("print(1)\n", encoding="utf-8")
+            esperado = compilador._hash_esperado(origen, vista, "copia")
+            self.assertEqual(compilador._hash_actual(vista, "copia"), esperado)
+            (vista / "scripts" / "__pycache__").mkdir()
+            (vista / "scripts" / "__pycache__" / "x.cpython-314.pyc").write_bytes(b"\x00compilado")
+            self.assertEqual(compilador._hash_actual(vista, "copia"), esperado, "un .pyc no es una edición")
+            (vista / "notas.txt").write_text("añadido a mano\n", encoding="utf-8")
+            self.assertNotEqual(compilador._hash_actual(vista, "copia"), esperado, "un fichero nuevo sí lo es")
+
+
 if __name__ == "__main__":
     unittest.main()

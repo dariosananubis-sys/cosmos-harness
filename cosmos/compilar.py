@@ -104,7 +104,11 @@ def _elementos(raiz: Path, *, filtrar: bool) -> list[Path]:
             nombres_dir[:] = sorted(nombre for nombre in nombres_dir if not _ignorado(nombre))
             nombres_fichero = [nombre for nombre in nombres_fichero if not _ignorado(nombre)]
         else:
-            nombres_dir.sort()
+            # Sin filtrar se mira la vista tal cual, para que una edición humana cuente. Pero
+            # `__pycache__` no lo edita nadie: lo deja Python al ejecutar un guion del pueblo,
+            # y con él dentro una copia idéntica pasaba a «ajena» para siempre (medido el
+            # 2026-09-04 con una skill de 19 entradas y un solo `.pyc`).
+            nombres_dir[:] = sorted(nombre for nombre in nombres_dir if nombre != "__pycache__")
         base = Path(directorio)
         for nombre in sorted(nombres_dir):
             ruta = base / nombre

@@ -1,7 +1,7 @@
 # Rescate de skills — 9 con mecanismo real, de 64 miradas
 
 Fecha: 2026-09-02 · Escrito en `galaxia/pueblos/` (9 pueblos nuevos) y en este `registro/`.
-Origen, en solo lectura: `Arnes-Dario/.claude/skills/` y `vh-ref/skills` + `vh-ref/packs/*/skills/`.
+Origen, en solo lectura: `<arnés-de-origen>/.claude/skills/` y `vh-ref/skills` + `vh-ref/packs/*/skills/`.
 
 ## 0. El hueco que se cierra, y su tamaño real
 
@@ -10,7 +10,7 @@ una a una, ese 51+56 son **64 skills distintas**: 39 nombres están en los dos �
 material empaquetado dos veces). Sobre esas 64:
 
 ```
-  64  skills distintas (47 vivas en Arnes-Dario + 56 en vh-ref, 39 compartidas)
+  64  skills distintas (47 vivas en <arnés-de-origen> + 56 en vh-ref, 39 compartidas)
   12  traen guiones dentro de su carpeta          18,8 %
    3  su mecanismo existe pero vive fuera de la skill (tools/ y hooks/ del arnés)
   49  son prosa: instrucciones de cómo hacer algo bien, sin nada que ejecutar

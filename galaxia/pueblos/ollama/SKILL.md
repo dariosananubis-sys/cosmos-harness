@@ -21,12 +21,18 @@ en Q4 ronda 7-8 GB: **se compara con la memoria libre real**, con el sistema abi
 ventaja propia aquí es la gestión de memoria: descarga el modelo de la RAM tras un rato de inactividad
 (`keep_alive`), así que entre usos no compite con el resto de la máquina.
 
-Gana a `mudler/LocalAI` (48.802★) y a `vllm-project/vllm` (90.680★) en este entorno: el primero se
-solapa con esto añadiendo backends que aquí no se usan, y el segundo está pensado para GPU dedicada,
-que esta máquina no tiene. Por debajo lleva `ggml-org/llama.cpp` (126.621★), que define el formato
-GGUF y es el estándar de facto; no entra como pueblo propio porque aquí nunca se usa suelto.
+Gana a `mudler/LocalAI` (48.802★) en solape de alcance para el mismo caso — servir un modelo con
+API compatible —: aquel añade backends que aquí no hacen falta. Con sus dos vecinos de este mismo
+país la relación es de reparto de tareas, no de descarte: `llama-cpp` (pueblo vecino, 126.862★) es
+el motor que lleva por debajo — define GGUF y es el estándar de facto —, y ollama es la capa de
+conveniencia encima (descarga, versión, `keep_alive`) a cambio de menos control fino que el que da
+usar `llama-cpp` suelto. Y `vllm` (pueblo vecino, 90.859★) gana en el caso que ollama no cubre:
+muchas peticiones concurrentes a la vez sobre `PagedAttention`, arquitectura pensada para servir
+tráfico de producción, no un único uso local.
 
 Ojo, el punto flojo real: el catálogo invita a bajar cosas que **no caben**, y `ollama run modelo` sin
 tag elige por su cuenta. Hay que escribir el `:Xb-qN` a mano. Un modelo que no entra no falla limpio:
 se arrastra intercambiando a disco y parece «lento», no «no cabe». Y `ollama serve` escucha en un
-puerto local sin autenticación — no exponerlo fuera de la máquina.
+puerto local sin autenticación — no exponerlo fuera de la máquina. Su vecino `vllm` pide además GPU
+dedicada (NVIDIA/CUDA o AMD/ROCm) para arrancar en modo acelerado; sin ella no es una alternativa
+viable, solo un pueblo que existe para cuando sí la haya.

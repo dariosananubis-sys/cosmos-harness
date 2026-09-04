@@ -5,11 +5,10 @@ padre: modelos-locales/recuperacion
 resumen: Trocea el texto para recuperarlo despues, sin arrastrar un marco de orquestacion entero.
 ---
 
-https://github.com/chonkie-inc/chonkie · MIT · 4.719★ · último push 2026-08-26 (comprobado por API de
-GitHub el 2026-09-01).
+https://github.com/feyninc/chonkie · MIT · 4.719★ · último push 2026-08-26 (comprobado 2026-09-03)
 
-**Ojo con la URL**: el repositorio vive hoy bajo `feyninc/chonkie` tras un cambio de organización; el
-enlace de arriba sigue redirigiendo, pero una cita nueva debería usar el destino real.
+**Nota de procedencia**: la URL canónica es la de arriba; `chonkie-inc/chonkie` (donde vivía antes)
+redirige aquí con un 301 desde el cambio de organización — comprobado en vivo el 2026-09-03.
 
 ```bash
 pip install chonkie                    # nucleo minimo

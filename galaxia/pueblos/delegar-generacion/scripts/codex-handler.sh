@@ -4,7 +4,7 @@
 # Compatible con codex-cli 0.147.0+ (usa `codex exec -s workspace-write`; `--full-auto` ya no
 # existe en el CLI, ver clap error "unexpected argument" — fix 2026-08-18)
 #
-# Uso: ./tools/codex-handler.sh "tu prompt" output/file.ext [--skip-review]
+# Uso: ./scripts/codex-handler.sh "tu prompt" output/file.ext [--skip-review]
 #
 # Diferencia con versiones anteriores:
 #   - Usa `codex exec -s workspace-write` en vez de `codex --approval-mode full-auto`
@@ -126,17 +126,12 @@ review_output() {
   lines=$(wc -l < "$file")
   echo "  ✓ Líneas generadas: $lines"
 
-  # Patrones prohibidos
-  local forbidden=(
-    "text-slate-"
-    "bg-white"
-    "bg-slate-"
-    "border-slate-"
-    "dark:"
-    "BentoCard"
-    "BentoPill"
-    "BentoStat"
-  )
+  # Patrones prohibidos: vacio por defecto, no asume ningun sistema de diseno concreto.
+  # Personaliza con CODEX_FORBIDDEN_PATTERNS="patron1,patron2,..." para tu propio proyecto.
+  local forbidden=()
+  if [[ -n "${CODEX_FORBIDDEN_PATTERNS:-}" ]]; then
+    IFS=',' read -ra forbidden <<< "$CODEX_FORBIDDEN_PATTERNS"
+  fi
   for pattern in "${forbidden[@]}"; do
     local count
     count=$(grep -c "$pattern" "$file" 2>/dev/null || true)
@@ -152,9 +147,13 @@ review_output() {
       && echo "  ✓ export default presente" \
       || { echo "  ✗ Falta export default"; ((errors++)) || true; }
 
-    grep -q "useTheme\|isDark\|c\.text\|c\.muted" "$file" \
-      && echo "  ✓ Sistema de diseño (c object / useTheme) detectado" \
-      || echo "  ⚠ AVISO: no se detecta c object / useTheme — verificar si aplica"
+    # Marcadores de tu propio sistema de diseño (hook de tema, objeto de tokens, etc.):
+    # CODEX_DESIGN_SYSTEM_MARKERS="useTheme|isDark|..." — vacio por defecto, se omite el check.
+    if [[ -n "${CODEX_DESIGN_SYSTEM_MARKERS:-}" ]]; then
+      grep -qE "$CODEX_DESIGN_SYSTEM_MARKERS" "$file" \
+        && echo "  ✓ Sistema de diseño (marcadores propios) detectado" \
+        || echo "  ⚠ AVISO: no se detectan los marcadores de tu sistema de diseño — verificar si aplica"
+    fi
   fi
 
   if [[ "$ext" == "js" || "$ext" == "ts" || "$ext" == "jsx" || "$ext" == "tsx" ]]; then

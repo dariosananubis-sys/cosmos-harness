@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: captura-recortada
 padre: agentes-ia/coste
 resumen: Captura solo la ventana o la region que hace falta; una pantalla entera es la imagen mas cara que se puede meter.
+origen: propio
 ---
 
 `scripts/captura-ventana.py` — herramienta propia, no de GitHub. macOS, requiere `pyobjc` (Quartz) y

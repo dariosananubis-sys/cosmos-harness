@@ -4,7 +4,7 @@
 
 ```bash
 mkdir -p /tmp/rp/mut
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 git archive 6a32781 -o /tmp/rp/pristino.tar        # el commit congelado de la revisión
 cp progress/revision-profunda-2026-09-02/pruebas/sabotear.py /tmp/rp/mut/
 cd /tmp/rp && python3 mut/sabotear.py M00          # línea base: tests OK, puente OK, validar rojo 1 (E19), 38/38

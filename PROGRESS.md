@@ -1,13 +1,89 @@
 # Progreso de COSMOS
 
-Actualizado: 2026-09-01, catálogo por nicho implementado y medido.
+Este fichero es el «estado real» que nombra `GOAL.md` §8, y por eso lleva pin: un estado sin commit
+envejece en silencio (auditoría F, afirmación 3: «sobre el mismo árbol actual» describía otro árbol).
+**Las cifras de abajo no se escriben a mano**: son la salida de `python3 -m cosmos estado` sobre el
+árbol de la rama `arreglos-2026-09-03` al cerrar el ciclo 2 de la auditoría 360 (2026-09-03; pin de
+partida `b0c1ebd`), y `tests/test_progress_generado.py` reejecuta el comando y compara el bloque:
+si divergen, la suite se pone roja (revisión R-19). Lo que cuenta hoy lo dice el comando.
+
+## Estado al cierre del ciclo 2 (2026-09-03)
+
+- Auditoría 360 (`progress/auditoria-360-2026-09-03/`): 80 hallazgos en seis informes; el ciclo 1
+  está en `CICLO-1/FIX.md` con la tabla de los 80 y `PENDIENTE-DARIO.md` con lo que espera su sí.
+- **El juez**: el holdout vive fuera del repositorio (`spec/NUCLEO.md` §11); la cifra de validación
+  se publica con `n` e intervalo, o no se publica. Sobre este árbol el único holdout existente (v1)
+  está QUEMADO por historia git: **la cifra honesta de acierto es DESCONOCIDA** hasta que exista
+  un holdout v2 ciego. La última medición válida antes de retirarlo: 8/20 = 40 % (IC95 22–61 %).
+- **El medidor** aplica el margen calibrado (+5,2 %) al veredicto de E16 y publica el peor caso por
+  fichero; el veredicto exacto (tiktoken) coincide con el aproximado y lo vigila el CI.
+- Suite: `python3 -m unittest discover -s tests -t .` y `-s puente/tests`; mutaciones
+  `python3 -m puente.tests.mutaciones` (todas vistas fallar).
+
+```text
+COSMOS  estado
+
+  Nodos por nivel
+    galaxia             1
+    sistema-solar      22
+    continente          8
+    pais               76
+    pueblo            297
+    mar                 6
+    oceano              5
+    rio                17
+    estrella           22
+    lluvia             14
+
+  Herramientas por oficio
+    ciberseguridad         35
+    agentes-ia             25
+    trading                22
+    web                    21
+    infraestructura        16
+    automatizacion         14
+    audiovisual            13
+    modelos-locales        13
+    cumplimiento           12
+    rendimiento            12
+    ingenieria-datos       11
+    documentos             11
+    refactorizacion        10
+    juegos                 10
+    saas                   10
+    extraccion             10
+    analitica              10
+    moviles                 9
+    cientifico              9
+    visibilidad             8
+    blockchain              8
+    embebidos               8
+                                (mayor 35, menor 8)
+
+  Ríos por momento (NUCLEO §2: los de mantenimiento se nombran sin describirse)
+    mantenimiento       8   acertar, arrancar, compilar, desenganchar, enganchar, generar, mapa, proyectar
+    trabajo             9   abrir, buscar, estado, gate, medir, memoria, saltar, secretos, validar
+
+  Contrato de pueblo (spec/PUEBLO.md) — lo que E21 no bloquea y hay que saldar por tandas
+    sin rival nombrado           69 de 297   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 63 más
+    sin apartado de avisos       38 de 297   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 32 más
+    sin fecha de comprobacion    54 de 297   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
+
+  Niveles sin un solo nodo
+    lago, luna, planeta, provincia
+    (no es un fallo: son niveles que este árbol no necesita)
+    (que ninguno esté muerto lo vigila tests/test_niveles_vivos.py)
+```
+
+Lo de abajo es el historial de cierres anteriores, tal como se escribió entonces: sus cifras son de
+sus fechas (el «árbol actual» del cierre del 2026-09-01 tenía 21 oficios y 127 pueblos).
 
 ## Cierre — catálogo por nicho
 
 ### Estado real
 
 - `contexto_inicial(arbol, nichos=None)` conserva índice, océanos y mapa estructural, pero no carga
-  ninguna ciudad ni pueblo. Con una selección incluye solo las skills invocables de esos sistemas.
+  ningún pueblo. Con una selección incluye solo las skills invocables de esos sistemas.
 - `cosmos medir` publica base y peor nicho; `--nicho` es repetible y `--combinacion a,b,c` mide una
   unión concreta. E16 usa siempre el peor nicho individual y nombra al culpable y el exceso.
 - `cosmos validar --nicho n` valida E19 contra esa selección.
@@ -185,7 +261,7 @@ externo dejó desincronizado; no se regeneró porque la restricción de esta ron
   `no_definida` cuando el universo es cero. `fuera_cosmos` nace como `no_medido` en el constructor.
 - Eliminado el método `auto`. `validar` usa siempre `[medicion].metodo` de `cosmos.toml`; el flag
   `--metodo` solo existe en `medir`. `exacto` sin tokenizador falla en voz alta.
-- Implementados E19 y `cosmos compilar` para ciudades/pueblos, en modo `symlink` relativo o
+- Implementados E19 y `cosmos compilar` para pueblos (y para el nivel intermedio retirado el 2026-09-01, `spec/TAXONOMIA.md`), en modo `symlink` relativo o
   `copia`. La copia excluye `.git`, `__pycache__` y nombres que empiezan por punto.
 - El manifiesto usa rutas relativas y escritura temporal + `os.replace`. El lock
   `.cosmos/compilar.lock` se crea con `O_CREAT|O_EXCL` antes de leer o escribir el estado.

@@ -1,12 +1,13 @@
 #!/bin/bash
-# Vigila que el acceso remoto al iMac siga vivo y lo reactiva si algo lo apaga.
+# Vigila que el acceso remoto a este Mac siga vivo y lo reactiva si algo lo apaga.
 # Lo apaga: actualizaciones de macOS, "Compartir" en Ajustes, un reset de energia.
 # Instalado en /usr/local/sbin/ y lanzado cada 5 min por
 # /Library/LaunchDaemons/es.example.acceso-remoto-watchdog.plist
-# Fuente versionada: tools/acceso-remoto-watchdog.sh
+# Fuente versionada: scripts/acceso-remoto-watchdog.sh
 
 LOG="/var/log/acceso-remoto-watchdog.log"
 TS="$(command -v tailscale || echo /opt/homebrew/bin/tailscale)"
+TS_HOSTNAME="${TS_HOSTNAME:-mac-remoto}"
 CAMBIOS=0
 
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; }
@@ -42,7 +43,7 @@ except Exception: print("")' 2>/dev/null)"
     # --ssh=false a proposito: con Tailscale SSH encendido, tailscaled intercepta el
     # puerto 22 y decide por ACL del tailnet, ignorando authorized_keys. Eso dejo a
     # a un usuario fuera ("tailnet policy does not permit you to SSH to this node").
-    "$TS" up --ssh=false --hostname=imac-remoto --accept-risk=all --timeout=20s >/dev/null 2>&1
+    "$TS" up --ssh=false --hostname="$TS_HOSTNAME" --accept-risk=all --timeout=20s >/dev/null 2>&1
     NUEVO="$("$TS" status --json 2>/dev/null | /usr/bin/python3 -c \
       'import json,sys
 try: print(json.load(sys.stdin).get("BackendState",""))

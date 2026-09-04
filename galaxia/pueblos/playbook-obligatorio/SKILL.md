@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: playbook-obligatorio
 padre: agentes-ia
 resumen: Deniega escribir hasta haber leido el manual en ESTA sesion; si lo editas, invalida las lecturas anteriores.
+origen: propio
 ---
 
 Destilado generico del mecanismo que hacia cumplir una skill obligatoria en un arnes propio (alli

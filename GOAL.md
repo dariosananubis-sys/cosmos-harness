@@ -25,8 +25,11 @@ cuadro de mando que no mienta. Lo que no pasa esa prueba es una categoría temá
 no acota nada al entrar en ella.
 
 Las dos mitades parecen tirar en contra: cuantos más oficios, más contexto. **Solo lo hacen si todo
-lo que existe está cargado.** Con contención estricta, el universo puede crecer sin límite mientras
-el coste de entrada se queda quieto. Ese es el proyecto entero, en una frase.
+lo que existe está cargado.** Con contención estricta, el universo puede crecer sin límite —más
+oficios no cuestan nada al entrar— mientras lo que se paga se acota a **un oficio**: el coste de
+entrada es el del oficio activo más poblado (≈28 tokens por herramienta, medido el 2026-09-03), no
+el del universo. Ese es el proyecto entero, en una frase, y por eso hay sitio para unas pocas
+herramientas por oficio, no cincuenta.
 
 Dos exigencias que el encargo fija y que no son negociables:
 
@@ -172,7 +175,10 @@ Una pieza está hecha cuando, y solo cuando:
 
 1. El validador pasa en verde y **se ha visto fallar a propósito** (existe una prueba que lo rompe
    y confirma que el rojo sale).
-2. El medidor da un número real de tokens de contexto inicial, medido, no estimado.
+2. El medidor da un número de tokens de contexto inicial obtenido con el método declarado en
+   `cosmos.toml`, con su margen calibrado publicado y aplicado al veredicto, y nunca un
+   `no_medido` sumado como cero. «Medido, no estimado» exigía un tokenizador que §5 prohíbe
+   pagar y dejaba toda pieza del repo sin poder estar terminada (auditoría A-03, 2026-09-03).
 3. El otro (Claude o Codex) la ha revisado con premisa invertida y ha dicho qué intentó.
 4. No hay ningún elemento huérfano ni ninguna regla que dependa de que alguien se acuerde.
 

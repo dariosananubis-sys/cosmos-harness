@@ -23,7 +23,7 @@ Otro agente estuvo commiteando en paralelo (`939692c`, `04c3edc`: specs y tests 
 **Ningún fichero de código cambió entre los dos HEAD**, comprobado uno a uno:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 for f in cosmos/medir.py cosmos/modelo.py cosmos/abrir.py cosmos/acertar.py \
          cosmos/compilar.py cosmos/guardarrailes.py cosmos/validar.py puente/sesion.py; do
   a=$(git show 6a32781:$f | shasum -a 256 | cut -c1-12); b=$(shasum -a 256 $f | cut -c1-12)
@@ -110,25 +110,25 @@ evento entero**, y las demás no se miran nunca.
 ## Medido
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 
 # A) control — cp a la ruta de veredicto, cwd DENTRO del repo
 echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"rp",
- "cwd":"/Users/dariosatino/cosmos",
- "tool_input":{"command":"cp /tmp/x.md /Users/dariosatino/cosmos/galaxia/COSMOS.md"}}' \
+ "cwd":"~/cosmos",
+ "tool_input":{"command":"cp /tmp/x.md ~/cosmos/galaxia/COSMOS.md"}}' \
  | python3 -m puente.sesion --formato exit2; echo "EXIT=$?"
 
 # B) EL MISMO destino y el MISMO cwd; lo único que cambia es que el origen
 #    del cp vive en otro checkout de COSMOS
 echo '{"hook_event_name":"PreToolUse","tool_name":"Bash","session_id":"rp",
- "cwd":"/Users/dariosatino/cosmos",
- "tool_input":{"command":"cp /tmp/rp/limpio/README.md /Users/dariosatino/cosmos/galaxia/COSMOS.md"}}' \
+ "cwd":"~/cosmos",
+ "tool_input":{"command":"cp /tmp/rp/limpio/README.md ~/cosmos/galaxia/COSMOS.md"}}' \
  | python3 -m puente.sesion --formato exit2; echo "EXIT=$?"
 ```
 
 ```
 A) COSMOS  sesion  rojo  escritura a mano sobre una ruta de veredicto
-   /Users/dariosatino/cosmos/galaxia/COSMOS.md  (protegida: …/galaxia/COSMOS.md)
+   ~/cosmos/galaxia/COSMOS.md  (protegida: …/galaxia/COSMOS.md)
    EXIT=2                                  <- deniega, correcto
 
 B) <cero bytes de salida>
@@ -139,9 +139,9 @@ Repetido con un `cosmos.toml` **válido** copiado a `/tmp/rp/falso/` (sirve cual
 hace falta que sea otro clon del proyecto):
 
 ```
-D2) cat /tmp/rp/falso/galaxia/galaxia.md > /Users/dariosatino/cosmos/galaxia/COSMOS.md
+D2) cat /tmp/rp/falso/galaxia/galaxia.md > ~/cosmos/galaxia/COSMOS.md
     EXIT=0   salida = 0 bytes
-E2) cat /etc/hosts                        > /Users/dariosatino/cosmos/galaxia/COSMOS.md
+E2) cat /etc/hosts                        > ~/cosmos/galaxia/COSMOS.md
     EXIT=2   COSMOS  sesion  rojo  escritura a mano sobre una ruta de veredicto
 ```
 
@@ -165,16 +165,16 @@ escribe una orden. Se reimplementó con una regex en vez de reusarlo:
 python3 -c "
 import sys; sys.path.insert(0,'.')
 from puente.sesion import ordenes, objetivos_de_escritura, _rutas_del_evento
-cmd='cp /tmp/rp/limpio/README.md /Users/dariosatino/cosmos/galaxia/COSMOS.md'
+cmd='cp /tmp/rp/limpio/README.md ~/cosmos/galaxia/COSMOS.md'
 print('objetivos_de_escritura:', [objetivos_de_escritura(o) for o in ordenes(cmd)])
-print('_rutas_del_evento    :', _rutas_del_evento({'tool_input':{'command':cmd},'cwd':'/Users/dariosatino/cosmos'}))"
+print('_rutas_del_evento    :', _rutas_del_evento({'tool_input':{'command':cmd},'cwd':'~/cosmos'}))"
 ```
 
 ```
-objetivos_de_escritura: [['/Users/dariosatino/cosmos/galaxia/COSMOS.md']]     <- exactamente el destino
+objetivos_de_escritura: [['~/cosmos/galaxia/COSMOS.md']]     <- exactamente el destino
 _rutas_del_evento    : [/tmp/rp/limpio,                                        <- gana este
-                        /Users/dariosatino/cosmos/galaxia,
-                        /Users/dariosatino/cosmos]
+                        ~/cosmos/galaxia,
+                        ~/cosmos]
 ```
 
 **Arreglo:** en `_rutas_del_evento`, para `Bash`, usar `ordenes()` + `objetivos_de_escritura()` en
@@ -194,13 +194,13 @@ además lo calcula sobre `evaluada` (= la selección de nichos), mientras `vered
 —el que decide el código de salida y E16— lo calcula sobre `casos.peor`.
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 # El toml va con rutas ABSOLUTAS: `--config` fuera del repo resuelve `arbol` contra
 # el directorio del propio fichero de configuración, no contra el repo (ver B10).
 sed -e 's/entrada = 4000/entrada = 3000/' \
-    -e 's#arbol = "galaxia"#arbol = "/Users/dariosatino/cosmos/galaxia"#' \
-    -e 's#indice = "galaxia/COSMOS.md"#indice = "/Users/dariosatino/cosmos/galaxia/COSMOS.md"#' \
-    -e 's#registro = "registro"#registro = "/Users/dariosatino/cosmos/registro"#' \
+    -e 's#arbol = "galaxia"#arbol = "~/cosmos/galaxia"#' \
+    -e 's#indice = "galaxia/COSMOS.md"#indice = "~/cosmos/galaxia/COSMOS.md"#' \
+    -e 's#registro = "registro"#registro = "~/cosmos/registro"#' \
     cosmos.toml > /tmp/rp/c3000abs.toml
 
 python3 -m cosmos medir --config /tmp/rp/c3000abs.toml --nicho embebidos | grep -E "Peor con agua|Presupuesto"
@@ -217,7 +217,7 @@ Y por la vía que originó el fallo original (`[nichos] activos` en el `cosmos.t
 flag, sobre HEAD **sin sabotear**:
 
 ```bash
-cd /Users/dariosatino/cosmos    # (ejecutado sobre el tar congelado de 6a32781)
+cd ~/cosmos    # (ejecutado sobre el tar congelado de 6a32781)
 sed 's/entrada = 4000/entrada = 3000/; s/activos = \[\]/activos = ["juegos"]/' cosmos.toml > c-juegos.toml
 python3 -m cosmos medir  --config c-juegos.toml | grep Presupuesto
 python3 -m cosmos medir  --config c-juegos.toml >/dev/null 2>&1; echo "medir EXIT=$?"
@@ -250,7 +250,7 @@ protege nada, solo rompe el repositorio»*), vivo en `compilar` y sin tocar.
 
 ```bash
 rm -rf /tmp/rp/orf2 && mkdir -p /tmp/rp/orf2
-cd /Users/dariosatino/cosmos && git archive 6a32781 | tar -x -C /tmp/rp/orf2
+cd ~/cosmos && git archive 6a32781 | tar -x -C /tmp/rp/orf2
 cd /tmp/rp/orf2
 python3 -m cosmos compilar --config ejemplo.toml | tail -1   # estado normal
 rm -rf .cosmos                                               # se limpia un artefacto generado
@@ -297,7 +297,7 @@ así que cada regeneración estrecha los permisos del fichero que se commitea.
 
 ```bash
 rm -rf /tmp/rp/b04 && mkdir -p /tmp/rp/b04
-cd /Users/dariosatino/cosmos && git archive HEAD | tar -x -C /tmp/rp/b04
+cd ~/cosmos && git archive HEAD | tar -x -C /tmp/rp/b04
 cd /tmp/rp/b04
 ls -l galaxia/COSMOS.md | awk '{print $1, $NF}'
 python3 -m cosmos generar >/dev/null
@@ -334,7 +334,7 @@ antes del `os.replace`.
 divisor de la línea siguiente, `c.ajuste.total`, se quedó sin guarda.
 
 ```bash
-cd /Users/dariosatino/cosmos && echo '{}' > /tmp/rp/dict.json
+cd ~/cosmos && echo '{}' > /tmp/rp/dict.json
 python3 -m cosmos acertar --encargos /tmp/rp/dict.json 2>&1 | tail -3
 ```
 
@@ -355,7 +355,7 @@ El fix de hoy sustituyó `range(20)` por `codigos_comprobados()` para que E20 tu
 consiguió, y dejó dos cabos.
 
 ```bash
-cd /Users/dariosatino/cosmos && python3 -c "
+cd ~/cosmos && python3 -c "
 from cosmos.validar import rango_comprobado, codigos_comprobados
 from cosmos.guardarrailes import normalizar_codigo
 print('rango publicado:', rango_comprobado())
@@ -393,7 +393,7 @@ El fix de hoy cerró el caso de la ruta absoluta (H06 del primer revisor) relati
 vacío —que al menos se nota— sino **otra respuesta creíble**.
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 for p in "tests/test_x.py" "tests//test_x.py" "./tests/test_x.py" "~/x.py"; do
   echo -n "[$p] -> "
   python3 -m cosmos abrir web --tocando "$p" --json \
@@ -427,7 +427,7 @@ La condición de robo es `pid is not None and pid != os.getpid() and _proceso_vi
 `!= os.getpid()` convierte el propio cerrojo en «rancio» para el mismo proceso.
 
 ```bash
-cd /Users/dariosatino/cosmos && python3 -c "
+cd ~/cosmos && python3 -c "
 import tempfile, pathlib
 from cosmos.modelo import cerrojo
 with tempfile.TemporaryDirectory() as t:
@@ -511,7 +511,7 @@ fichero fuera del repositorio resuelve `arbol` contra el directorio del propio `
 una configuración movida de sitio:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 sed 's/entrada = 4000/entrada = 3000/' cosmos.toml > /tmp/rp/c3000.toml   # rutas RELATIVAS
 ls -d /tmp/rp/galaxia                                                     # no existe
 python3 -m cosmos medir   --config /tmp/rp/c3000.toml | grep -E "Peor con agua|Descarga|Presupuesto"
@@ -544,9 +544,9 @@ Bien resuelto, para que conste: `estado` y `mapa` sobre el árbol vacío respond
 no traía `exit_code`, el valor por defecto tranquilizador es **0**.
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 echo '{"hook_event_name":"PostToolUse","tool_name":"Bash","session_id":"rp",
- "cwd":"/Users/dariosatino/cosmos",
+ "cwd":"~/cosmos",
  "tool_response":"AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}' \
  | python3 -m puente.sesion --formato json
 ```
@@ -689,7 +689,7 @@ sobre el mismo árbol, no la presencia de una cadena.
 `unittest.main()` está escrito **a media altura** del fichero, con clases definidas después:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 for f in tests/*.py puente/tests/*.py; do
   n=$(grep -n "unittest.main()" $f | cut -d: -f1); u=$(grep -n "^class " $f | tail -1 | cut -d: -f1)
   [ -n "$n" ] && [ "$n" -lt "$u" ] && echo "  $f: main() en $n, ultima clase en $u"
@@ -728,7 +728,7 @@ El commit de hoy dice de `escribir_atomico`: *«Vivía solo en `compilar`, y el 
 igual»*. No se movió: se **copió**.
 
 ```bash
-cd /Users/dariosatino/cosmos && python3 -c "
+cd ~/cosmos && python3 -c "
 import re, pathlib, hashlib
 def cuerpo(f, n):
     t = pathlib.Path(f).read_text()

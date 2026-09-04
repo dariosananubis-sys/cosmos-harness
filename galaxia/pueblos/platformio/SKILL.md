@@ -31,11 +31,12 @@ pio device monitor      # consola serie
 Gana a instalar a mano la cadena de compilacion de cada fabricante (`esp-idf` por un lado,
 `raspberrypi/pico-sdk` por otro, STM32Cube por otro): un solo comando cubre mas de cuarenta
 plataformas y las librerias se fijan por proyecto en `platformio.ini`, no en una carpeta global
-compartida. En una maquina justa de memoria, cada IDE nativo aparte es lo que revienta el disco.
+compartida.
 
 Y lo que no hace bien: por debajo sigue llamando al framework del fabricante, asi que cuando el
 error es de verdad — una particion mal calculada, un `sdkconfig` que no aplica — la capa de en medio
 estorba y hay que ir a leer la documentacion de `esp-idf` igualmente. Ademas cada `platform` que
-anadas se descarga entera a `~/.platformio`: cuatro plataformas ya son varios gigas.
+anadas se descarga entera a `~/.platformio`: cuatro plataformas ya son varios gigas, y en conjunto
+pesa mas en disco que instalar cada IDE nativo por separado.
 
 Necesita hardware fisico para `upload` y `monitor`. `pio run` a secas compila y no prueba nada.

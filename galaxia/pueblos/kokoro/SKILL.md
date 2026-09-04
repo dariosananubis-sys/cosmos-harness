@@ -5,7 +5,7 @@ padre: audiovisual/voz
 resumen: Voz sintetica de calidad con un modelo de ochenta y dos millones de parametros que cabe en todo.
 ---
 
-El modelo: https://github.com/hexgrad/kokoro - Apache-2.0 - 8.648 estrellas - **ultimo push
+https://github.com/hexgrad/kokoro · Apache-2.0 · 8.648★ · **ultimo push
 2025-08-06** (comprobado por API de GitHub el 2026-09-01), es decir, casi trece meses parado.
 
 Lo que se ejecuta de verdad: https://github.com/thewh1teagle/kokoro-onnx - MIT - 2.694 estrellas -
@@ -27,12 +27,12 @@ audio, sr = kokoro.create("Texto de ejemplo para la locucion.", voice="ef_dora",
 sf.write("salida.wav", audio, sr)
 ```
 
-Ochenta y dos millones de parametros: consume dos o tres gigas y corre en CPU sin grafica dedicada,
-lo que en una maquina justa de memoria es la diferencia entre usable e inviable. Gana a `rhasspy/piper` (11,3k
-estrellas, MIT), que era el sintetizador mas conocido del hueco, por un motivo comprobable y no
-opinable: ese repositorio esta **archivado** y su ultimo push es de 2025-08-26. Frente a
-`espeak-ng/espeak-ng`, que sigue vivo y pesa muchisimo menos, gana en calidad — aquel suena robotico
-y no vale para una entrega final.
+Ochenta y dos millones de parametros: consume dos o tres GB y corre en CPU sin grafica dedicada,
+asi que sirve para sintesis de voz local en un portatil normal sin GPU — justo lo que este hueco
+necesita. Gana a `rhasspy/piper` (11,3k estrellas, MIT), que era el sintetizador mas conocido del
+hueco, por un motivo comprobable y no opinable: ese repositorio esta **archivado** y su ultimo push
+es de 2025-08-26. Frente a `espeak-ng/espeak-ng`, que sigue vivo y pesa muchisimo menos, gana en
+calidad — aquel suena robotico y no vale para una entrega final.
 
 Y lo que no hace bien — con una advertencia sobre el propio criterio de admision de este catalogo:
 **el repositorio del modelo tampoco esta vivo** (push 2025-08-06). Lo que esta vivo es el ejecutor

@@ -9,10 +9,10 @@ Models (all free via OpenRouter):
   Poolside → poolside/laguna-m.1:free             (131k ctx, code-specialist)
 
 Usage:
-  python tools/multi-review.py                        # reviews git diff HEAD
-  python tools/multi-review.py --context "auth refactor"
-  python tools/multi-review.py --diff-file patch.diff
-  python tools/multi-review.py --last-commit          # reviews HEAD~1..HEAD
+  python scripts/multi-review.py                        # reviews git diff HEAD
+  python scripts/multi-review.py --context "auth refactor"
+  python scripts/multi-review.py --diff-file patch.diff
+  python scripts/multi-review.py --last-commit          # reviews HEAD~1..HEAD
 
 Exit codes:
   0  All families agree → safe to merge
@@ -164,17 +164,19 @@ AUDIT_SYSTEM_PROMPT = textwrap.dedent("""
 You are a senior frontend design engineer auditing a React codebase for visual and UX quality.
 Focus on what makes the UI look generic, AI-generated, or low-effort. Be specific and brutal.
 
-Design system rules for this project:
-- Typography: IBM Plex Sans (body) + IBM Plex Mono (code/labels). NO system fonts, no Inter.
-- Colors: CSS variables only (--color-accent: #56b8d4, --color-surface, etc). NO hardcoded hex, no Tailwind arbitrary values.
-- Theme: ThemeContext + useTheme hook. NEVER Tailwind dark: prefix. NEVER inline isDark ternaries more than 2 levels deep.
-- Spacing/layout: CSS vars or Tailwind scale (no arbitrary px values).
-- Motion: framer-motion for meaningful transitions. No CSS transition spam. No animation on every element.
-- Components: no bare <div> grids when a semantic element fits. No className spaghetti.
+Design system rules for THIS project (edit this block to match your own conventions before running):
+- Typography: <your body typeface> + <your code/label typeface>. No system-default fonts if your
+  project requires a distinct look.
+- Colors: <your convention — CSS variables, design tokens, tailwind config>. No stray hardcoded
+  values if your project forbids them.
+- Theme: <your theming mechanism, if any>.
+- Spacing/layout: <your scale>.
+- Motion: <your animation library/convention>.
+- Components: <your composition rules>.
 
-Anti-patterns to flag as critical/high:
-- Hardcoded colors (#fff, rgb(), or Tailwind bg-white/text-slate-*)
-- text-gray-* / text-zinc-* instead of CSS vars
+Anti-patterns to flag as critical/high (generic defaults — keep or adjust):
+- Hardcoded colors instead of your design tokens
+- Utility classes that bypass your design system
 - rounded-full on rectangular cards
 - shadow-lg everywhere (overused depth)
 - Generic empty states ("No data available")

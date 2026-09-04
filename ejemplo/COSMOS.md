@@ -1,6 +1,6 @@
 # COSMOS — cosmos-ejemplo
 
-Organiza proyectos ficticios para demostrar la taxonomía completa.
+2 oficios, 1 mar que los cruzan y 2 oceanos siempre presentes. Organiza proyectos ficticios para demostrar la taxonomía completa.
 
 ## Sistemas solares
 

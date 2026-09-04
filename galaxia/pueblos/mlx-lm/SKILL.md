@@ -21,9 +21,10 @@ abiertos, empieza el intercambio. Por encima de ~13B cuantizado **no entra**, y 
 arregle. `mlx-community` en HuggingFace trae miles de modelos ya convertidos, así que casi nunca hay
 que cuantizar a mano.
 
-Gana en esta máquina concreta a `ggml-org/llama.cpp` (126.621★, el estándar de facto) por la memoria
-unificada: no hay copia entre procesador y gráfica, que es justo donde se cae todo lo demás cuando la memoria escasea.
-La señal de madurez más fuerte es que el propio Ollama lo adoptó como backend en Apple Silicon.
+Gana a `ggml-org/llama.cpp` (126.621★, el estándar de facto) en Apple Silicon por la memoria
+unificada: no hay copia entre procesador y gráfica, la arquitectura que evita justo el punto donde
+se cae todo lo demás cuando la memoria escasea. La señal de madurez más fuerte es que el propio
+Ollama lo adoptó como backend en Apple Silicon.
 
 Es además **la única vía real de ajuste fino aquí**: `mlx_lm.lora` hace LoRA/QLoRA sobre esa base.
 Los entrenadores del ecosistema NVIDIA quedan descartados por hardware, `unslothai/unsloth` (75.414★)
@@ -32,4 +33,5 @@ incluido: exige CUDA y no corre en este Mac.
 Ojo: cuantizar no es gratis. Un 4-bit pierde calidad de forma que no se ve en una prueba corta y sí en
 una tarea larga, así que comparar modelos a ojo entre cuantizaciones distintas no vale — para eso está
 `lm-evaluation-harness`. Y el ajuste fino LoRA compite por la misma RAM: entrenar y servir a la vez no
-cabe.
+cabe. Y lo de fondo: esto solo corre en Apple Silicon; el estándar portable, el que corre en
+cualquier máquina, es `llama-cpp`.

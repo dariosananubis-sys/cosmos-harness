@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=\"${CLAUDE_PROJECT_DIR:-.}\"${PYTHONPATH:+:$PYTHONPATH} python3 -m puente.sesion || echo '{\"systemMessage\":\"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)\"}'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=\"${CLAUDE_PROJECT_DIR:-.}\"${PYTHONPATH:+:$PYTHONPATH} python3 -m puente.sesion || echo '{\"systemMessage\":\"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)\"}'"
+          }
+        ],
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=\"${CLAUDE_PROJECT_DIR:-.}\"${PYTHONPATH:+:$PYTHONPATH} python3 -m puente.sesion || echo '{\"systemMessage\":\"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)\"}'"
+          }
+        ],
+        "matcher": "Bash|Read|Grep|Glob|Task"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=\"${CLAUDE_PROJECT_DIR:-.}\"${PYTHONPATH:+:$PYTHONPATH} python3 -m puente.sesion || echo '{\"systemMessage\":\"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)\"}'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PYTHONPATH=\"${CLAUDE_PROJECT_DIR:-.}\"${PYTHONPATH:+:$PYTHONPATH} python3 -m puente.sesion || echo '{\"systemMessage\":\"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}

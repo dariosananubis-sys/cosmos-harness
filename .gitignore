@@ -8,3 +8,15 @@ __pycache__/
 # `puente/secretos.py` ya prohíbe versionarlos; esto evita que lleguen al índice.
 .cosmos/
 .claude/skills/
+
+# El examen de la contra-metrica NO se versiona: quien tiene el repo no puede tener el
+# holdout (auditoria B-02). Vive en ~/.cosmos/holdout/ y solo su .SELLO viaja en git.
+pruebas/encargos-validacion.json
+
+# El alta (`cosmos configurar`) escribe perfil y credenciales FUERA del repo (~/.cosmos). Por si
+# alguien los copia dentro: nunca se versionan (el escáner de secretos también los prohíbe).
+credenciales.txt
+credenciales.*.txt
+# la plantilla vacía sí viaja: es producto, no dato
+!docs/credenciales.plantilla.txt
+perfil.toml

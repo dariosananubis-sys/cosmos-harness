@@ -44,7 +44,7 @@ contradicción. Y si el `padre` no resuelve, salta E02. La galaxia no declara `p
 tampoco cierra ciclos, y el agua no tiene `padre` en absoluto.
 
 > **E04 («ciclo») queda retirada.** Su hueco en la numeración **no se reutiliza**: los códigos
-> siguen siendo E00–E03 y E05–E20. La aciclicidad no se vigila porque el diseño la ganó; fingir
+> siguen siendo E00–E03 y E05–E21. La aciclicidad no se vigila porque el diseño la ganó; fingir
 > que se vigila con una comprobación que ningún árbol legal puede disparar es peor que no tenerla
 > (`GOAL.md` §7: un verde que nunca ha dado rojo no se distingue de uno roto).
 
@@ -230,10 +230,16 @@ entrada aplanada exporta **el directorio completo de la skill**, con su `SKILL.m
 referencia que tenga al lado. En `--modo copia` se excluyen `.git`, `__pycache__` y los ficheros que
 empiezan por punto.
 
-La API conserva `nichos=None` como compilación completa por compatibilidad. La CLI sin `--nicho`
-también conserva esa vista completa; el runtime acotado se materializa siempre con el flag explícito.
-Cambiar de nicho convierte las entradas registradas de los demás nichos en obsoletas y les aplica,
-sin excepción, la regla por hash de §7.
+**`nichos=None` significa aquí lo contrario que en §2, y se dice en vez de disimularse**
+(auditoría A-04): en el catálogo de entrada, «sin selección» es **ningún** pueblo (la entrada base,
+lo que se paga sin haber elegido oficio); en `compilar`, «sin selección» es la vista **completa**,
+porque el bootstrap de un clon (`arrancar`) tiene que dejar E19 en verde sin que nadie haya elegido
+nicho todavía, y el manifiesto registra esa ausencia como `nichos = null` para que E19 compare lo
+mismo que se compiló. La CLI sin `--nicho` materializa esa vista completa **y lo imprime** («vista
+COMPLETA: N pueblos de todos los nichos»); el runtime acotado se materializa con el flag o con
+`[nichos] activos`, que es donde se decide de verdad. `tests/test_nichos_semantica.py` fija las dos
+semánticas a la vez: cambiar una sin la otra sale en rojo. Cambiar de nicho convierte las entradas
+registradas de los demás nichos en obsoletas y les aplica, sin excepción, la regla por hash de §7.
 
 E18 se comprueba sobre el conjunto `{nombre(n) : cosmos(n) = pueblo}`.
 
@@ -315,6 +321,14 @@ metodo = "aprox"                     # "aprox" | "exacto"
 [presupuesto]
 solapamiento = 0.25                  # umbral de E17 (Jaccard entre conjuntos de palabras, frase a frase)
 ```
+
+### El perfil local acota el catálogo del usuario, no el juez
+
+`cosmos configurar` (2026-09-03) escribe `~/.cosmos/perfil.toml` con los oficios y las herramientas
+que esa persona usa. Cuando `cosmos.toml` no fija `[nichos] activos`, mandan los oficios del perfil;
+y las herramientas del perfil dejan fuera del catálogo y de la vista los pueblos no elegidos. **E16
+no lo mira**: el juez del presupuesto mide siempre el peor nicho con todos sus pueblos, porque el
+techo tiene que valer para cualquier perfil, no para el más frugal.
 
 ## 9. Semántica de `moja`, y qué significa «lo moja todo» (E11)
 
@@ -404,3 +418,91 @@ y por debajo del umbral, con margen por los dos lados.
 E17 salta cuando `solape(a, b) > presupuesto.solapamiento`. El error nombra los dos nodos, el
 porcentaje y **las dos frases concretas**, porque un rojo que no enseña la frase obliga a leer los
 dos ficheros enteros.
+
+## 11. El juez: dónde vive el examen y cuándo vale su cifra
+
+**El problema (auditoría 360, informe B, 2026-09-03):** la cifra de acierto subía de 40 % a 100 %
+copiando las veinte consultas del holdout a los resúmenes, con `validar` verde, `medir` más barato
+y `--minimo 95` en 0. El examen estaba en claro dentro del repositorio; la única guarda anti-Goodhart
+(`brecha = ajuste − validación`) alarmaba cuando el ajuste iba por delante y **felicitaba** cuando
+la validación iba por delante, que es la firma exacta del examen filtrado; y el criterio de
+corrección se aflojaba con la suite entera en verde. Todo lo de abajo es estructural: ninguna de
+estas reglas depende de que alguien se acuerde.
+
+**Dónde vive cada cosa.**
+
+| Pieza | Dónde | Se versiona |
+|---|---|---|
+| Conjunto de **ajuste** (`pruebas/encargos.json`) | en el repositorio | sí: se mira al trabajar |
+| Conjunto de **validación** (holdout) | `~/.cosmos/holdout/encargos-validacion.json`, o `$COSMOS_HOLDOUT`, o `--validacion` | **nunca** (`.gitignore` + prueba que lo exige) |
+| **Sello** del holdout (`pruebas/encargos-validacion.SELLO`) | en el repositorio | sí: sha256 del contenido, fecha, `n` y **procedencia** |
+
+Quien tiene el repositorio no puede tener el examen: un holdout que viaja con el sistema que evalúa
+es un ejercicio resuelto. El sello ata el contenido exacto y declara **quién escribió el examen y en
+qué condiciones** (`--sellar --procedencia "..."`, obligatorio): el primero lo escribió quien ajusta
+el árbol, con el árbol delante, y solo se supo leyendo el registro. Un examen ciego lo dicta otra
+persona, o sale de encargos reales, sin ver el árbol.
+
+**Cuándo la cifra de validación es publicable.** `cosmos acertar` publica «la cifra que vale» solo si
+se cumplen TODAS, y si falta alguna dice cuál y **no da número**:
+
+1. El holdout existe y se lee. Sin él: `Validación ..... NO DISPONIBLE` — nunca se sustituye por la
+   cifra de ajuste.
+2. **No está versionado** en este repositorio, y **ninguna de sus consultas aparece en la historia
+   git** de ningún `.json` (`git rev-list --all --objects` + `cat-file --batch`): un fichero borrado
+   sigue legible con `git show`. Si git no está, la procedencia es «no comprobada», que tampoco
+   publica. Trivalente, como el veredicto del presupuesto.
+3. El sello está **vigente**: existe y su sha256 coincide. Roto (editado después de sellar) o
+   ausente, no hay cifra. Antes, con el sello roto, la salida decía «no publicable» y cuatro líneas
+   después «la cifra que vale es 40 %», y `--minimo` salía 0.
+4. La brecha `ajuste − validación` no baja de **−15 puntos**. Una validación muy por encima del
+   ajuste no es un elogio: es la señal más grave que el sistema puede dar (examen filtrado a los
+   resúmenes, o ajuste roto).
+
+**Íntegra no es atribuible, y el comando lo dice en cada salida (revisión R-01, 2026-09-03).** Todo
+lo de arriba comprueba la **integridad** del examen (fijado, no quemado, no calcado, brecha sana). Lo
+que nadie puede comprobar en este repositorio es la **atribución**: que la cifra describa el árbol y
+no a quien escribió el examen. La `procedencia` del sello es una declaración de texto libre —vale lo
+que vale— y el holdout vive en una ruta que el mismo agente que ajusta el árbol puede leer. Por eso
+`cosmos acertar` **nunca dice «la cifra que vale»** y **no ofrece listón** (`--minimo` se retiró):
+publica «cifra íntegra, NO ATRIBUIBLE» o «DESCONOCIDA», y con ella lo único verificable:
+
+- **Compromiso**: el primer commit que versiona el `.SELLO` con este sha256, cuántos commits van
+  después y cuántos resúmenes cambiaron desde entonces. Prueba que el examen no cambió; no prueba
+  ceguera.
+- **Calcado**: solape medio (Jaccard) entre cada petición y la línea del catálogo que espera, en la
+  validación y en el ajuste. Un examen fabricado copiando las líneas del catálogo —el ataque R-01—
+  da 100 %; con tres palabras distintivas por línea, 23 %; el holdout v1, escrito por una persona,
+  6 %. Por encima del 20 % la cifra no es íntegra: no es un examen, es una copia. Es una señal
+  contra la fabricación burda, no una prueba de ceguera. Se mide también en
+  el ajuste porque el ajuste vive en el repo y se puede fabricar igual, y entonces la brecha no
+  significa nada.
+- **Candidatos**: la cifra se publica «sobre N líneas de catálogo»; una nota sobre 306 pueblos y
+  otra sobre 266 no son comparables (R-02), y el gate `P02` exige válvula para toda baja neta de
+  pueblos.
+
+Cuando exista un compromiso previo verificable de un tercero (examen firmado por alguien que no
+ajusta el árbol, o generado desde encargos reales fuera del repo), este párrafo se revisa y el
+listón se reabre. Hasta entonces, la nota del árbol es, con razón, DESCONOCIDA.
+
+**Cómo se publica.** Siempre con su `n` y su intervalo de Wilson al 95 %: `8/20 (40 %; IC95 22–61 %;
+n=20)`. Con veinte encargos cada acierto vale cinco puntos; publicar «40 %» a secas es precisión
+falsa. Junto a la cifra va la **cobertura** (oficios sin encargo, encargos a profundidad ≥ 3) y la
+procedencia declarada en el sello.
+
+**Qué se puntúa.** La **línea literal** que el agente tiene delante: las del índice (`nombre:
+resumen`) y las del catálogo tal cual las renderiza `medir.lineas_de_catalogo` — la misma función
+que las pinta, para que no puedan divergir. Hasta el 2026-09-03 el juez añadía la ruta completa a
+cada línea; la decisión valía diez puntos de la cifra publicada y a favor. Un pueblo profundo
+puntúa por su nombre y su resumen, como se lee.
+
+**Qué cuenta como acierto** (`_acierta`): el nodo exacto o cualquiera **bajo** él (bajar de más no
+es fallar). Quedarse en el ancestro **no** es llegar, y un prefijo de texto («webs» por «web») no
+es un prefijo de ruta. La tabla vive en `tests/test_juez_honesto.py` y las mutaciones M60–M67 de
+`puente/tests/mutaciones.py` aflojan cada puerta y exigen el rojo.
+
+**Lo que esto NO hace.** No impide que quien tiene el holdout en su máquina lo lea: por eso la
+procedencia se declara y el examen lo escribe alguien que no ajusta el árbol. Y no sube la cifra:
+sobre el árbol de hoy el juez arreglado declara el holdout v1 **QUEMADO** (sus veinte consultas
+están en la historia git) y la cifra honesta **DESCONOCIDA** hasta que exista un v2 ciego. Bajar
+con la báscula honesta es un resultado, no un fracaso.

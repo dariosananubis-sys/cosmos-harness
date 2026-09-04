@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import tempfile
@@ -158,39 +159,43 @@ class PruebasMedidor(unittest.TestCase):
             "más de lo que declara el margen",
         )
 
-    def test_canario_f01_el_veredicto_exacto_sigue_en_rojo(self) -> None:
-        """CANARIO, no invariante: afirma un defecto abierto para que no se olvide.
+    def test_el_veredicto_exacto_y_el_aproximado_coinciden_sobre_la_galaxia(self) -> None:
+        """Sustituye al canario F01, que pedía borrarse el día que el exacto diera verde.
 
-        Con el tokenizador de referencia el árbol está en 4.323/4.000, mientras el
-        contador aproximado publica 3.990 y dice verde. Es el residuo de F01: los
-        dos factores redujeron el error del 15 % al 7,7 %, pero no lo cerraron, y
-        el commit que lo dio por arreglado midió el «verde de verdad» con el propio
-        contador aproximado.
+        Ese día llegó el 2026-09-02 (el commit que adelgazó el contenido) y nadie lo
+        oyó, porque el canario solo hablaba con tokenizador y ninguna instalación por
+        defecto lo tiene (auditoría E-11 / D-08). Medido el 2026-09-03 con
+        `~/.cosmos/calib/bin/python -m cosmos medir --metodo exacto`: 3.654 ≤ 4.000.
 
-        No se cierra calibrando —recalibrar solo hace que el rojo se vea— sino
-        decidiendo qué contenido sale o qué presupuesto es el bueno, y eso no lo
-        decide una prueba. Reproducción:
-
-            python3 -m venv /tmp/calib && /tmp/calib/bin/pip install -q tiktoken
-            /tmp/calib/bin/python -m cosmos medir --metodo exacto
-
-        **El día que el veredicto exacto sea verde, esta prueba se pone roja: se
-        borra junto con el arreglo, y se actualiza docs/CALIBRACION.md.**
+        Lo que sí se exige desde hoy: los dos métodos dan el MISMO veredicto sobre el
+        árbol real, y la desviación agregada aprox↔exacto queda dentro del margen que
+        el medidor publica y aplica al presupuesto. Si divergen, o el contenido creció
+        hasta el borde o la calibración caducó; en los dos casos es un rojo.
         """
 
         if medir._contador_exacto() is None:
+            if os.environ.get("COSMOS_EXIGE_TOKENIZADOR"):
+                self.fail("COSMOS_EXIGE_TOKENIZADOR=1 y no hay tokenizador: instala tiktoken (docs/CALIBRACION.md)")
             self.skipTest("sin tokenizador no se puede medir el veredicto exacto")
         arbol = cargar_arbol(RAIZ / "galaxia")
-        exacto = medir.medir_casos(arbol, metodo="exacto", presupuesto=4000).peor
-        self.assertGreater(
-            exacto.entrada_con_agua, exacto.presupuesto,
-            "el veredicto exacto ya es verde: F01 está cerrado, borra este canario",
+        aprox = medir.medir_casos(arbol, metodo="aprox", presupuesto=4000)
+        exacto = medir.medir_casos(arbol, metodo="exacto", presupuesto=4000)
+        self.assertEqual(
+            medir.veredicto_de_presupuesto(aprox, 4000).cabe,
+            medir.veredicto_de_presupuesto(exacto, 4000).cabe,
+            "el contador aproximado y el tokenizador real discrepan sobre si el árbol cabe",
+        )
+        desvio = abs(exacto.peor.entrada_con_agua - aprox.peor.entrada_con_agua) / exacto.peor.entrada_con_agua
+        self.assertLessEqual(
+            desvio, medir.MARGEN_ERROR,
+            f"la desviación agregada aprox↔exacto ({desvio:.1%}) supera el margen publicado "
+            f"({medir.MARGEN_ERROR:.1%}): recalibra (docs/CALIBRACION.md)",
         )
 
     def test_no_medido_nunca_se_convierte_en_cero(self) -> None:
         resultado = medir.medir_arbol(Arbol(Path(".")), metodo="aprox", indice="")
         self.assertEqual("no_medido", resultado.fuera_cosmos)
-        serializado = medir.medicion_json(resultado)
+        serializado = json.dumps(resultado.como_dict(), ensure_ascii=False, indent=2, sort_keys=True)
         self.assertIn('"fuera_cosmos": "no_medido"', serializado)
         self.assertNotIn('"fuera_cosmos": 0', serializado)
 
@@ -232,7 +237,7 @@ class PruebasMedidor(unittest.TestCase):
         self.assertEqual(con_mar.entrada + con_mar.agua, con_mar.entrada_con_agua)
         self.assertLessEqual(con_mar.entrada_con_agua, con_mar.universo, "el agua no se puede contar dos veces")
         self.assertEqual(["mar/criterio"], [parte.nombre for parte in con_mar.detalle_agua], "el río se invoca: no es agua condicional")
-        self.assertIn('"agua"', medir.medicion_json(con_mar))
+        self.assertIn('"agua"', json.dumps(con_mar.como_dict()))
 
     @staticmethod
     def _escribir_arbol(raiz: Path, aguas: dict[str, list[str]]) -> None:
@@ -307,7 +312,7 @@ class PruebasMedidor(unittest.TestCase):
             })
             arbol = cargar_arbol(raiz)
             resultado = medir.medir_arbol(arbol, metodo="aprox", indice="")
-            salida = medir.formatear_medicion(resultado)
+            salida = medir.formatear_casos(medir.medir_casos(arbol, metodo="aprox", indice=""))
 
         self.assertEqual(6, len(medir.agua_condicional(arbol)))
         self.assertEqual(6, len(resultado.detalle_agua))

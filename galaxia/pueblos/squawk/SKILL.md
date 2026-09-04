@@ -9,7 +9,8 @@ https://github.com/sbdchd/squawk · Apache-2.0 · 1.164★ · último push 2026-
 GitHub el 2026-09-01). Analizador de migraciones de PostgreSQL.
 
 ```bash
-brew install squawk        # o: npm install -g squawk-cli
+npm install -g squawk-cli        # o: pip install squawk-cli
+# "brew install squawk" NO existe (ni formula ni tap propio): no lo uses, falla
 ```
 
 ```sql

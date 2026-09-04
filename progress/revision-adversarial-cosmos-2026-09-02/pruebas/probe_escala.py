@@ -1,4 +1,4 @@
-import sys; sys.path.insert(0,'/Users/dariosatino/cosmos'); sys.path.insert(0,'/Users/dariosatino/cosmos/tests')
+import sys; sys.path.insert(0,'~/cosmos'); sys.path.insert(0,'~/cosmos/tests')
 from tests.test_escala import _entrada_con_un_nicho, PRESUPUESTO
 m = {n: _entrada_con_un_nicho(n) for n in (10,40,80)}
 print("entradas:", m)

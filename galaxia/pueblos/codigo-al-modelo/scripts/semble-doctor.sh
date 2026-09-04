@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # semble-doctor — deja semble instalado y usable, SIEMPRE sin su servidor MCP.
 # Idempotente y seguro: se puede correr las veces que haga falta, en cualquier Mac.
-#   tools/semble-doctor.sh              # instala si falta, verifica, informa
-#   tools/semble-doctor.sh --quiet      # silencioso (para el hook de SessionStart)
-#   tools/semble-doctor.sh --warm ./tools ./src/mi-proyecto   # pre-indexa rutas
+#   scripts/semble-doctor.sh              # instala si falta, verifica, informa
+#   scripts/semble-doctor.sh --quiet      # silencioso (para el hook de SessionStart)
+#   scripts/semble-doctor.sh --warm ./tools ./src/mi-proyecto   # pre-indexa rutas
 #
 # Por qué existe: semble es un CLI, no un demonio. "Activarlo para siempre" = que el binario
 # esté presente y que NUNCA se cuele su MCP (que se cargaría en cada sesión). Este script

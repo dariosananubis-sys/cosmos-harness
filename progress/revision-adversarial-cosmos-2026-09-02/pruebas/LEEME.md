@@ -15,7 +15,7 @@ Se ejecutan desde la raíz del repositorio con `python3`. Los cinco reproducen (
 el código de HEAD con la `galaxia/` de `a4f880e`. Se reconstruye así:
 
 ```bash
-cd /Users/dariosatino/cosmos
+cd ~/cosmos
 mkdir -p /tmp/advcosmos/at_a4f880e /tmp/advcosmos/mix
 git archive a4f880e | tar -x -C /tmp/advcosmos/at_a4f880e
 git archive HEAD    | tar -x -C /tmp/advcosmos/mix

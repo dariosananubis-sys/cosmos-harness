@@ -46,13 +46,30 @@ def rutas_compilacion(arbol: Arbol, destino: Path, manifiesto: Path, config_path
     return _resueltos(config_path, arbol, destino), _resueltos(config_path, arbol, manifiesto)
 
 
-def _skills(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> dict[str, Nodo]:
+# Directorios que un runtime de agentes escanea al arrancar: cada entrada que se materialice ahí
+# inyecta su nombre y su descripción en el prompt de TODAS las sesiones (auditoría A-02). La
+# vista completa (306 resúmenes, más que el presupuesto entero) solo entra ahí con `--todos`.
+DESTINOS_ESCANEADOS = (".claude/skills", ".agents/skills")
+
+
+def destino_escaneado(destino: Path) -> bool:
+    ruta = destino.as_posix()
+    return any(ruta.endswith(sufijo) for sufijo in DESTINOS_ESCANEADOS)
+
+
+def _skills(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, todos: bool = False) -> dict[str, Nodo]:
+    """Los pueblos que se aplanan. `nichos=None` es NINGUNO, como en el catálogo (NUCLEO §2);
+    la vista completa se pide explícita con `todos=True` (auditoría A-04: un mismo centinela
+    significaba «nada» en un subsistema y «todo» en el otro)."""
+
     seleccion = normalizar_nichos(arbol, nichos)
+    if not todos and seleccion is None:
+        return {}
     return {
         nodo.nombre: nodo
         for nodo in sorted(arbol.nodos, key=lambda item: (item.nombre, item.ruta_cosmos, item.ruta_relativa))
         if nodo.cosmos in NIVELES_APLANADOS
-        and (seleccion is None or nicho_de_nodo(arbol, nodo) in seleccion)
+        and (todos or nicho_de_nodo(arbol, nodo) in seleccion)
     }
 
 
@@ -80,7 +97,17 @@ def _elementos(raiz: Path, *, filtrar: bool) -> list[Path]:
     return sorted(elementos, key=lambda ruta: ruta.relative_to(raiz).as_posix())
 
 
-def _hash_directorio(raiz: Path, *, filtrar: bool) -> str:
+def _traducido(relativa: bytes, contenido: bytes) -> bytes:
+    """El SKILL.md raíz de una copia lleva `name`/`description` para el anfitrión (R-22)."""
+
+    if relativa == b"SKILL.md":
+        from puente.proyectar import para_el_anfitrion
+
+        return para_el_anfitrion(contenido)
+    return contenido
+
+
+def _hash_directorio(raiz: Path, *, filtrar: bool, traducir: bool = False) -> str:
     digest = hashlib.sha256()
     for ruta in _elementos(raiz, filtrar=filtrar):
         relativa = ruta.relative_to(raiz).as_posix().encode("utf-8")
@@ -90,6 +117,8 @@ def _hash_directorio(raiz: Path, *, filtrar: bool) -> str:
         elif ruta.is_file():
             clase = b"F"
             contenido = ruta.read_bytes()
+            if traducir:
+                contenido = _traducido(relativa, contenido)
         else:
             continue
         digest.update(clase + b"\0" + relativa + b"\0" + contenido + b"\0")
@@ -110,7 +139,8 @@ def _hash_esperado(origen: Path, entrada: Path, modo: str) -> str:
     if modo == "symlink":
         objetivo = _objetivo_relativo(origen, entrada)
         return hashlib.sha256(("symlink\0" + objetivo).encode("utf-8")).hexdigest()
-    return _hash_directorio(origen, filtrar=True)
+    # La copia que se materializa lleva el SKILL.md traducido: el hash esperado también.
+    return _hash_directorio(origen, filtrar=True, traducir=True)
 
 
 def _hash_actual(entrada: Path, modo: str) -> str | None:
@@ -190,6 +220,12 @@ def _crear_entrada(origen: Path, entrada: Path, modo: str) -> None:
     temporal = temporal_raiz / entrada.name
     try:
         shutil.copytree(origen, temporal, symlinks=True, ignore=_ignorar_copia)
+        # La vista compilada en copia es lo que un runtime escanea: 306 de 306 entradas iban sin
+        # `name`/`description` y ningún runtime las veía (revisión R-22). Misma traducción que
+        # `proyectar`, y el hash esperado la incluye, así que E19 no la confunde con una edición.
+        skill = temporal / "SKILL.md"
+        if skill.is_file() and not skill.is_symlink():
+            skill.write_bytes(_traducido(b"SKILL.md", skill.read_bytes()))
         os.replace(temporal, entrada)
     finally:
         if temporal_raiz.exists():
@@ -207,7 +243,9 @@ def errores_vista(
 ) -> list[str]:
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
     seleccion = normalizar_nichos(arbol, nichos)
-    esperadas = _skills(arbol, seleccion)
+    # Sin selección en `cosmos.toml`, la vista que se valida es la completa: es la que deja el
+    # bootstrap de un clon, y el manifiesto la registra como `nichos: null`.
+    esperadas = _skills(arbol, seleccion, todos=seleccion is None)
     try:
         datos = _leer_manifiesto(manifiesto)
     except ErrorCompilacion as exc:
@@ -250,12 +288,30 @@ def compilar_arbol(
     seco: bool = False,
     nichos: list[str] | tuple[str, ...] | None = None,
     config_path: Path | None = None,
+    todos: bool | None = None,
     _bloqueado: bool = False,
 ) -> ResultadoCompilacion:
     if modo not in {"symlink", "copia"}:
         raise ErrorCompilacion("modo debe ser 'symlink' o 'copia'")
     destino, manifiesto = rutas_compilacion(arbol, destino, manifiesto, config_path)
     seleccion = normalizar_nichos(arbol, nichos)
+    # Compatibilidad del manifiesto: sin selección, la vista es la completa y se registra como
+    # `nichos: null`. Pero materializarla en un directorio que un runtime escanea es la fuga
+    # que COSMOS existe para eliminar: ahí hace falta `--todos` explícito (auditoría A-02).
+    explicito = todos is True
+    if todos is None:
+        todos = seleccion is None
+    if modo == "symlink" and destino_escaneado(destino) and not _bloqueado and not seco:
+        raise ErrorCompilacion(
+            f"{destino} es un directorio que el runtime escanea y en modo symlink las entradas apuntan al "
+            "SKILL.md original, sin `name`/`description`: el anfitrión no las ve (R-22). Usa --modo copia."
+        )
+    if todos and not explicito and destino_escaneado(destino) and not _bloqueado and not seco:
+        raise ErrorCompilacion(
+            f"{destino} es un directorio que el runtime escanea: aplanar TODOS los pueblos ahí inyecta cada "
+            "resumen en cada sesión (más que el presupuesto entero). Acota con --nicho o [nichos] activos, "
+            "o pide la vista completa a propósito con --todos."
+        )
     if not seco and not _bloqueado:
         # El cerrojo compartido sabe distinguir «ocupado» de «alguien murió aquí»: antes,
         # un proceso muerto sin llegar al `finally` dejaba el fichero y toda compilación
@@ -269,6 +325,7 @@ def compilar_arbol(
                     modo=modo,
                     seco=False,
                     nichos=seleccion,
+                    todos=todos,
                     _bloqueado=True,
                 )
         except ErrorCerrojo as exc:
@@ -277,11 +334,19 @@ def compilar_arbol(
     if datos is not None and _destino_declarado(manifiesto, datos["destino"]) != destino:
         raise ErrorCompilacion(f"el manifiesto pertenece a otro destino: {datos['destino']}")
     antiguas: dict[str, dict[str, str]] = datos["entradas"] if datos else {}
-    esperadas = _skills(arbol, seleccion)
+    esperadas = _skills(arbol, seleccion, todos=todos)
     existentes = {ruta.name for ruta in destino.iterdir()} if destino.is_dir() else set()
     ajenas_nombres = existentes - set(antiguas)
     acciones: list[str] = []
     creadas = actualizadas = iguales = eliminadas = preservadas = adoptadas = 0
+
+    def _rel(ruta: Path) -> str:
+        # Relativas al directorio actual (R-50): las absolutas eran material para el escáner de
+        # secretos y 40 KB de ruido en el primer comando del README.
+        try:
+            return os.path.relpath(ruta)
+        except ValueError:
+            return str(ruta)
     nuevas: dict[str, dict[str, str]] = {}
 
     for nombre, nodo in esperadas.items():
@@ -301,26 +366,26 @@ def compilar_arbol(
             if _hash_actual(entrada, modo) == hash_esperado:
                 adoptadas += 1
                 ajenas_nombres.discard(nombre)
-                acciones.append(f"ADOPTAR {entrada}")
+                acciones.append(f"ADOPTAR {_rel(entrada)}")
                 nuevas[nombre] = {
                     "hash": hash_esperado,
                     "modo": modo,
                     "origen": os.path.relpath(origen, start=manifiesto.parent),
                 }
                 continue
-            acciones.append(f"AJENA {entrada}")
+            acciones.append(f"AJENA {_rel(entrada)}")
             continue
         correcto = _hash_actual(entrada, modo) == hash_esperado
         if correcto and isinstance(registro, dict) and registro.get("modo") == modo:
             iguales += 1
-            acciones.append(f"IGUAL {entrada}")
+            acciones.append(f"IGUAL {_rel(entrada)}")
         else:
             if registro is None:
                 creadas += 1
-                acciones.append(f"CREAR {entrada}")
+                acciones.append(f"CREAR {_rel(entrada)}")
             else:
                 actualizadas += 1
-                acciones.append(f"ACTUALIZAR {entrada}")
+                acciones.append(f"ACTUALIZAR {_rel(entrada)}")
         nuevas[nombre] = {
             "hash": hash_esperado,
             "modo": modo,
@@ -334,11 +399,11 @@ def compilar_arbol(
         actual = _hash_actual(entrada, str(registro.get("modo", "")))
         if actual == registro.get("hash"):
             eliminadas += 1
-            acciones.append(f"ELIMINAR {entrada}")
+            acciones.append(f"ELIMINAR {_rel(entrada)}")
         else:
             preservadas += 1
             ajenas_nombres.add(nombre)
-            acciones.append(f"PRESERVAR {entrada}")
+            acciones.append(f"PRESERVAR {_rel(entrada)}")
 
     resultado = ResultadoCompilacion(
         creadas=creadas,
@@ -377,7 +442,15 @@ def compilar_arbol(
     return resultado
 
 
-def formatear_compilacion(resultado: ResultadoCompilacion) -> str:
+def formatear_compilacion(resultado: ResultadoCompilacion, *, detalle: bool = False) -> str:
+    """El resumen siempre; las acciones una a una solo con `--detalle` o en seco.
+
+    Sin esto `arrancar` —el primer comando del README— costaba 247 líneas de `CREAR
+    <ruta absoluta>` (≈9.900 tokens), y la segunda vez, sin cambiar nada, 247 de `IGUAL`:
+    5,7 veces el recorrido guiado entero, en un proyecto cuya tesis es no gastar de más
+    (auditoría E-03). `IGUAL` no se imprime nunca sin pedirlo.
+    """
+
     modo = "seco" if resultado.seco else "verde"
     lineas = [
         f"COSMOS  compilar  {modo}",
@@ -389,5 +462,10 @@ def formatear_compilacion(resultado: ResultadoCompilacion) -> str:
             f"obsoletas eliminadas {resultado.eliminadas}; obsoletas preservadas {resultado.preservadas}."
         ),
     ]
-    lineas.extend(resultado.acciones)
+    if detalle or resultado.seco:
+        lineas.extend(resultado.acciones)
+    elif resultado.acciones:
+        cambios = [accion for accion in resultado.acciones if not accion.startswith("IGUAL ")]
+        if cambios:
+            lineas.append(f"({len(cambios)} cambio(s); 'cosmos compilar --detalle' o '--seco' los lista uno a uno)")
     return "\n".join(lineas) + "\n"

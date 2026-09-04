@@ -93,6 +93,9 @@ NIVELES_APLANADOS = frozenset({"pueblo"})
 # (spec/COMPOSICION.md): un nodo sin vecinos es perfectamente válido, y forzarlo
 # llenaría el árbol de relaciones inventadas para rellenar un campo.
 CAMPOS_OPCIONALES = {nivel: {"usa"} for nivel in NIVELES_SOLIDOS}
+# `origen: propio` declara que el pueblo es una herramienta propia (guion dentro del
+# directorio), no una de GitHub: es la única excepción a la URL obligatoria de E21.
+CAMPOS_OPCIONALES["pueblo"] = {"usa", "origen"}
 # 'momento' separa el verbo que resuelve el encargo del que cuida el repositorio.
 # Los dos existen igual y los dos se abren igual; lo que cambia es si su resumen se paga
 # en cada sesión. Sin este campo, `enganchar` o `proyectar` cobraban su línea en todos
@@ -460,16 +463,84 @@ def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorVa
     # por `paths:` se paga sin invocarla. Comparar solo `entrada` dejaba fuera del
     # presupuesto todo el coste de los mares (H14). El juez es único y vive en
     # `medir.veredicto_de_presupuesto`: aquí, en el CLI y en los guards de sesión.
-    if veredicto_de_presupuesto(casos, config.entrada).cabe:
+    veredicto = veredicto_de_presupuesto(casos, config.entrada)
+    # Trivalente de punta a punta (auditoría D-03). `cabe` es `True` / `False` / `None`,
+    # y `None` —no había nada que medir— caía aquí por la rama de «excede» porque es
+    # falsy: sobre un árbol vacío E16 afirmaba «0 tokens > 4000; excede en -4000». Un
+    # «no lo sé» no es un exceso: el árbol vacío ya lo denuncia E05 (ninguna galaxia) y
+    # `cosmos medir` sale 1 diciendo SIN MEDIR. E16 solo habla cuando ha medido.
+    if veredicto.cabe is None or veredicto.cabe:
         return []
     partes = list(medicion.detalle_entrada) + list(medicion.detalle_agua)
     caros = ", ".join(
         f"{parte.nombre} ({parte.tokens})"
         for parte in sorted(partes, key=lambda parte: parte.tokens, reverse=True)[:3]
     )
-    excede = medicion.entrada_con_agua - config.entrada
+    # El mensaje compara LO MISMO que el veredicto: la estimación más el margen calibrado.
+    # Restar en crudo publicaba «3715 > 3800; excede en -85» mientras `medir` decía «+109»
+    # sobre el mismo hecho (revisión R-06) — la rama hermana del D-03 que se arregló arriba.
+    excede = veredicto.con_margen - config.entrada
     culpable = casos.peor_nicho or "sin nichos"
-    return [_error("E16", None, f"peor nicho {culpable}: entrada {medicion.entrada} + agua condicional {medicion.agua} = {medicion.entrada_con_agua} tokens > {config.entrada}; excede en {excede} tokens; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras del nicho culpable o el cuerpo de los mares.", ruta="presupuesto")]
+    margen = f" (estimación {medicion.entrada_con_agua} + margen calibrado {veredicto.margen_error * 100:.1f} %)".replace(".", ",") if veredicto.margen_error else ""
+    return [_error("E16", None, f"peor nicho {culpable}: entrada {medicion.entrada} + agua condicional {medicion.agua} = {veredicto.con_margen} tokens{margen} > {config.entrada}; excede en {excede} tokens; más caros: {caros}", "Ejecuta 'cosmos medir --detalle' y reduce las partes más caras del nicho culpable o el cuerpo de los mares.", ruta="presupuesto")]
+
+
+# Una URL de REPOSITORIO en la primera línea no vacía del cuerpo: esquema https, host con punto y
+# al menos dos tramos de ruta (organización/proyecto). La versión anterior aceptaba la cadena
+# `https://` en cualquier prosa y 10 pueblos pasaban por accidente (revisión R-18).
+PATRON_URL = re.compile(r"^https://[A-Za-z0-9.-]+\.[A-Za-z]{2,}/[^/\s]+/[^/\s]+")
+MARCADORES_URL = ("usuario/repo", "<", ">", "example.", "ejemplo.", "localhost", "127.0.0.1", "dominio.", "tu-")
+VALORES_ORIGEN = frozenset({"propio"})
+
+
+def url_de_repositorio(texto: str) -> str | None:
+    """La URL de repositorio que exige `spec/PUEBLO.md` regla 1, o `None` si no la hay donde toca."""
+
+    primera = next((linea.strip() for linea in texto.splitlines() if linea.strip()), "")
+    coincidencia = PATRON_URL.match(primera)
+    if coincidencia is None:
+        return None
+    url = coincidencia.group(0)
+    if any(marcador in url.lower() for marcador in MARCADORES_URL):
+        return None
+    return url
+
+
+def _comprobar_e21(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValidacion]:
+    """E21 — un pueblo nombra qué ejecutar: URL de repositorio (o `origen: propio`) y un bloque de código.
+
+    `spec/PUEBLO.md` se titula «normativo», dice «si falta una, no está terminado» y nadie lo
+    comprobaba: 28 de 247 pueblos no nombraban ningún repositorio y el criterio 1 de
+    `spec/UNIVERSO.md` («se ejecuta») es eliminatorio (auditoría A-06). Es la infracción
+    literal del corolario 1 de GOAL §2: una regla que hay que recordar está mal puesta. Las
+    herramientas propias —guion en el directorio, sin GitHub— son legítimas y la spec no las
+    contemplaba: lo declaran con `origen: propio` en vez de fingir una URL. La comparación
+    con el rival y el apartado de avisos siguen siendo prosa: `cosmos estado` los cuenta.
+    """
+
+    errores = []
+    for nodo in arbol.nodos:
+        if nodo.cosmos != "pueblo":
+            continue
+        origen = nodo.datos.get("origen")
+        if origen is not None and origen not in VALORES_ORIGEN:
+            errores.append(_error("E21", nodo, f"origen desconocido: {origen!r}; solo se admite 'propio'",
+                                  "Quita el campo o escribe 'origen: propio' si la herramienta no vive en un repositorio ajeno.",
+                                  campo="origen"))
+            continue
+        texto = cuerpo(nodo)
+        if origen != "propio" and url_de_repositorio(texto) is None:
+            errores.append(_error("E21", nodo, "el pueblo no nombra qué ejecutar: sin URL de repositorio en la primera línea del cuerpo ni 'origen: propio'",
+                                  "Pon la URL literal del repositorio (https://host/organizacion/proyecto) en la primera línea del cuerpo (spec/PUEBLO.md), o declara 'origen: propio' si el guion vive aquí."))
+        if origen == "propio" and not any(p.is_file() and p.name != "SKILL.md" for p in nodo.ruta.parent.rglob("*")):
+            # R-37: `origen: propio` era un indulto autodeclarado. La spec lo define como «un guion
+            # que vive en el directorio del pueblo»: sin ningún fichero al lado, no hay guion.
+            errores.append(_error("E21", nodo, "'origen: propio' sin ningún guion en el directorio del pueblo: prosa que no se ejecuta",
+                                  "Deja el guion junto al SKILL.md (scripts/...) o cataloga la herramienta con su URL.", campo="origen"))
+        if "```" not in texto:
+            errores.append(_error("E21", nodo, "sin bloque de código: no hay nada que copiar y pegar",
+                                  "Añade la instalación y un uso mínimo en bloques de código (spec/PUEBLO.md, reglas 2 y 3)."))
+    return errores
 
 
 def _afirmaciones(nodo: Nodo) -> list[tuple[frozenset[str], str]]:
@@ -500,7 +571,9 @@ def _co_cargables(arbol: Arbol) -> list[Nodo]:
     )
 
 
-def solape_de_afirmaciones(primero: Nodo, segundo: Nodo) -> tuple[float, str, str]:
+def solape_de_afirmaciones(
+    primero: Nodo, segundo: Nodo, afirmaciones: dict[int, list[tuple[frozenset[str], str]]] | None = None
+) -> tuple[float, str, str]:
     """La afirmación más repetida entre dos nodos, y las dos frases concretas.
 
     Se mide afirmación a afirmación, no documento a documento: la duplicación que
@@ -511,8 +584,20 @@ def solape_de_afirmaciones(primero: Nodo, segundo: Nodo) -> tuple[float, str, st
     """
 
     mejor = (0.0, "", "")
-    afirmaciones_segundo = _afirmaciones(segundo)
-    for palabras_a, texto_a in _afirmaciones(primero):
+    # `afirmaciones` es la caché por nodo que construye E17: sin ella, cada pareja
+    # re-parseaba los dos cuerpos (regex + Unicode + casefold) y a 5× la galaxia eran
+    # 20.880 parseos donde hacen falta 145 (auditoría D-06).
+    if afirmaciones is None:
+        afirmaciones = {}
+    # `dict.setdefault(k, f(x))` evalúa f(x) SIEMPRE: la primera versión de esta caché hacía
+    # 33 parseos MÁS que sin caché, y las 320 pruebas lo firmaron (revisión R-47 / D-06).
+    # Desde hoy hay una prueba de conteo de llamadas (`tests/test_escala.py`).
+    if id(segundo) not in afirmaciones:
+        afirmaciones[id(segundo)] = _afirmaciones(segundo)
+    if id(primero) not in afirmaciones:
+        afirmaciones[id(primero)] = _afirmaciones(primero)
+    afirmaciones_segundo = afirmaciones[id(segundo)]
+    for palabras_a, texto_a in afirmaciones[id(primero)]:
         for palabras_b, texto_b in afirmaciones_segundo:
             comunes = palabras_a & palabras_b
             if len(comunes) < MINIMO_PALABRAS_COMPARTIDAS:
@@ -526,9 +611,10 @@ def solape_de_afirmaciones(primero: Nodo, segundo: Nodo) -> tuple[float, str, st
 def _comprobar_e17(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
     nodos = _co_cargables(arbol)
     errores = []
+    cache: dict[int, list[tuple[frozenset[str], str]]] = {id(n): _afirmaciones(n) for n in nodos}
     for indice, primero in enumerate(nodos):
         for segundo in nodos[indice + 1:]:
-            similitud, frase_a, frase_b = solape_de_afirmaciones(primero, segundo)
+            similitud, frase_a, frase_b = solape_de_afirmaciones(primero, segundo, cache)
             if similitud > config.umbral_solapamiento:
                 errores.append(
                     _error(
@@ -621,7 +707,7 @@ COMPROBACIONES: tuple[Comprobacion, ...] = (
     _comprobar_e05, _comprobar_e06, _comprobar_e07, _comprobar_e08, _comprobar_e09,
     _comprobar_e10, _comprobar_e11, _comprobar_e12, _comprobar_e13, _comprobar_e14,
     _comprobar_e15, _comprobar_e16, _comprobar_e17, _comprobar_e18,
-    _comprobar_e19, _comprobar_e20,
+    _comprobar_e19, _comprobar_e20, _comprobar_e21,
 )
 
 

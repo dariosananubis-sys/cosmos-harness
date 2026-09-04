@@ -81,6 +81,12 @@ REGISTRO = (
           "el umbral de E08 se calibró sobre ese corpus"),
     Cifra("spec/NUCLEO.md", r"siguen siendo E00–E03 y E05–E(\d+)", _ultimo_codigo,
           "es la frase que existe para que la numeración no se toque: la peor donde envejecer"),
+    # Auditoría A-07 (2026-09-03): la misma cifra que este registro presumía de haber cazado
+    # («uno de los 20 sistemas solares cuando son 21») vivía en COMPOSICION con otra redacción.
+    Cifra("spec/COMPOSICION.md", r"Los (\d+) sistemas solares lo hacen", _sistemas,
+          "afirma que TODOS los sistemas declaran usa:; con otro número describe otro árbol"),
+    Cifra("spec/UNIVERSO.md", r"El universo — (\d+) oficios", _sistemas,
+          "es la cabecera del mapa de oficios; la vigilaba solo la mutación M52"),
 )
 
 
@@ -104,6 +110,66 @@ class LasSpecsDicenLoQueElArbolCuenta(unittest.TestCase):
         """Un canario que no vigila nada pasa siempre y da falsa tranquilidad."""
 
         self.assertGreaterEqual(len(REGISTRO), 4)
+
+
+class LaCabeceraDelIndiceSeCuentaNoSeEscribe(unittest.TestCase):
+    """A-01 / E-16 / F-07: «Veintiun oficios» con 22 sistemas, en la primera línea que paga
+    toda sesión, con E15 en verde porque el índice copiaba fielmente un `resumen` a mano.
+    El cardinal lo compone `cosmos generar` contando el árbol; el `resumen` de la galaxia
+    no puede llevar ninguno."""
+
+    CARDINALES = ("uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+                  "diez", "once", "doce", "trece", "catorce", "quince", "dieci", "veint", "treinta")
+
+    def test_el_resumen_de_la_galaxia_no_lleva_cardinales(self) -> None:
+        galaxia = next(n for n in ARBOL.nodos if n.cosmos == "galaxia")
+        resumen = galaxia.resumen.lower()
+        self.assertIsNone(re.search(r"\d", resumen), "volvió un número a mano al resumen de la galaxia")
+        for cardinal in self.CARDINALES:
+            # Por palabra entera (R-31): «uno de sus oficios» no es un cardinal a mano; «veintiun» sí.
+            self.assertIsNone(re.search(rf"\b{cardinal}[a-z]*\b(?! de )", resumen) if cardinal in ("uno", "dieci", "veint") else re.search(rf"\b{cardinal}\b", resumen),
+                              f"volvió un cardinal en letra ({cardinal}) al resumen de la galaxia")
+
+    def test_la_linea_generada_cuenta_lo_que_hay(self) -> None:
+        from cosmos.generar import cardinales
+
+        oficios = sum(1 for n in ARBOL.nodos if n.cosmos == "sistema-solar")
+        mares = sum(1 for n in ARBOL.nodos if n.cosmos == "mar")
+        oceanos = sum(1 for n in ARBOL.nodos if n.cosmos == "oceano")
+        self.assertEqual(cardinales(ARBOL), f"{oficios} oficios, {mares} mares que los cruzan y {oceanos} oceanos siempre presentes.")
+        indice = (RAIZ / "galaxia/COSMOS.md").read_text(encoding="utf-8").splitlines()
+        self.assertTrue(indice[2].startswith(cardinales(ARBOL)), "el índice en disco no empieza por la cuenta real")
+
+
+class LaTablaDeInvariantesEstaCompleta(unittest.TestCase):
+    """Auditoría A-05: VALIDADOR.md documentaba 16 invariantes y el validador comprueba 20.
+
+    Existían canarios para el rango («E00–E03 y E05–E20»), para los mares y para cuatro
+    cifras; ninguno comparaba `codigos_comprobados()` con la tabla normativa. Por eso E17
+    llevaba viva sin fila desde que se añadió, y E00 —el código más ancho del validador—
+    no tenía definición en ninguna spec.
+    """
+
+    def test_toda_invariante_viva_tiene_fila_en_la_tabla_de_validador(self) -> None:
+        texto = (RAIZ / "spec/VALIDADOR.md").read_text(encoding="utf-8")
+        tabla = texto[texto.index("## Invariantes") : texto.index("### Sobre `E08`")]
+        documentadas = set(re.findall(r"^\| `(E\d\d)` \|", tabla, re.M))
+        self.assertEqual(set(codigos_comprobados()) - documentadas, set(),
+                         "invariantes vivas sin fila en la tabla normativa de VALIDADOR.md")
+        self.assertEqual(documentadas - set(codigos_comprobados()), set(),
+                         "la tabla documenta invariantes que el validador no comprueba")
+
+    def test_e16_describe_lo_que_el_codigo_compara(self) -> None:
+        """A-08: decía «peor nicho individual» contra `presupuesto_entrada`, que no existe."""
+
+        texto = (RAIZ / "spec/VALIDADOR.md").read_text(encoding="utf-8")
+        seccion = texto[texto.index("### Sobre `E16`") : texto.index("## Configuración")]
+        self.assertIn("entrada_con_agua", seccion)
+        self.assertIn("[presupuesto] entrada", seccion)
+        self.assertNotIn("presupuesto_entrada", seccion)
+        config = (RAIZ / "cosmos.toml").read_text(encoding="utf-8")
+        self.assertIn("[presupuesto]", config)
+        self.assertIsNotNone(re.search(r"^entrada = \d+", config, re.M), "la clave real es `entrada` bajo [presupuesto]")
 
 
 class LasCifrasQueSeRetiraronSiguenRetiradas(unittest.TestCase):
@@ -280,6 +346,22 @@ class LasSpecsDescribenElMecanismoQueElCodigoUsa(unittest.TestCase):
         self.assertTrue(cobertura_total(["**"]))
         self.assertTrue(cobertura_total(["**/*"]), "un océano encubierto no literal se escapa")
         self.assertFalse(cobertura_total(["**/*.py"]))
+
+
+class ElReadmeEnunciaElPrincipioRectorComoGoal(unittest.TestCase):
+    """A-09: el README decía «Se elimina la razón para gastar» —la versión de coste mínimo que
+    Darío corrigió el 2026-09-02— y GOAL §2 dedica tres párrafos a explicar por qué esa
+    formulación lleva al harness vacío. Es la frase más copiada del repo: se compara entera."""
+
+    def test_la_frase_del_readme_es_la_de_goal(self) -> None:
+        def cita(fichero: str) -> str:
+            texto = (RAIZ / fichero).read_text(encoding="utf-8")
+            hallado = re.search(r"^> \*\*No se le pide al agente[^\n]*\*\*$", texto, re.M)
+            self.assertIsNotNone(hallado, f"{fichero} ya no enuncia el principio rector en un `>`")
+            return hallado.group(0)
+
+        self.assertEqual(cita("README.md"), cita("GOAL.md"))
+        self.assertIn("de más", cita("GOAL.md"), "GOAL perdió el matiz que decide el proyecto")
 
 
 class ElReadmeNoOmiteElEngancheQueMasHace(unittest.TestCase):

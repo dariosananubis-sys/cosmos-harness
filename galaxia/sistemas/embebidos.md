@@ -6,4 +6,5 @@ resumen: Placas, firmware y sensores: leer dispositivos y sus protocolos.
 usa:
   - rendimiento
   - infraestructura
+  - ciberseguridad
 ---

@@ -24,5 +24,5 @@ la integración continua— con un solo comando.
 
 Ojo: descubre por rastreo, así que **lo que no esté enlazado no se audita** y la cifra de «páginas
 revisadas» parece completa igualmente; conviene contrastarla con el sitemap. Y lanza muchas instancias
-de Chrome en paralelo: en una máquina justa de memoria hay que bajar la concurrencia o el propio equipo
-distorsiona la medición que se está tomando.
+de Chrome en paralelo: con poca memoria libre hay que bajar la concurrencia, o el propio equipo
+compite consigo mismo y distorsiona la medición que se está tomando.

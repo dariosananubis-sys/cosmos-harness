@@ -40,8 +40,8 @@ rapido.
 
 Y lo que no hace bien, dicho sin adornos:
 
-- **La primera compilacion son minutos y aprieta el enlazado.** En una maquina justa de memoria, `cargo build` de
-  un proyecto Bevy limpio se come toda la RAM disponible durante el enlazado. Se mitiga con
+- **La primera compilacion son minutos y aprieta el enlazado.** El enlazado de un `cargo build` de
+  un proyecto Bevy limpio puede acaparar varios GB de RAM libres durante ese paso. Se mitiga con
   `cargo add bevy --features dynamic_linking` en desarrollo, pero es la barrera real de este pueblo.
   `raylib` arranca en segundos y se cita para ese caso.
 - **Rompe la API en cada version menor.** Es un proyecto pre-1.0 con guia de migracion por version:

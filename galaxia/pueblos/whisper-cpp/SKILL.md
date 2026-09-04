@@ -40,5 +40,6 @@ no es una fuente.
 
 Y no separa hablantes ni da marcas de tiempo por palabra: para eso, `m-bain/whisperX`, mas pesado.
 
-Aviso de maquina: `large-v3` son unos 3 GB de pesos y en una maquina justa de memoria deja poco margen para nada
-mas. `small` es el punto de equilibrio razonable aqui; `base` solo para material limpio.
+Aviso de maquina: `large-v3` son unos 3 GB de pesos que compiten por la RAM disponible durante la
+transcripcion; con poca RAM libre, eso deja poco margen para nada mas en paralelo. `small` es el
+punto de equilibrio razonable; `base` solo para material limpio.

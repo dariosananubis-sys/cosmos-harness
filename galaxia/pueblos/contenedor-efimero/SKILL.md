@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: contenedor-efimero
 padre: infraestructura/despliegue
 resumen: Un trabajo es un contenedor que nace y muere: espera con limite, registro antes del borrado y progreso en vivo.
+origen: propio
 ---
 
 `scripts/docker-ephemeral-runner.js`, `docker-wait-with-timeout.js`, `docker-job-log-markers.js`,

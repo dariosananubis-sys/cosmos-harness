@@ -1,5 +1,5 @@
 import json, sys, pathlib
-sys.path.insert(0,"/Users/dariosatino/cosmos")
+sys.path.insert(0,"~/cosmos")
 from cosmos.acertar import _normalizar
 def resumenes(base):
     d={}
@@ -7,7 +7,7 @@ def resumenes(base):
         for l in f.read_text().splitlines():
             if l.startswith("resumen:"): d[f.stem]=l[8:].strip(); break
     return d
-ra,rb = resumenes("/tmp/advcosmos/mix"), resumenes("/Users/dariosatino/cosmos")
+ra,rb = resumenes("/tmp/advcosmos/mix"), resumenes("~/cosmos")
 anadidas=set()
 for s in rb:
     anadidas |= (set(_normalizar(rb[s])) - set(_normalizar(ra.get(s,""))))

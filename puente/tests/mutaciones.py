@@ -279,8 +279,8 @@ MUTACIONES = (
     Mutacion(
         "M31",
         "cosmos/medir.py",
-        "    return [\n        ParteMedida(f\"{nodo.cosmos}/{nodo.nombre}\", contador(cuerpo(nodo)))\n        for nodo in agua_condicional(arbol)\n    ]\n",
-        "    partes = [\n        ParteMedida(f\"{nodo.cosmos}/{nodo.nombre}\", contador(cuerpo(nodo)))\n        for nodo in agua_condicional(arbol)\n    ]\n    return [max(partes, key=lambda parte: parte.tokens)] if partes else []\n",
+        "    return [\n        ParteMedida(f\"{nodo.cosmos}/{nodo.nombre}\", contador(cuerpo(nodo)))\n        for nodo in agua_condicional(arbol, solo_anfitrion=solo_anfitrion)\n    ]\n",
+        "    partes = [\n        ParteMedida(f\"{nodo.cosmos}/{nodo.nombre}\", contador(cuerpo(nodo)))\n        for nodo in agua_condicional(arbol, solo_anfitrion=solo_anfitrion)\n    ]\n    return [max(partes, key=lambda parte: parte.tokens)] if partes else []\n",
         "tests.test_medidor.PruebasMedidor.test_dos_aguas_que_mojan_el_mismo_fichero_se_cobran_las_dos",
         "publicando solo el agua mas cara, dos mares que mojan el mismo fichero cuestan la mitad",
     ),
@@ -614,7 +614,7 @@ MUTACIONES = (
     Mutacion(
         "M72",
         "cosmos/validar.py",
-        '        if origen != "propio" and url_de_repositorio(texto) is None:\n',
+        '        if origen != "propio" and not con_url:\n',
         "        if False:\n",
         "tests.test_arreglos_p3.A06_E21_UnPuebloNombraQueEjecutar.test_sin_url_ni_origen_es_rojo",
         "A-06: sin E21, un pueblo que no nombra ningun repositorio vuelve a pasar por herramienta",

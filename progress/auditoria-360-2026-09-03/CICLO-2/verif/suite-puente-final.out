@@ -1,0 +1,25 @@
+.....COSMOS  gate  P01 saltado: 1 resumen(es) sospechoso(s) pasan con la válvula abierta
+..
+COSMOS  gate  rojo — commit bloqueado: resúmenes que se vacían o que copian el examen.
+  nuclei.md: el resumen pierde 11 de 12 términos distintos (92%)
+Un resumen que pierde más del 40 % de sus términos casi nunca mejora: es la palanca
+más barata para abaratar el presupuesto o inflar la contra-métrica (B-01). Si es a
+propósito: cosmos saltar P01 --motivo "..." --caduca 1d
+.....
+COSMOS  gate  rojo — commit bloqueado: se retiran pueblos.
+  b.md
+Lo que falta también es un fallo (GOAL §2): retirar herramientas sube la contra-métrica y
+ensancha el presupuesto sin mejorar nada (R-02). Si la retirada es a propósito:
+  cosmos saltar P02 --motivo "..." --caduca 7d
+COSMOS  gate  P02 saltado: 1 pueblo(s) retirado(s) pasan con la válvula abierta
+...
+COSMOS  gate  rojo — commit bloqueado.
+Falló: /usr/local/bin/python3 -c import sys, pathlib;sys.exit(0 if pathlib.Path('fichero.txt').read_text().strip() == 'SUCIO' else 1)
+Repítelo a mano para ver el detalle, o usa la válvula acotada:
+  cosmos saltar <codigo> --motivo "..." --caduca 7d
+............................................................................................................................
+----------------------------------------------------------------------
+Ran 139 tests in 8.276s
+
+OK
+EXIT=0

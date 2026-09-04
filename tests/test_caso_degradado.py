@@ -39,19 +39,20 @@ def _acertar(*extra: str) -> subprocess.CompletedProcess[str]:
 
 
 class UnExamenQueNoApareceNoSeApruebaPorIncomparecencia(unittest.TestCase):
-    def test_minimo_sin_conjunto_de_validacion_falla_en_vez_de_usar_el_de_ajuste(self) -> None:
-        with TemporaryDirectory() as tmp:
-            r = _acertar("--validacion", str(Path(tmp, "no-existe.json")), "--minimo", "70")
-        self.assertEqual(r.returncode, 2, "se cobró el listón sobre el conjunto equivocado")
-        self.assertIn("su propio examen", r.stderr)
+    def test_no_existe_liston_sobre_esta_metrica(self) -> None:
+        """R-01: `--minimo` se retiró. Un listón sobre una cifra que describe a quien escribió el
+        examen —y no al árbol— se aprueba escribiendo el examen. argparse lo rechaza (exit 2)."""
 
-    def test_minimo_con_conjunto_vacio_tambien_falla(self) -> None:
-        with TemporaryDirectory() as tmp:
-            vacio = Path(tmp, "vacio.json")
-            vacio.write_text("[]", encoding="utf-8")
-            r = _acertar("--validacion", str(vacio), "--minimo", "70")
+        r = _acertar("--minimo", "70")
         self.assertEqual(r.returncode, 2)
-        self.assertIn("vacío", r.stderr)
+        self.assertIn("--minimo", r.stderr)
+
+    def test_sin_conjunto_de_validacion_se_dice_y_no_se_usa_el_de_ajuste(self) -> None:
+        with TemporaryDirectory() as tmp:
+            r = _acertar("--validacion", str(Path(tmp, "no-existe.json")))
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("NO DISPONIBLE", r.stdout)
+        self.assertNotIn("Cifra íntegra", r.stdout)
 
     def test_un_conjunto_vacio_no_revienta_con_un_traceback(self) -> None:
         with TemporaryDirectory() as tmp:

@@ -1,7 +1,7 @@
 # Plan maestro — la herramienta definitiva
 
 Encargo de Darío: *«el planning para la herramienta definitiva de todo, que tenga las herramientas
-de <agencia> harness más todo lo esencial»*, con especialistas de verdad por oficio —«un experto
+de el arnés de origen más todo lo esencial»*, con especialistas de verdad por oficio —«un experto
 montando bots de trading», «un experto en código»— buscando por todo GitHub lo importante que hay
 hoy. Y sin fugas de tokens.
 

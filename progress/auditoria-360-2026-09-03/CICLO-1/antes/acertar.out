@@ -1,0 +1,15 @@
+COSMOS  acertar
+
+  Ajuste ......... 33/50 (66 %)   los encargos que SÍ se miran al trabajar
+  Validación ..... 8/20 (40 %)   escritos aparte; no guían ninguna decisión
+
+  La cifra que vale es 40 %.
+  (holdout SELLADO: el detalle por encargo no se enseña, que es lo que quema)
+  Y la brecha es de 26 puntos: parte de lo ganado es puntería sobre
+  las preguntas conocidas, no un árbol que lleve mejor. Se corrige mejorando
+  resúmenes en general, no los que salen en esta lista.
+
+  Método ......... BM25 léxico con recorte de sufijos, sobre índice + catálogo.
+                   NO es un agente: mide si el resumen contiene las palabras del
+                   encargo, no si un modelo elegiría bien. Necesario, no suficiente.
+EXIT_ACERTAR=0

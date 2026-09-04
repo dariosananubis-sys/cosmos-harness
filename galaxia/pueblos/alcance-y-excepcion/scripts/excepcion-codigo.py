@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """Pase de 24 h para tocar codigo en una web, con el motivo escrito.
 
-Por que existe: el guardia `guard-web-sin-codigo.py` bloquea meter codigo a medida
-en una web de cliente, y esta bien que lo haga. Pero hace falta poder BORRAR el
-codigo heredado que ya esta dentro (los widgets `html` del mockup, el CSS del
-Customizer, un mu-plugin viejo), y para eso hay que ejecutar comandos que el
-guardia ve iguales que los de meterlo. Sin valvula, el guardia acabaria desactivado
-a martillazos, que es como mueren los controles que no dejan trabajar.
+Por que existe: un enganche que bloquea meter codigo a medida en una web de
+cliente esta bien que lo haga. Pero hace falta poder BORRAR el codigo heredado
+que ya esta dentro (los widgets `html` del mockup, el CSS del Customizer, un
+mu-plugin viejo), y para eso hay que ejecutar comandos que el enganche ve
+iguales que los de meterlo. Sin valvula, el enganche acabaria desactivado a
+martillazos, que es como mueren los controles que no dejan trabajar.
 
-    python3 tools/excepcion-codigo.py <slug> "Quitar el bloque legacy" \\
+    python3 scripts/excepcion-codigo.py <slug> "Quitar el bloque legacy" \\
         --nativo-descartado "ninguno: esto es para BORRAR codigo, no para anadirlo"
 
 Dos cosas que NO hace, y conviene tenerlas claras:
 
-  - NO hace pasar el gate. `tools/web-gate.py` sigue contando ese codigo como FALLA.
-    Quitar el FALLA es otra decision, vive en `webs/excepciones-codigo.json`, dura
-    seis meses y la autoriza el humano responsable, no el agente.
+  - NO hace pasar el gate de salida. Este sigue contando ese codigo como FALLA.
+    Quitar el FALLA es otra decision, vive en un registro de excepciones aparte,
+    dura seis meses y la autoriza el humano responsable, no el agente.
   - NO vale sin motivo. `--nativo-descartado` es obligatorio y no puede ir vacio:
     la mitad del valor de esto es que quede escrito que se busco el control nativo
     y por que no servia.
@@ -41,10 +41,10 @@ def main():
     p = argparse.ArgumentParser(
         description="Pase de 24 h para que el hook deje tocar codigo en una web.",
         epilog='Ejemplos:\n'
-               '  python3 tools/excepcion-codigo.py <slug> "Quitar el switcher heredado" \\\n'
+               '  python3 scripts/excepcion-codigo.py <slug> "Quitar el switcher heredado" \\\n'
                '      --nativo-descartado "ninguno: es para borrar codigo"\n'
-               '  python3 tools/excepcion-codigo.py <slug> --ver\n'
-               '  python3 tools/excepcion-codigo.py <slug> --revocar',
+               '  python3 scripts/excepcion-codigo.py <slug> --ver\n'
+               '  python3 scripts/excepcion-codigo.py <slug> --revocar',
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("slug", help="web a la que aplica el pase")
     p.add_argument("motivo", nargs="?", default="", help="que se va a hacer y por que")
@@ -74,7 +74,7 @@ def main():
 
     if not args.motivo.strip():
         print("Falta el motivo. Un pase sin motivo escrito no vale para nada:", file=sys.stderr)
-        print(f'  python3 tools/excepcion-codigo.py {args.slug} "<motivo>" '
+        print(f'  python3 scripts/excepcion-codigo.py {args.slug} "<motivo>" '
               '--nativo-descartado "<que probaste>"', file=sys.stderr)
         return 2
     if not args.nativo_descartado.strip():
@@ -92,7 +92,7 @@ def main():
         "nativo_descartado": args.nativo_descartado.strip(),
         "creado": iso(ahora),
         "caduca": iso(ahora + timedelta(hours=args.horas)),
-        "quien": os.environ.get("CLAUDECLAW_VENTANA", "sesion Claude Code"),
+        "quien": os.environ.get("AGENTE_SESION", "sesion Claude Code"),
     }
     CARPETA.mkdir(parents=True, exist_ok=True)
     tmp = ruta.with_suffix(f".json.tmp{os.getpid()}")
@@ -103,8 +103,8 @@ def main():
     print(f"  motivo            : {datos['motivo']}")
     print(f"  nativo descartado : {datos['nativo_descartado']}")
     print("\nEsto SOLO abre el hook. El gate de salida sigue contando ese codigo como FALLA:")
-    print("  para quitar el FALLA hace falta una excepcion en webs/excepciones-codigo.json,")
-    print("  que dura 6 meses y la autoriza el humano responsable.")
+    print("  para quitar el FALLA hace falta una excepcion en tu propio registro de")
+    print("  excepciones, que dura 6 meses y la autoriza el humano responsable.")
     return 0
 
 

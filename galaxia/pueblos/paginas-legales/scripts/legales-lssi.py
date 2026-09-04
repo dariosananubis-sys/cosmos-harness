@@ -124,7 +124,7 @@ RE_RECURSO = re.compile(r'(?:src|href)=["\']([^"\']+)["\']', re.I)
 # Se detectan por la huella del plugin. Caso real observado el 2026-08-28: GTranslate
 # aparecia solo como `/plugins/gtranslate/js/flags.js`, y `translate.google` y la cookie
 # `googtrans` no salian por ningun lado; el check daba verde con el tercero sin declarar,
-# y lo mismo pasaba en grupomanoteras, sinteticoselda y colorincoloradosevilla.
+# y lo mismo pasaba en varias webs mas del catalogo.
 # Cada entrada: ruta del plugin -> (tercero, señales de que ESTA CORRIENDO). La ruta sola
 # no basta: un plugin desactivado deja rastro (una ruta dentro de un CSS de otro, un resto de
 # caché) y declararlo meteria un tercero falso en un documento legal del cliente. Medido el
@@ -137,7 +137,7 @@ PLUGINS_DIFERIDOS = {
     "/plugins/lazy-load-for-videos/": ("YouTube", ("lazy-load-youtube", "preview-youtube")),
     "/plugins/wp-recaptcha-integration/": ("reCAPTCHA", ("g-recaptcha",)),
     # Las pasarelas son de la misma familia: el plugin sirve su JS desde el propio dominio
-    # y la llamada al proveedor sale al ir al pago. Medido en exclusivocuero (2026-08-28).
+    # y la llamada al proveedor sale al ir al pago. Medido en una tienda real (2026-08-28).
     "/plugins/pymntpl-paypal-woocommerce/": ("PayPal", ("wc-ppcp", "ppcp")),
     "/plugins/woocommerce-paypal-payments/": ("PayPal", ("ppcp", "paypal-button")),
     "/plugins/woocommerce-gateway-stripe/": ("Stripe", ("wc-stripe", "stripe-elements")),
@@ -176,7 +176,7 @@ def proveedores_cargados(html, dominio):
     # Un recurso aplazado sigue siendo un tercero: el cookie-blocker de Complianz guarda la
     # URL real en `data-src-cmplz` y los lazy-loaders en `data-src`/`data-lazy-src`, asi que
     # mirando solo `src` un mapa incrustado parece no existir. Medido el 2026-08-28 en
-    # exclusivocuero, donde el mapa de Elda viajaba en `data-src-cmplz` y no se declaraba.
+    # una web real, donde el mapa incrustado viajaba en `data-src-cmplz` y no se declaraba.
     for aplazado in ("data-src-cmplz", "data-src", "data-lazy-src", "data-cmplz-src"):
         recursos += [n.get(aplazado, "") for n in sopa.find_all(attrs={aplazado: True})]
     # Google Fonts se carga a menudo con un `@import` DENTRO de un <style>, no con un <link>:
@@ -505,7 +505,7 @@ def audita(base, tiempo, razon_social):
     resultado["paginas"] = paginas
 
     # El mapa de contacto, el captcha del formulario y la pasarela viven en paginas
-    # interiores: mirar solo el home deja fuera la mitad de los terceros (mcespacios).
+    # interiores: mirar solo el home deja fuera la mitad de los terceros (caso real medido).
     html_ampliado = home
     for interior in ("contacto", "contact", "contacto-2"):
         try:

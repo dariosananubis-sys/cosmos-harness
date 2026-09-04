@@ -5,16 +5,26 @@ padre: automatizacion/escritorio
 resumen: Conduce vim, un REPL o un rebase interactivo desde un guion: manda teclas y lee la pantalla.
 ---
 
-Rescatado de la skill `using-tmux-for-interactive-commands`. El guion viaja con el pueblo:
-`scripts/tmux-wrapper.sh`, 84 lineas de bash sobre `tmux`. Ejercitado el 2026-09-02 contra un REPL de
-Python: `start` devolvio el banner, `send 'print(6*7)' Enter` devolvio `42`.
+https://github.com/obra/superpowers-lab · MIT (leído en su LICENSE: «Copyright (c) 2025 Jesse Vincent») · comprobado 2026-09-03 (`skills/using-tmux-for-interactive-commands/tmux-wrapper.sh` existe en HEAD, verificado contra el árbol del repositorio)
+
+Rescatado de la skill `using-tmux-for-interactive-commands`, publicada por Jesse Vincent (usuario de
+GitHub `obra`) en `https://github.com/obra/superpowers-lab` (fichero
+`skills/using-tmux-for-interactive-commands/SKILL.md`), del framework de skills «Superpowers» —
+distribuido también como plugin en el marketplace oficial de Anthropic para Claude Code, pero el
+autor y titular del copyright es Jesse Vincent, no Anthropic. Licencia **MIT** (leída en el `LICENSE`
+del repositorio: «Copyright (c) 2025 Jesse Vincent»), comprobado el 2026-09-03. El guion **no viaja
+con el pueblo**: se descarga de su origen (84 líneas de bash sobre `tmux`; ruta comprobada contra el
+árbol del repositorio el 2026-09-03; retirado de aquí ese día, ver `NOTICE`). Ejercitado el
+2026-09-02 contra un REPL de Python: `start` devolvio el banner, `send 'print(6*7)' Enter` devolvio `42`.
 
 ```bash
 brew install tmux        # o: apt install tmux
-scripts/tmux-wrapper.sh start   sesion_py python3 -i
-scripts/tmux-wrapper.sh send    sesion_py 'print(6*7)' Enter
-scripts/tmux-wrapper.sh capture sesion_py
-scripts/tmux-wrapper.sh stop    sesion_py
+curl -fsSLO https://raw.githubusercontent.com/obra/superpowers-lab/HEAD/skills/using-tmux-for-interactive-commands/tmux-wrapper.sh
+chmod +x tmux-wrapper.sh   # léelo antes de ejecutarlo: son 84 líneas, no se entuban a bash
+./tmux-wrapper.sh start   sesion_py python3 -i
+./tmux-wrapper.sh send    sesion_py 'print(6*7)' Enter
+./tmux-wrapper.sh capture sesion_py
+./tmux-wrapper.sh stop    sesion_py
 ```
 
 El problema que resuelve: un proceso lanzado desde una herramienta de consola no tiene terminal de

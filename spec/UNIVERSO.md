@@ -152,3 +152,12 @@ detección con fines maliciosos. Las herramientas de doble uso entran con su con
 declarado.
 
 Va en la estrella del nicho, para que se cargue siempre que alguien entre a trabajar ahí.
+
+## Con qué máquina se eligió, y qué NO decide
+
+Hasta el 2026-09-02 las fichas se escribieron desde un portátil de 8 GB sin GPU, y 24 de ellas
+elegían por esas restricciones (auditoría C-10). La máquina de referencia es un M3 Pro de 18 GB, y
+el repo es genérico: **el hardware no decide qué entra**. Decide el oficio («gana a X en Y»); el
+requisito de máquina —RAM, GPU dedicada, Apple Silicon— es un dato del apartado «Ojo» de cada ficha,
+para que quien no lo cumpla lo sepa antes de instalar, no un motivo para dejar fuera el estándar de
+facto. Lo que sí limita, y es el proyecto entero, es el coste en tokens del contexto de entrada.

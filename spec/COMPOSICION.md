@@ -74,7 +74,7 @@ entrar en cualquier nicho y tocar un fichero de código.
 
 ## `usa:` — composición declarada
 
-Un nodo puede declarar con qué se usa habitualmente. Los 21 sistemas solares lo hacen —GOAL §1:
+Un nodo puede declarar con qué se usa habitualmente. Los 22 sistemas solares lo hacen —GOAL §1:
 *«cada nicho apunta a sus vecinos y no duplica nada»*— y un pueblo también puede:
 
 ```yaml
@@ -121,3 +121,14 @@ práctica es **cargar lo que el trabajo cruza de verdad**, que suelen ser dos o 
 
 `cosmos medir --combinacion a,b,c` da el coste de una combinación concreta, para que la decisión sea
 un número y no una intuición.
+
+## Qué se ve al abrir
+
+`cosmos abrir <nodo>` enseña el cuerpo del nodo, su estrella si la tiene y **los nombres** de sus
+hijos. Con una excepción, y es a propósito: los hijos que son hoja —`pueblo` y `rio`— se listan
+**con su resumen**, porque ese es el último salto y ahí hay que elegir entre herramientas parecidas;
+los intermedios (continente, país, provincia) solo se nombran, porque describirlos es cargarlos
+(GOAL §2, corolario 2). Hasta el 2026-09-03 el comportamiento existía y no estaba escrito, así que
+parecía una inconsistencia (auditoría E-13). Y `usa:` se enseña al pie **solo por nombres**: la
+relación declarada tiene que ser visible para quien navega sin arrastrar un token del vecino
+(auditoría E-14).

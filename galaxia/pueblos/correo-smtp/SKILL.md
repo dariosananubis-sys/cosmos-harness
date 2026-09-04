@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: correo-smtp
 padre: automatizacion/avisos
 resumen: Envia correo por su protocolo y ademas lo copia a Enviados, que muchos proveedores no hacen por su cuenta.
+origen: propio
 ---
 
 `scripts/enviar-correo-smtp.py` — herramienta propia, no hay repositorio público. La ruta ES la

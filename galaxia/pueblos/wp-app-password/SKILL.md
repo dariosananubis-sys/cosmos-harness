@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: wp-app-password
 padre: web/construccion-de-sitios
 resumen: Crea, guarda y comprueba la clave de aplicacion del gestor, que solo se puede emitir desde su interfaz.
+origen: propio
 ---
 
 `scripts/bootstrap-app-pass.py`, `scripts/save-app-pass.py` y `scripts/wp-rest-base.js` —

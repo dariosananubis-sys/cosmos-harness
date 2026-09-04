@@ -1,0 +1,11 @@
+.....
+COSMOS  gate  rojo — commit bloqueado.
+Falló: /usr/local/bin/python3 -c import sys, pathlib;sys.exit(0 if pathlib.Path('fichero.txt').read_text().strip() == 'SUCIO' else 1)
+Repítelo a mano para ver el detalle, o usa la válvula acotada:
+  cosmos saltar <codigo> --motivo "..." --caduca 7d
+...............................................................................................................
+----------------------------------------------------------------------
+Ran 116 tests in 8.500s
+
+OK
+EXIT_PUENTE=0

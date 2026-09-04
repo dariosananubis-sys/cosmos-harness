@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import asdict, dataclass, field
 from typing import Callable
@@ -26,7 +27,27 @@ FACTOR_CALIBRACION = 1.204          # prosa: specs, fichas, código, agua
 FACTOR_GENERADO = 1.381             # índice y catálogo: densos en símbolos
 FACTOR_ESTRUCTURA = 1.314           # agua, estrellas y ríos: prosa española densa
 MARGEN_ERROR: float | None = 0.052
+# El peor fichero del corpus de calibración se fue a un tercio (código con muchos
+# identificadores largos). No aplica al agregado que decide el presupuesto —el sesgo
+# medio de muchos ficheros es, por desigualdad triangular, menor o igual que el error
+# medio absoluto—, pero se publica, porque un margen que esconde su peor caso da una
+# precisión falsa (auditoría A-10; docs/CALIBRACION.md).
+PEOR_CASO_FICHERO: float | None = 0.336
+# Lo que cuesta una línea más de catálogo (nombre + resumen), medido el 2026-09-03 sobre la galaxia
+# añadiendo pueblos mínimos al peor nicho: ≈27,6 tokens cada uno (revisión §4.1).
+COSTE_POR_HERRAMIENTA = 27.6
 PATRON_TOKEN = re.compile(r"\w+|[^\w\s]", re.UNICODE)
+
+
+def descripcion_margen(margen_error: float | None) -> str:
+    """El margen tal cual está calibrado: `±5,2 %` no es `±5%`, y el peor caso se dice."""
+
+    if margen_error is None:
+        return "±desconocido"
+    texto = f"±{margen_error * 100:.1f} %".replace(".", ",")
+    if PEOR_CASO_FICHERO is not None:
+        texto += f" medio (peor fichero {PEOR_CASO_FICHERO * 100:.1f} %)".replace(".", ",")
+    return texto
 
 
 class MetodoNoDisponible(RuntimeError):
@@ -158,10 +179,6 @@ def _contador_exacto() -> tuple[Callable[[str], int], str] | None:
     return lambda texto: len(codificacion.encode(texto)), "tiktoken/cl100k_base"
 
 
-def tokenizador_exacto_disponible() -> bool:
-    return _contador_exacto() is not None
-
-
 def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str | None, bool]:
     if metodo not in {"aprox", "exacto"}:
         raise ValueError("metodo debe ser aprox o exacto")
@@ -193,7 +210,10 @@ def agua_condicional(arbol: Arbol) -> list[Nodo]:
     ]
 
 
-def nodos_de_catalogo(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> list[Nodo]:
+def nodos_de_catalogo(
+    arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, con_rios: bool = True,
+    herramientas: tuple[str, ...] | None = None,
+) -> list[Nodo]:
     """Los nodos con línea propia en el catálogo, en su orden. UNA selección para todos.
 
     La comparten el renderizado (`catalogo_visible`) y la contra-métrica
@@ -211,9 +231,15 @@ def nodos_de_catalogo(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None =
             if nodo.cosmos in {"planeta", "continente", "pais", "provincia", "pueblo"}
             and seleccion is not None
             and nicho_de_nodo(arbol, nodo) in seleccion
+            # El perfil del usuario (`cosmos configurar`) deja fuera los pueblos que no eligió.
+            and (herramientas is None or nodo.cosmos != "pueblo" or nodo.nombre in herramientas)
         ),
         key=lambda nodo: nodo.ruta_cosmos,
     )
+    if not con_rios:
+        # El bloque que se proyecta sobre un repo ajeno no puede anunciar verbos que ese
+        # repo no tiene (auditoría E-01): los ríos viven en el repositorio COSMOS de origen.
+        return solidos
     rios = sorted(
         (nodo for nodo in arbol.nodos if nodo.cosmos == "rio"),
         key=lambda nodo: nodo.referencia,
@@ -221,7 +247,10 @@ def nodos_de_catalogo(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None =
     return solidos + rios
 
 
-def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None) -> str:
+def catalogo_visible(
+    arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, con_rios: bool = True,
+    herramientas: tuple[str, ...] | None = None,
+) -> str:
     """Materializa exactamente los nombres/resúmenes visibles antes de bajar.
 
     **Árbol indentado, no lista de rutas** (2026-09-02). El formato anterior pagaba la
@@ -237,20 +266,39 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
     tokens); aquí sin grafo de referencias porque el árbol ya declara la jerarquía.
     """
 
-    lineas: list[str] = []
+    return "\n".join(texto for _, texto in lineas_de_catalogo(arbol, nichos, con_rios=con_rios, herramientas=herramientas))
+
+
+LINEA_MANTENIMIENTO = "rio (mantenimiento, 'cosmos abrir rio/x')"
+
+
+def lineas_de_catalogo(
+    arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = None, *, con_rios: bool = True,
+    herramientas: tuple[str, ...] | None = None,
+) -> list[tuple[str, str]]:
+    """Cada línea del catálogo tal cual se renderiza, con la ruta del nodo que la paga.
+
+    Es la única fuente del texto del catálogo: `catalogo_visible` la une con saltos de
+    línea y `acertar._lineas_del_catalogo` la puntúa **literalmente**. Antes el juez
+    componía su propio texto (`ruta completa + resumen`) y el render otro (nombre +
+    resumen, indentado): la diferencia valía 10 puntos de la cifra publicada y nadie la
+    había fijado (auditoría B-08). Ahora no puede divergir: se puntúa lo que se ve.
+    """
+
+    lineas: list[tuple[str, str]] = []
     de_mantenimiento: list[str] = []
-    for nodo in nodos_de_catalogo(arbol, nichos):
+    for nodo in nodos_de_catalogo(arbol, nichos, con_rios=con_rios, herramientas=herramientas):
         if nodo.cosmos == "rio":
             if nodo.datos.get("momento") == "mantenimiento":
                 de_mantenimiento.append(nodo.nombre)
             else:
-                lineas.append(f"{nodo.referencia}: {nodo.resumen}")
+                lineas.append((nodo.referencia, f"{nodo.referencia}: {nodo.resumen}"))
             continue
         profundidad = nodo.ruta_cosmos.count("/")
         if profundidad <= 1:
-            lineas.append(f"{nodo.ruta_cosmos}: {nodo.resumen}")
+            lineas.append((nodo.referencia, f"{nodo.ruta_cosmos}: {nodo.resumen}"))
         else:
-            lineas.append("  " * (profundidad - 1) + f"{nodo.nombre}: {nodo.resumen}")
+            lineas.append((nodo.referencia, "  " * (profundidad - 1) + f"{nodo.nombre}: {nodo.resumen}"))
 
     # Los verbos de cuidar el repositorio se nombran, no se describen. `enganchar`,
     # `proyectar` o `generar` no resuelven el encargo de nadie y su resumen se pagaba en
@@ -258,14 +306,17 @@ def catalogo_visible(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None = 
     # problema que este proyecto persigue. Siguen siendo descubribles —están aquí, y
     # `cosmos abrir rio/<nombre>` da el detalle entero—, solo dejan de estar precargados.
     if de_mantenimiento:
-        lineas.append("rio (mantenimiento, 'cosmos abrir rio/x'): " + ", ".join(sorted(de_mantenimiento)))
-    return "\n".join(lineas)
+        lineas.append((LINEA_MANTENIMIENTO, f"{LINEA_MANTENIMIENTO}: " + ", ".join(sorted(de_mantenimiento))))
+    return lineas
 
 
 def _bloques_contexto_inicial(
     arbol: Arbol,
     indice: str | None = None,
     nichos: list[str] | tuple[str, ...] | None = None,
+    *,
+    con_rios: bool = True,
+    herramientas: tuple[str, ...] | None = None,
 ) -> list[tuple[str, str]]:
     indice_real = generar_indice(arbol) if indice is None else indice
     bloques: list[tuple[str, str]] = []
@@ -275,7 +326,7 @@ def _bloques_contexto_inicial(
         contenido = cuerpo(nodo)
         if contenido:
             bloques.append((f"oceano/{nodo.nombre}", contenido))
-    catalogo = catalogo_visible(arbol, nichos)
+    catalogo = catalogo_visible(arbol, nichos, con_rios=con_rios, herramientas=herramientas)
     if catalogo:
         bloques.append(("catálogo visible", catalogo))
     return bloques
@@ -286,10 +337,16 @@ def contexto_inicial(
     nichos: list[str] | tuple[str, ...] | None = None,
     *,
     indice: str | None = None,
+    con_rios: bool = True,
+    herramientas: tuple[str, ...] | None = None,
 ) -> str:
-    """Materializa la secuencia normativa única que se paga al entrar."""
+    """Materializa la secuencia normativa única que se paga al entrar.
 
-    return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos))
+    `con_rios=False` es solo para el bloque proyectado sobre un repo ajeno (E-01): la
+    secuencia normativa de NUCLEO §2 es la de `con_rios=True`.
+    """
+
+    return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos, con_rios=con_rios, herramientas=herramientas))
 
 
 def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
@@ -351,28 +408,54 @@ class Veredicto:
     evaluado: int
     presupuesto: int
     nicho: str
+    # Lo que se compara de verdad con el presupuesto: `evaluado` más el margen calibrado
+    # de la heurística cuando la cifra es estimada. Con `exacto` coinciden.
+    con_margen: int = 0
+    margen_error: float = 0.0
 
     @property
     def margen(self) -> int:
-        return self.presupuesto - self.evaluado
+        return self.presupuesto - self.con_margen
 
     def como_linea(self) -> str:
         if self.cabe is None:
             return "SIN MEDIR: el árbol no aporta ni un token; un veredicto sobre nada no es un OK"
+        aplicado = (
+            f" con el margen calibrado (+{self.margen_error * 100:.1f} %)".replace(".", ",")
+            if self.margen_error
+            else ""
+        )
         if self.cabe:
-            return f"OK, quedan {self.margen} tokens en el peor caso con agua ({self.nicho})"
-        return f"ROJO, excede en {-self.margen} tokens en el peor caso con agua ({self.nicho})"
+            # El coste de entrada crece con cada alta del peor nicho (~28 tokens por herramienta,
+            # revisión §4.1): decir cuántas caben es decir la verdad sobre lo que queda.
+            caben = int(self.margen // (COSTE_POR_HERRAMIENTA * (1 + self.margen_error)))
+            return (f"OK, quedan {self.margen} tokens{aplicado} en el peor caso con agua ({self.nicho}); "
+                    f"≈ {caben} herramienta(s) más en ese nicho")
+        return f"ROJO, excede en {-self.margen} tokens{aplicado} en el peor caso con agua ({self.nicho})"
 
 
 def veredicto_de_presupuesto(casos: "ResumenMedicion", presupuesto: int) -> Veredicto:
-    """El único sitio donde se decide si un árbol cabe. Los tres llamantes usan esto."""
+    """El único sitio donde se decide si un árbol cabe. Los tres llamantes usan esto.
+
+    Y se decide **con el margen calibrado encima** cuando la cifra es estimada: un
+    guardarraíl que compara una estimación sesgada a la baja contra el techo se equivoca
+    a su favor exactamente en el borde, que es donde importa. Ya pasó (F01: verde con el
+    contador aproximado, 4.323/4.000 con el tokenizador real). Hoy el margen vivo era del
+    12,8 % y el error medio calibrado del 5,2 % (auditoría A-10): se aplica el medio, que
+    acota el sesgo del agregado; el peor caso por fichero (33,6 %) se publica y no se
+    aplica, porque no describe una suma de quinientos ficheros. Con `exacto` no hay margen.
+    """
 
     peor = casos.peor
+    margen_error = float(peor.margen_error or 0.0) if peor.estimado else 0.0
+    con_margen = math.ceil(peor.entrada_con_agua * (1 + margen_error))
     return Veredicto(
-        cabe=None if peor.universo == 0 else peor.entrada_con_agua <= presupuesto,
+        cabe=None if peor.universo == 0 else con_margen <= presupuesto,
         evaluado=peor.entrada_con_agua,
         presupuesto=presupuesto,
         nicho=casos.peor_nicho or "sin nichos",
+        con_margen=con_margen,
+        margen_error=margen_error,
     )
 
 
@@ -383,10 +466,11 @@ def medir_arbol(
     presupuesto: int = 4000,
     indice: str | None = None,
     nichos: list[str] | tuple[str, ...] | None = None,
+    herramientas: tuple[str, ...] | None = None,
 ) -> ResultadoMedicion:
     contador, metodo_real, tokenizador, estimado = _seleccionar_contador(metodo)
     seleccion = normalizar_nichos(arbol, nichos)
-    partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion)
+    partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion, herramientas=herramientas)
 
     # Tres clases de contenido, tres factores. El índice y el catálogo son listas densas
     # en símbolos y tokenizan un 15 % peor que una ficha (fallo F01); el agua y los
@@ -454,8 +538,14 @@ def medir_casos(
     presupuesto: int = 4000,
     indice: str | None = None,
     nichos: list[str] | tuple[str, ...] | None = None,
+    herramientas: tuple[str, ...] | None = None,
 ) -> ResumenMedicion:
-    """Mide el caso base, cada nicho y, si se pidió, una selección concreta."""
+    """Mide el caso base, cada nicho y, si se pidió, una selección concreta.
+
+    `herramientas` (el perfil de `cosmos configurar`) acota SOLO la selección del usuario: el
+    peor nicho —el juez de E16— se mide siempre con todos los pueblos, porque el presupuesto
+    tiene que valer para cualquier perfil.
+    """
 
     base = medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=None)
     por_nicho = [
@@ -477,6 +567,7 @@ def medir_casos(
             presupuesto=presupuesto,
             indice=indice,
             nichos=seleccion_nichos,
+            herramientas=herramientas,
         )
         if seleccion_nichos is not None
         else None
@@ -488,54 +579,12 @@ def _numero(numero: int) -> str:
     return f"{numero:,}".replace(",", ".")
 
 
-def formatear_medicion(resultado: ResultadoMedicion, *, detalle: bool = False) -> str:
-    if resultado.metodo == "exacto":
-        metodo = f"exacto, {resultado.tokenizador}"
-    else:
-        margen = "±desconocido" if resultado.margen_error is None else f"±{resultado.margen_error:.0%}"
-        metodo = f"estimado, {margen}, {HEURISTICA}"
-    descarga = (
-        "no_definida"
-        if resultado.descarga == "no_definida"
-        else f"{float(resultado.descarga) * 100:.1f} %".replace(".", ",")
-    )
-    evaluado = resultado.entrada_con_agua
-    if evaluado <= resultado.presupuesto:
-        estado = f"OK, quedan {_numero(resultado.presupuesto - evaluado)} tokens"
-    else:
-        estado = f"ROJO, excede en {_numero(evaluado - resultado.presupuesto)} tokens"
-    lineas = [
-        "COSMOS  medir",
-        "",
-        f"  Entrada ......... {_numero(resultado.entrada)} tokens   ({metodo})",
-        f"  Agua condicional  {_numero(resultado.agua)} tokens   ({len(resultado.detalle_agua)} aguas por paths:, fuera de la entrada)",
-        f"  Entrada con agua  {_numero(evaluado)} tokens   (lo que se paga sin invocar nada)",
-        f"  Universo ........ {_numero(resultado.universo)} tokens   ({metodo})",
-        f"  Descarga ........ {descarga}",
-        f"  Presupuesto ..... {_numero(resultado.presupuesto)}     {estado}",
-        "",
-        "  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)",
-        "",
-        "  Lo más caro de la entrada:",
-    ]
-    if resultado.detalle_entrada:
-        for numero, parte in enumerate(resultado.detalle_entrada if detalle else resultado.detalle_entrada[:3], start=1):
-            lineas.append(f"    {numero}.  {_numero(parte.tokens)} tok  {parte.nombre}")
-    else:
-        lineas.append("    (entrada vacía)")
-    if detalle:
-        lineas.extend(["", "  Resto, nodo a nodo:"])
-        lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in resultado.detalle_arbol)
-    return "\n".join(lineas) + "\n"
-
-
 def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str:
     evaluada = resultado.evaluada
     if evaluada.metodo == "exacto":
         metodo = f"exacto, {evaluada.tokenizador}"
     else:
-        margen = "±desconocido" if evaluada.margen_error is None else f"±{evaluada.margen_error:.0%}"
-        metodo = f"estimado, {margen}, {HEURISTICA}"
+        metodo = f"estimado, {descripcion_margen(evaluada.margen_error)}, {HEURISTICA}"
     descarga = (
         "no_definida"
         if evaluada.descarga == "no_definida"
@@ -595,10 +644,6 @@ def formatear_casos(resultado: ResumenMedicion, *, detalle: bool = False) -> str
         lineas.extend(["", "  Resto, nodo a nodo:"])
         lineas.extend(f"    {_numero(parte.tokens)} tok  {parte.nombre}" for parte in evaluada.detalle_arbol)
     return "\n".join(lineas) + "\n"
-
-
-def medicion_json(resultado: ResultadoMedicion) -> str:
-    return json.dumps(resultado.como_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
 def casos_json(resultado: ResumenMedicion) -> str:

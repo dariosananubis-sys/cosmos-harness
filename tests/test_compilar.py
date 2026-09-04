@@ -17,6 +17,8 @@ from cosmos.validar import validar_arbol
 
 def documento(cosmos: str, nombre: str, resumen: str, cuerpo: str = "Contenido específico.", **campos: object) -> str:
     lineas = ["---", f"cosmos: {cosmos}", f"nombre: {nombre}", f"resumen: {resumen}"]
+    # Un pueblo tiene que nombrar qué ejecutar (E21): estas skills sintéticas son propias,
+    # así que lo declaran con `origen: propio` y un bloque de código, como cualquier pueblo real.
     for clave, valor in campos.items():
         if isinstance(valor, list):
             lineas.append(f'{clave}: [{", ".join(f"{item!r}" for item in valor)}]')
@@ -24,6 +26,10 @@ def documento(cosmos: str, nombre: str, resumen: str, cuerpo: str = "Contenido e
             lineas.append(f'{clave}: ""')
         else:
             lineas.append(f"{clave}: {valor}")
+    if cosmos == "pueblo" and "github.com" not in cuerpo:
+        cuerpo = f"https://github.com/pruebas-sinteticas/{nombre} · MIT · 0★ · último push 2026-01-01 (comprobado 2026-01-01)\n\n" + cuerpo
+    if cosmos == "pueblo" and "```" not in cuerpo:
+        cuerpo = cuerpo + "\n\n```bash\npython3 -m cosmos abrir " + nombre + "\n```"
     return "\n".join(lineas + ["---", "", cuerpo, ""])
 
 

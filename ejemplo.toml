@@ -20,8 +20,8 @@ metodo = "aprox"
 
 [compilacion]
 destino = ".claude/skills"
-modo = "symlink"
+modo = "copia"   # .claude/skills se escanea: en symlink el anfitrión no ve name/description (R-22)
 manifiesto = ".cosmos/compilado.json"
 
 [nichos]
-activos = []
+activos = ["construccion"]   # el juguete entrega a .claude/skills (escaneado): la vista se acota, no se aplana entera (A-02)

@@ -129,6 +129,7 @@ Ninguno de los dos es obligatorio, y los dos los valida el código.
 | Campo | Dónde | Regla |
 |---|---|---|
 | `usa` | cualquier sólido | Lista de rutas completas de nodos que existen, y nunca la propia (E20). Declara **con qué se trabaja junto** sin arrastrar carga: se valida el destino y no se carga nada, porque una dependencia automática sería la cadena de arrastre que trae medio internet. Ver `spec/COMPOSICION.md` |
+| `origen` | solo `pueblo` | Solo el valor `propio`: la herramienta es un guion que vive en el directorio del pueblo, no un repositorio ajeno, y por eso no lleva URL. Es la única excepción que admite E21 (`PUEBLO.md`); sin este campo, un pueblo sin `http(s)://` en el cuerpo es un rojo |
 | `momento` | solo `rio` | `trabajo` (por defecto) o `mantenimiento` (E00). Un río de mantenimiento cuida el repositorio y no resuelve el encargo de nadie, así que el catálogo lo **nombra sin describirlo**: su resumen dejaría de pagarse en cada sesión para usarse una vez. Ver `spec/NUCLEO.md` §2 |
 
 ## Lo que ningún nodo puede llevar

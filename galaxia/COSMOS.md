@@ -1,6 +1,6 @@
 # COSMOS — taller
 
-Veintiun oficios, seis mares que los cruzan y cinco oceanos siempre presentes; nada se carga hasta entrar en ello.
+22 oficios, 6 mares que los cruzan y 5 oceanos siempre presentes. Nada se carga hasta entrar en ello.
 
 ## Sistemas solares
 

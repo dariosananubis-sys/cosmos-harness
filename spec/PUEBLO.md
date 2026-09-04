@@ -1,7 +1,7 @@
 # Qué tiene que traer un pueblo — normativo
 
-Escrito tras el hallazgo H05 de `reviews/revision-adversarial-final.md`, que medió los 189 pueblos
-existentes y encontró esto:
+Escrito tras el hallazgo H05 de `reviews/revision-adversarial-final.md`, que midió los 189 pueblos
+que existían entonces (hoy los cuenta `cosmos estado`) y encontró esto:
 
 ```
    0/189  url http(s)
@@ -53,6 +53,17 @@ Ojo: `scan source` no ve dependencias transitivas de un lockfile ausente. Si el 
 tiene lockfile, el resultado es un falso verde.
 ```
 
+## Lo que comprueba el validador (E21)
+
+Hasta el 2026-09-03 este fichero era, íntegro, un párrafo pidiendo buen comportamiento: ningún
+guardarraíl lo ejercía y 28 de 247 pueblos no nombraban qué ejecutar (auditoría A-06). Desde hoy
+**E21** exige en todo `pueblo` la URL literal del repositorio en el cuerpo y al menos un bloque de
+código. La única excepción es la herramienta **propia** —un guion que vive en el directorio del
+pueblo, sin repositorio ajeno—, que lo declara con `origen: propio` en el frontmatter
+(`FRONTMATTER.md`) en vez de fingir una URL. Lo que sigue siendo prosa —el rival nombrado (regla 4)
+y el apartado de avisos (regla 5)— lo cuenta `cosmos estado` («Contrato de pueblo») para saldarlo
+por tandas, no lo bloquea.
+
 ## Reglas que no se negocian
 
 1. **La URL es literal y verificada.** No «el paquete oficial de X»: la URL. Sin ella, el pueblo no
@@ -67,6 +78,14 @@ tiene lockfile, el resultado es un falso verde.
    anuncio. Un falso verde silencioso (`osv-scanner` sin lockfile) vale más que tres virtudes.
 6. **Cero valores reales.** Ni claves, ni dominios de nadie, ni rutas de una máquina concreta. Los
    ejemplos usan marcadores explícitos.
+
+## La plataforma de los comandos, declarada
+
+Los comandos de instalación son de **macOS con Homebrew salvo que la ficha diga otra cosa** (revisión
+§4.2, 2026-09-03: 64 de 306 fichas solo ofrecían `brew`). El CI corre en Linux y GOAL §1 vende
+«sobre cualquier proyecto»: donde el proyecto publique binario, `pip`, `npm`, `cargo`, `go install`
+o imagen de Docker, la ficha debería ofrecer ese segundo camino; donde no lo haga, lo dice. Un
+comando que no existe en la máquina del lector es peor que ninguno.
 
 ## El presupuesto no cambia
 

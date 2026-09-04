@@ -8,8 +8,7 @@ resumen: Sigue el flujo de datos y dice por donde viaja lo sensible, no solo don
 https://github.com/Bearer/bearer · Elastic License 2.0 (leído en su `LICENSE.txt`; la API de GitHub la reporta como `NOASSERTION`) · 2.739★ · último push 2026-08-31 (comprobado 2026-09-01)
 
 ```bash
-brew tap bearer/tap
-brew install bearer
+brew install bearer/tap/bearer
 ```
 
 ```bash

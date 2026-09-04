@@ -5,14 +5,20 @@ padre: ciberseguridad/analisis/cadena-de-suministro
 resumen: Audita el paquete de una skill antes de instalarla: guiones, inyeccion en su texto y fugas de carpeta.
 ---
 
-Rescatado de la skill `skill-security-auditor` de un arnes propio. **El guion viaja con este
-pueblo** (`scripts/skill_security_auditor.py`, 1.066 lineas, solo biblioteca estandar), asi que no
-depende de que ese arnes exista en la maquina. Comprobado el 2026-09-02 sobre dos skills reales.
+https://github.com/alirezarezvani/claude-skills · MIT (leído en su LICENSE: «Copyright (c) 2025 Alireza Rezvani») · 25.450★ · último push 2026-08-26 (comprobado 2026-09-03, `.../commits/HEAD.atom`; la API de GitHub da `pushed_at` 2026-08-30, pero eso cuenta cualquier rama — el HEAD del repo, que es lo que se instala, es del 26)
+
+Es la skill `skill-security-auditor` de ese repositorio, de Alireza Rezvani, licencia MIT. **El guion
+no viaja con este pueblo**: se cataloga y se enlaza, como el resto del catálogo (retirado el
+2026-09-03, ver `NOTICE`). Se instala desde su origen — la ruta de abajo está comprobada contra el
+árbol del repositorio ese mismo día (1.066 líneas, solo biblioteca estándar). Comprobado el
+2026-09-02 sobre dos skills reales.
 
 ```bash
-python3 scripts/skill_security_auditor.py /ruta/a/la-skill/
-python3 scripts/skill_security_auditor.py https://github.com/usuario/repo --skill nombre --cleanup
-python3 scripts/skill_security_auditor.py /ruta/a/la-skill/ --strict --json
+git clone --depth 1 https://github.com/alirezarezvani/claude-skills /tmp/claude-skills
+AUD=/tmp/claude-skills/engineering/skills/skill-security-auditor/scripts/skill_security_auditor.py
+python3 "$AUD" /ruta/a/la-skill/
+python3 "$AUD" https://github.com/usuario/repo --skill nombre --cleanup
+python3 "$AUD" /ruta/a/la-skill/ --strict --json
 ```
 
 Veredicto en el codigo de salida: `0` PASS, `2` WARN (revisar a mano), `1` FAIL (no instalar).

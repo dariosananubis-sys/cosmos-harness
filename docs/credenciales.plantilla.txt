@@ -1,0 +1,15 @@
+# Plantilla de credenciales de COSMOS — VACÍA a propósito. NO rellenar este fichero.
+#
+# `cosmos configurar` genera el de verdad FUERA del repositorio: ~/.cosmos/credenciales.txt, con
+# permisos 600 en un directorio 700, con solo las variables que necesitan las herramientas que
+# elegiste y una pista de dónde se saca cada una. Lo abre en el editor, se rellena de una
+# sentada, y `cosmos configurar --comprobar` lo lee y se lo queda. `--llavero` las pasa al
+# llavero de macOS (security add-generic-password, servicio cosmos/<VARIABLE>) y vacía el txt.
+#
+# El escáner de secretos (puente/secretos.py) prohíbe versionar cualquier `credenciales*.txt`
+# salvo esta plantilla, y `.gitignore` lo ignora: un fichero de claves dentro de este repo
+# sería la ironía final.
+#
+# Forma de cada línea (la genera el comando; aquí no va ninguna):
+#   # <pueblo>: <línea de la ficha donde se pide>
+#   VARIABLE=

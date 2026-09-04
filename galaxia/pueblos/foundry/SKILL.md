@@ -38,3 +38,5 @@ aqui es probar en `anvil` bifurcado, pasar los tres analizadores, y solo entonce
 
 Aviso de dinero: `forge script --broadcast` contra una red real gasta comision de red de verdad.
 Todo lo de arriba corre en local a coste cero; el despliegue no.
+
+Ojo: el instalador por `curl | bash` ejecuta código remoto sin revisar; para producción, leer el guion antes.

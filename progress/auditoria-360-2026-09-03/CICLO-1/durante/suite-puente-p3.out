@@ -1,0 +1,48 @@
+.....COSMOS  gate  P01 saltado: 1 resumen(es) vaciado(s) pasan con la válvula abierta
+..
+COSMOS  gate  rojo — commit bloqueado: resúmenes que se vacían.
+  nuclei.md: el resumen pierde 11 de 12 términos distintos (92%)
+Un resumen que pierde más del 40 % de sus términos casi nunca mejora: es la palanca
+más barata para abaratar el presupuesto o inflar la contra-métrica (B-01). Si es a
+propósito: cosmos saltar P01 --motivo "..." --caduca 1d
+...
+COSMOS  gate  rojo — commit bloqueado.
+Falló: /usr/local/bin/python3 -c import sys, pathlib;sys.exit(0 if pathlib.Path('fichero.txt').read_text().strip() == 'SUCIO' else 1)
+Repítelo a mano para ver el detalle, o usa la válvula acotada:
+  cosmos saltar <codigo> --motivo "..." --caduca 7d
+...........................................F......F..F....................................................................
+======================================================================
+FAIL: test_dice_el_numero_y_el_presupuesto (puente.tests.test_sesion.Arranque.test_dice_el_numero_y_el_presupuesto)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/puente/tests/test_sesion.py", line 602, in test_dice_el_numero_y_el_presupuesto
+    raiz = _en_verde(_repositorio(Path(self.temporal.name)))
+  File "~/cosmos/puente/tests/test_sesion.py", line 80, in _en_verde
+    raise AssertionError("el árbol de prueba no llega a verde")
+AssertionError: el árbol de prueba no llega a verde
+
+======================================================================
+FAIL: test_con_un_salto_vivo_ninguna_salida_dice_verde_a_secas (puente.tests.test_sesion.CierreEnRojo.test_con_un_salto_vivo_ninguna_salida_dice_verde_a_secas)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/puente/tests/test_sesion.py", line 584, in test_con_un_salto_vivo_ninguna_salida_dice_verde_a_secas
+    sano = _en_verde(_repositorio(Path(self.temporal.name) / "sano2"))
+  File "~/cosmos/puente/tests/test_sesion.py", line 80, in _en_verde
+    raise AssertionError("el árbol de prueba no llega a verde")
+AssertionError: el árbol de prueba no llega a verde
+
+======================================================================
+FAIL: test_un_arbol_en_verde_no_bloquea_nada (puente.tests.test_sesion.CierreEnRojo.test_un_arbol_en_verde_no_bloquea_nada)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "~/cosmos/puente/tests/test_sesion.py", line 576, in test_un_arbol_en_verde_no_bloquea_nada
+    sano = _en_verde(_repositorio(Path(self.temporal.name) / "sano"))
+  File "~/cosmos/puente/tests/test_sesion.py", line 80, in _en_verde
+    raise AssertionError("el árbol de prueba no llega a verde")
+AssertionError: el árbol de prueba no llega a verde
+
+----------------------------------------------------------------------
+Ran 132 tests in 5.695s
+
+FAILED (failures=3)
+EXIT_PUENTE=1

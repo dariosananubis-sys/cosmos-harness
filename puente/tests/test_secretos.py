@@ -83,5 +83,65 @@ class RutasProhibidas(unittest.TestCase):
         self.assertEqual(_hallazgos_de_ruta(b".env.example"), [])
 
 
+
+
+class LaExcepcionIndultaUnValorNoUnFichero(unittest.TestCase):
+    """Auditoría F-01: la lista de excepciones comparaba (fichero × clase) y blanqueaba el
+    fichero entero para esa clase. Dos credenciales nuevas y distintas atravesaron el gate
+    con exit 0 y «limpio de nuevos». Desde hoy la clave es el valor."""
+
+    def test_dos_valores_distintos_de_la_misma_clase_son_dos_hallazgos(self) -> None:
+        datos = SECRETOS["clave AWS"] + b"otra = AKIA" + b"ZZZZZZZZZZZZZZZZ\n"
+        hallazgos = [h for h in _hallazgos(datos) if "clave AWS" in h]
+        self.assertEqual(len(hallazgos), 2, hallazgos)
+        self.assertNotEqual(hallazgos[0].split("[valor ")[1], hallazgos[1].split("[valor ")[1])
+
+    def test_el_mismo_valor_repetido_es_un_solo_hallazgo(self) -> None:
+        hallazgos = [h for h in _hallazgos(SECRETOS["clave AWS"] * 2) if "clave AWS" in h]
+        self.assertEqual(len(hallazgos), 1)
+
+    def test_una_excepcion_por_valor_no_cubre_otro_valor_en_el_mismo_fichero(self) -> None:
+        from puente.secretos import separar_conocidos
+        from cosmos.guardarrailes import clave_hallazgo
+
+        inventariado = [h for h in _hallazgos(SECRETOS["clave AWS"]) if "clave AWS" in h]
+        conocidos = {clave_hallazgo(h) for h in inventariado}
+        nuevo = _hallazgos(b"otra = AKIA" + b"ZZZZZZZZZZZZZZZZ\n")
+        nuevos, viejos = separar_conocidos(inventariado + nuevo, conocidos)
+        self.assertEqual(len(viejos), 1, "el valor inventariado sigue indultado")
+        self.assertEqual(len(nuevos), 1, "un valor distinto en el mismo fichero pasó como conocido")
+
+    def test_mover_el_valor_de_linea_no_lo_convierte_en_nuevo(self) -> None:
+        from puente.secretos import separar_conocidos
+        from cosmos.guardarrailes import clave_hallazgo
+
+        arriba = _hallazgos(SECRETOS["clave AWS"])
+        abajo = _hallazgos(b"\n\n\n" + SECRETOS["clave AWS"])
+        self.assertNotEqual(arriba, abajo, "el número de línea tiene que cambiar")
+        nuevos, _ = separar_conocidos(abajo, {clave_hallazgo(h) for h in arriba})
+        self.assertEqual(nuevos, [])
+
+    def test_la_huella_no_ensena_el_valor(self) -> None:
+        for hallazgo in _hallazgos(SECRETOS["clave AWS"]):
+            self.assertNotIn("IOSFODNN", hallazgo)
+            self.assertRegex(hallazgo, r"\[valor [0-9a-f]{12}\]")
+
+
+class LasRutasDeUnaMaquinaPersonalSaltan(unittest.TestCase):
+    """Auditoría F-11: 64 rutas absolutas del Mac del autor y ningún patrón para ellas."""
+
+    def test_una_ruta_de_usuario_salta(self) -> None:
+        self.assertTrue(any("ruta de máquina personal" in h
+                            for h in _hallazgos(b"cd /Users/" + b"alguien/proyecto\n")))
+        self.assertTrue(any("ruta de máquina personal" in h
+                            for h in _hallazgos(b"cd /home/" + b"alguien/proyecto\n")))
+
+    def test_las_cuentas_de_servicio_y_los_marcadores_no(self) -> None:
+        for texto in (b"-v n8n_data:/home/node/.n8n\n", b"/home/runner/work/\n",
+                      b"/Users/<usuario>/repo\n", b"~/cosmos\n"):
+            with self.subTest(texto):
+                self.assertFalse(any("ruta de máquina personal" in h for h in _hallazgos(texto)))
+
+
 if __name__ == "__main__":
     unittest.main()

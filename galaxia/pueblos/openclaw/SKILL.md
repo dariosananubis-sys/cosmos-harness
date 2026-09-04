@@ -28,3 +28,8 @@ Ojo, y es lo que más caro sale: **la licencia no tiene identificador SPDX** —
 instalador por `curl | bash` ejecuta código remoto sin revisar: para producción, leer el guion antes.
 El daemon queda escuchando, así que el freno de acciones irreversibles no puede vivir solo en el
 prompt.
+
+Ojo, y no es menor: el guion `scripts/telegram-bridge.py` que este pueblo distribuye puede lanzar
+el agente con el sistema de permisos DESACTIVADO — solo si el operador pone `OPENCLAW_SIN_PERMISOS=1`
+(por defecto NO, tras el arreglo de la auditoría F-08). Con esa variable, cualquier mensaje del canal
+corre sin confirmación: úsala solo en un entorno aislado y con la allowlist `ALLOWED_USER_ID` puesta.

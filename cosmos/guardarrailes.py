@@ -42,7 +42,12 @@ CODIGOS_INVARIANTES = _invariantes_vigentes()
 # válvula es obligatoria en TODO guardarraíl duro, no solo en el validador: uno
 # sin salida acotada acaba arrancado de raíz un viernes, y ya no vuelve.
 CODIGOS_SESION = ("G01", "G02", "G03", "G04", "G05")
-CODIGOS = CODIGOS_INVARIANTES + CODIGOS_SESION
+# Comprobaciones del gate de pre-commit (`puente/gate.py`) que no son invariantes del
+# árbol sino de su DIFERENCIA con HEAD: un resumen que se vacía no rompe E00–E20 y aun
+# así es la palanca más barata para subir la contra-métrica (auditoría B-01). Código
+# propio por la misma razón que los de sesión: sin válvula acotada, se rodea.
+CODIGOS_GATE = ("P01", "P02")
+CODIGOS = CODIGOS_INVARIANTES + CODIGOS_SESION + CODIGOS_GATE
 DIAS_MAXIMOS = 30
 MARCA_HOOK = "cosmos-enganchar"
 VERSION_HOOK = 1
@@ -117,6 +122,7 @@ def normalizar_codigo(codigo: str) -> str:
             f"código desconocido: {codigo!r}; se esperaba una invariante "
             f"({', '.join(CODIGOS_INVARIANTES)})"
             f" o un guardarraíl de sesión ({'/'.join(CODIGOS_SESION)})"
+            f" o del gate ({'/'.join(CODIGOS_GATE)})"
         )
     return limpio
 
@@ -294,6 +300,33 @@ def contenido_hook(*, interprete: str | None = None, con_pruebas: bool = True) -
     )
 
 
+def contenido_hook_push(*, interprete: str | None = None) -> str:
+    """El pre-push repite el escaneo de secretos sobre todo lo versionado.
+
+    `--no-verify` salta el pre-commit y el CI se pone rojo cuando el secreto ya viajó
+    (auditoría F-09). El pre-push es la última puerta local antes de que salga del disco:
+    barato (segundos) y con la misma válvula que el resto.
+    """
+
+    ejecutable = interprete or sys.executable
+    return "\n".join(
+        [
+            "#!/bin/sh",
+            f"# {MARCA_HOOK} v{VERSION_HOOK} — generado por 'cosmos enganchar' (pre-push).",
+            "# No editar a mano: 'cosmos desenganchar' lo elimina y deja el repo como estaba.",
+            f"COSMOS_INSTALACION='{instalacion()}'",
+            'if [ -n "${PYTHONPATH:-}" ]; then',
+            '  PYTHONPATH="$COSMOS_INSTALACION:$PYTHONPATH"',
+            "else",
+            '  PYTHONPATH="$COSMOS_INSTALACION"',
+            "fi",
+            "export PYTHONPATH",
+            f"exec '{ejecutable}' -m puente.secretos --todo",
+            "",
+        ]
+    )
+
+
 def es_nuestro(ruta: Path) -> bool:
     try:
         cabecera = ruta.read_text(encoding="utf-8", errors="replace")
@@ -319,6 +352,10 @@ def enganchar(base: Path, *, interprete: str | None = None, con_pruebas: bool = 
     estado = "actualizado" if ruta.exists() else "creado"
     ruta.parent.mkdir(parents=True, exist_ok=True)
     ruta.write_text(contenido_hook(interprete=interprete, con_pruebas=con_pruebas), encoding="utf-8")
+    push = ruta_hook(base, "pre-push")
+    if not push.exists() or es_nuestro(push):
+        push.write_text(contenido_hook_push(interprete=interprete), encoding="utf-8")
+        push.chmod(push.stat().st_mode | 0o111)
     ruta.chmod(0o755)
     return ruta, estado
 
@@ -327,6 +364,9 @@ def desenganchar(base: Path) -> tuple[Path, str]:
     """Quita el hook propio y deja el repositorio exactamente como estaba."""
 
     ruta = ruta_hook(base)
+    push = ruta_hook(base, "pre-push")
+    if push.exists() and es_nuestro(push):
+        push.unlink()
     if not ruta.exists():
         return ruta, "ausente"
     if not es_nuestro(ruta):
@@ -365,10 +405,29 @@ EVENTOS_SESION = (
 )
 
 
-def orden_sesion(interprete: str | None = None) -> str:
+def orden_sesion(interprete: str | None = None, raiz: Path | None = None) -> str:
+    """La orden del hook, portable cuando puede serlo.
+
+    Escribía la ruta absoluta de la instalación y del intérprete en `.claude/settings.json`,
+    un fichero que se versiona: quien hiciera `git add -A` commiteaba su disco, y en otro
+    clon los cinco hooks fallaban en silencio (auditoría E-06). Cuando COSMOS ES el
+    repositorio (`instalacion() == raiz`, el caso de este repo y de todo clon), se usa
+    `$CLAUDE_PROJECT_DIR` —que Claude Code exporta a cada hook— y `python3` a secas. Solo
+    con COSMOS instalado en otra parte la ruta es inevitablemente de esta máquina.
+    """
+
+    instalado = instalacion()
+    if interprete is None and raiz is not None and instalado == Path(raiz).resolve():
+        # `${CLAUDE_PROJECT_DIR:-.}`: si el runtime no exporta la variable, el hook no muere en
+        # silencio (revisión R-48). Y si el `python3` del PATH es anterior a 3.11 (COSMOS exige
+        # `tomllib`), lo dice como mensaje de sistema en vez de fallar sin ruido.
+        return (
+            f'PYTHONPATH="${{CLAUDE_PROJECT_DIR:-.}}"${{PYTHONPATH:+:$PYTHONPATH}} python3 -m {MARCA_SESION} '
+            '|| echo \'{"systemMessage":"COSMOS: el guardarrail de sesion no arranco (hace falta python3 >= 3.11 en el PATH)"}\''
+        )
     ejecutable = interprete or sys.executable
     return (
-        f"PYTHONPATH='{instalacion()}'\"${{PYTHONPATH:+:$PYTHONPATH}}\" "
+        f"PYTHONPATH='{instalado}'\"${{PYTHONPATH:+:$PYTHONPATH}}\" "
         f"'{ejecutable}' -m {MARCA_SESION}"
     )
 
@@ -447,7 +506,7 @@ def enganchar_sesion(base: Path, *, interprete: str | None = None) -> tuple[Path
     hooks = datos.setdefault("hooks", {})
     if not isinstance(hooks, dict):
         raise ErrorEnganche(f"la clave 'hooks' de {ruta} no es un objeto; no se ha tocado nada")
-    for evento, entradas in bloque_sesion(orden_sesion(interprete)).items():
+    for evento, entradas in bloque_sesion(orden_sesion(interprete, raiz)).items():
         existentes = hooks.get(evento)
         hooks[evento] = (existentes if isinstance(existentes, list) else []) + entradas
 

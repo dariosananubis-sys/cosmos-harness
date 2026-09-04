@@ -10,7 +10,7 @@ resumen: Cuatro piezas del arnés de origen adaptadas a COSMOS en puente/, con 3
 **Fecha:** 2026-09-01 · **Escribe:** `puente/` y este parte · **Origen:** `vh-ref` (solo lectura,
 verificado intacto: `git status --porcelain` = 0 líneas al terminar).
 
-Decisión que lo ordena: [[cosmos-sobre-<agencia>-harness]] — se construye encima, no se reescribe.
+Decisión que lo ordena: [[cosmos-sobre-el-arnes-de-origen]] — se construye encima, no se reescribe.
 Esto es el «encima»: las cuatro piezas que ese repo tenía escritas y COSMOS no, traídas al
 vocabulario de nichos, pueblos y registro, y con las mejoras que se vieron al leerlas enteras.
 
@@ -42,8 +42,8 @@ marcadores en `CLAUDE.md`/`AGENTS.md`, y se niega a tocar una skill que no lleve
 | `skills/*/SKILL.md` + `packs/*/skills` | ciudades y pueblos del árbol | Una sola fuente: el frontmatter |
 | `[context] / [boundaries] / [verification]` | `[contexto] / [limites] / [verificacion]` | Un solo idioma en todo el fichero |
 | `kind`, `write_paths`, `production` | `tipo`, `rutas_escritura`, `produccion` | Igual |
-| `<!-- <agencia>-harness:start -->` | `<!-- cosmos:inicio -->` | Igual |
-| `.generated-by-<agencia>` | `.generado-por-cosmos` | Marca de propiedad de lo generado |
+| `<!-- arnes-de-origen-harness:start -->` | `<!-- cosmos:inicio -->` | Igual |
+| `.generated-by-arnes-de-origen` | `.generado-por-cosmos` | Marca de propiedad de lo generado |
 
 ### Lo que se quitó por no aplicar
 
@@ -153,7 +153,7 @@ a commitear y lo que casualmente hay en disco.
 
 - Órdenes: `validate_skills.py` + `compile_context.py` + `audit_harness.py` → **`cosmos validar`**
   (que ya cubre E00–E19) y las dos suites, `tests/` y `puente/tests/`.
-- Variables de entorno purgadas: `<agencia>_PACKS` → `COSMOS_NICHOS`, `COSMOS_CONFIG`.
+- Variables de entorno purgadas: `ARNES-DE-ORIGEN_PACKS` → `COSMOS_NICHOS`, `COSMOS_CONFIG`.
 
 ### Lo que se mejoró
 
@@ -267,7 +267,7 @@ Bloque: **1.613 tokens de 4.000**.
 
 ```
 === A) negocio, personas, marcas y vocabulario de origen ===
-__init__.py:1:"""Puente: piezas migradas desde <agencia>-Harness y adaptadas a COSMOS.
+__init__.py:1:"""Puente: piezas migradas desde el arnés de origen y adaptadas a COSMOS.
 
 === B) credenciales y secretos en claro ===
 secretos.py:57:    ("clave Anthropic", re.compile(rb"sk-ant-[A-Za-z0-9_-]{30,}")),
@@ -297,9 +297,9 @@ Lectura de cada bloque:
 
 - **A** — una sola coincidencia, y es **deliberada**: la línea de procedencia del paquete. Nombra un
   repositorio de herramientas, no una organización ni un cliente, y es el mismo nombre que ya usa
-  abiertamente [[cosmos-sobre-<agencia>-harness]]. Se declara aquí para que sea una excepción
+  abiertamente [[cosmos-sobre-el-arnes-de-origen]]. Se declara aquí para que sea una excepción
   decidida y no un descuido. Todo lo demás del vocabulario de origen —`packs`, `harness.toml`,
-  `projects/`, `.runtime`, `workspaces`, `<agencia>_PACKS`— ha desaparecido.
+  `projects/`, `.runtime`, `workspaces`, `ARNES-DE-ORIGEN_PACKS`— ha desaparecido.
 - **B** — solo los patrones del propio detector y un falso positivo puesto a propósito. Los seis
   cebos de secreto **ya no aparecen enteros en el fuente**: se arman en tiempo de ejecución (ver el
   incidente de abajo). Cero credenciales reales.

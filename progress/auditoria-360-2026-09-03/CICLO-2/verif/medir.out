@@ -1,0 +1,25 @@
+COSMOS  medir
+
+  Entrada base .... 1.220 tokens   (índice + océanos + estructura, sin pueblos; estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Peor nicho ...... 2.470 tokens   (ciberseguridad, 35 pueblos)
+  Agua condicional  1.231 tokens   (6 aguas por paths:, fuera de la entrada)
+  Peor con agua ... 3.701 tokens   (el peor caso + agua condicional)
+  Universo ........ 169.475 tokens   (estimado, ±5,2 % medio (peor fichero 33,6 %), heurística v3)
+  Descarga ........ 98,5 %
+  Presupuesto ..... 4.000     OK, quedan 106 tokens con el margen calibrado (+5,2 %) en el peor caso con agua (ciberseguridad); ≈ 3 herramienta(s) más en ese nicho
+
+  Fuera de COSMOS . no_medido      (system prompt, tools, MCP)
+
+  Lo más caro de la entrada evaluada:
+    1.  1.525 tok  catálogo visible
+    2.  555 tok  índice de galaxia
+    3.  101 tok  oceano/irreversible
+
+  Vista compilada . 8.565 tokens   (299 entradas en ~/cosmos/.cosmos/vista-galaxia; los paga un runtime que escanee ese directorio; fuera de E16)
+
+  Delta vs HEAD .. (lo que cambió para que el veredicto sea el que es)
+    entrada base        1362 -> 1220   (-142)
+    peor con agua       3565 -> 3701   (+136)
+    pueblos              247 -> 299    (+52)
+    oceano/descender      158 -> 35    (-123 tokens en TODA sesión)
+EXIT=0

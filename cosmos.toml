@@ -29,9 +29,14 @@ destino = ".cosmos/vista-galaxia"
 modo = "symlink"
 manifiesto = ".cosmos/compilado-galaxia.json"
 
-# Nicho activo del runtime acotado. Lista vacía = todos los sistemas solares.
-# Vive aquí y no en un flag de línea de comandos porque una regla que depende de
-# que todo el mundo repita `--nicho` en cada invocación es una regla que se
-# olvida en el turno 40 (H09).
+# Nichos activos del runtime acotado. Vive aquí y no en un flag de línea de comandos
+# porque una regla que depende de que todo el mundo repita `--nicho` en cada
+# invocación es una regla que se olvida en el turno 40 (H09).
+#
+# Lista vacía significa DOS cosas, y las dos se dicen (auditoría A-04; NUCLEO §2 y §5):
+#   · para el catálogo de entrada (`medir`, E16, guards): NINGÚN nicho activo — la
+#     entrada no lleva pueblos; el juez del presupuesto mira siempre el peor nicho;
+#   · para `compilar`/`arrancar`: la vista plana COMPLETA, todos los pueblos, y el
+#     comando lo dice. Acótala aquí o con --nicho si un runtime escanea el destino.
 [nichos]
 activos = []

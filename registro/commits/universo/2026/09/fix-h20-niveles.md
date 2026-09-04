@@ -88,7 +88,7 @@ Al conectar el registro, el validador se puso **rojo a la primera**:
 
 ```
 E16  peor nicho ciberseguridad: entrada 2383 + agua condicional 8700 = 11083 > 4000
-     mas caros: lluvia/migracion-puente (6624), lluvia/cosmos-sobre-<agencia>-harness (1115)
+     mas caros: lluvia/migracion-puente (6624), lluvia/cosmos-sobre-el-arnes-de-origen (1115)
 ```
 
 Las dos entradas llevaban `moja` con contenido (`puente/**`, `spec/**`, `cosmos/**`). Segun

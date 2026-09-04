@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: extractor-de-curso
 padre: extraccion/fuentes-web
 resumen: Vuelca el temario de un aula virtual con tu sesion ya iniciada, sin marcar lecciones ni responder examenes.
+origen: propio
 ---
 
 Rescatado de la skill `curso-estudio` de un arnes propio; el envoltorio (preparar examenes de una

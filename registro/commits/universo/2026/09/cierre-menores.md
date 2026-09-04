@@ -10,7 +10,7 @@ resumen: Cierre de la cola de tres revisiones - B03, B08-B11, T03-T05, A01/A02, 
 Fecha: 2026-09-02 · Base: `7fbcb94` (lo grave —B01, B02, B04–B07, T01, T02— ya estaba cerrado ahí) ·
 Origen: `progress/revision-profunda-2026-09-02/INFORME.md` (principal),
 `progress/revision-adversarial-cosmos-2026-09-02/INFORME.md` y el informe de coherencia
-(`<arnes>/progress/revision-coherencia-2026-09-02/INFORME.md`, del que quedaba COMPOSICION).
+(`<arnés-de-origen>/progress/revision-coherencia-2026-09-02/INFORME.md`, del que quedaba COMPOSICION).
 
 **Regla de la tanda: nada se declara arreglado sin haber saboteado el código y visto la prueba
 ponerse roja.** Doce sabotajes entraron como mutaciones permanentes (M39–M50) y tres se ejecutaron

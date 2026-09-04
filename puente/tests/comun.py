@@ -43,7 +43,13 @@ padre: web
 resumen: Pueblo de prueba {nombre}.
 ---
 
-Cuerpo del pueblo {nombre}.
+https://github.com/pruebas-sinteticas/{nombre} · MIT · 0★ · último push 2026-01-01 (comprobado 2026-01-01)
+
+Cuerpo del pueblo {nombre} (E21 exige URL de repositorio u `origen: propio` con guion).
+
+```bash
+python3 -m cosmos abrir {nombre}
+```
 """
 
 

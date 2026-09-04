@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: bing-webmaster
 padre: visibilidad/buscadores
 resumen: El otro buscador, el que alimenta a varios asistentes de IA: alta, envio de URL y de mapa del sitio.
+origen: propio
 ---
 
 `scripts/bing-webmaster.py` — herramienta propia, no hay repositorio público. La ruta ES la

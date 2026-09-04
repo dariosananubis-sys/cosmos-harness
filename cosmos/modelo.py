@@ -101,6 +101,17 @@ class Arbol:
     def buscar(self, referencia: str) -> list[Nodo]:
         return [nodo for nodo in self.nodos if nodo.referencia == referencia]
 
+    def invalidar(self) -> None:
+        """Tras mutar `nodos` en sitio (mismo `len`), tira la caché de nichos (revisión R-41).
+
+        `cargar_arbol` deja el árbol cerrado; quien lo muta a mano —solo las pruebas— lo dice
+        aquí. La clave de la caché es (len, id de la lista): sustituir la lista o cambiar su
+        tamaño la invalida sola; cambiar un nodo dentro, no, y para eso está esto.
+        """
+
+        if hasattr(self, "_nichos_cache"):
+            del self._nichos_cache
+
 
 @dataclass(frozen=True)
 class Configuracion:
@@ -119,6 +130,9 @@ class Configuracion:
     modo_compilacion: str = "symlink"
     manifiesto_compilacion: Path = Path(".cosmos/compilado.json")
     nichos: tuple[str, ...] | None = None
+    # Herramientas del perfil local (`cosmos configurar`): acotan el catálogo y la vista del
+    # usuario; no tocan el juez del presupuesto, que mira siempre el peor nicho entero.
+    herramientas: tuple[str, ...] | None = None
     encontrada: bool = False
     ruta: Path | None = None
 
@@ -141,13 +155,31 @@ def nombres_nichos(arbol: Arbol) -> tuple[str, ...]:
     return tuple(sorted({nodo.nombre for nodo in arbol.nodos if nodo.cosmos == "sistema-solar" and nodo.nombre}))
 
 
+def nichos_disponibles(arbol: Arbol) -> frozenset[str]:
+    """`nombres_nichos` como conjunto, calculado una vez por árbol.
+
+    `nicho_de_nodo` reconstruía el conjunto entero de nichos en CADA llamada, y se llama
+    una vez por nodo y por nicho: `medir_casos` era cúbico y `cosmos validar` tardaba diez
+    minutos a 8× la galaxia (auditoría D-01). El árbol se carga una vez y no muta después;
+    la caché se invalida sola si cambia el número de nodos, que es lo único que hacen las
+    pruebas que construyen un árbol a mano.
+    """
+
+    marca = (len(arbol.nodos), id(arbol.nodos))
+    cache = getattr(arbol, "_nichos_cache", None)
+    if cache is None or cache[0] != marca:
+        cache = (marca, frozenset(nombres_nichos(arbol)))
+        arbol._nichos_cache = cache
+    return cache[1]
+
+
 def normalizar_nichos(arbol: Arbol, nichos: list[str] | tuple[str, ...] | None) -> tuple[str, ...] | None:
     """Valida una selección explícita y elimina duplicados conservando el orden."""
 
     if nichos is None:
         return None
     seleccion = tuple(dict.fromkeys(nichos))
-    disponibles = set(nombres_nichos(arbol))
+    disponibles = nichos_disponibles(arbol)
     desconocidos = [nicho for nicho in seleccion if nicho not in disponibles]
     if desconocidos:
         lista = ", ".join(desconocidos)
@@ -162,7 +194,7 @@ def nicho_de_nodo(arbol: Arbol, nodo: Nodo) -> str | None:
     if nodo.cosmos not in NIVELES_SOLIDOS or nodo.cosmos == "galaxia":
         return None
     candidato = nodo.ruta_cosmos.split("/", 1)[0]
-    return candidato if candidato in set(nombres_nichos(arbol)) else None
+    return candidato if candidato in nichos_disponibles(arbol) else None
 
 
 def cuerpo(nodo: Nodo) -> str:
@@ -352,20 +384,40 @@ def _cargar_desde(
     excluir_path: Path | None,
     directorios_excluidos: tuple[Path, ...],
 ) -> None:
+    raiz_resuelta = raiz_path.resolve()
     for ruta in sorted(raiz_path.rglob("*.md")):
         if excluir_path is not None and ruta.resolve() == excluir_path:
             continue
         ruta_resuelta = ruta.resolve()
         if any(ruta_resuelta == directorio or directorio in ruta_resuelta.parents for directorio in directorios_excluidos):
             continue
+        # La misma ruta —relativa a la raíz— en los dos errores de carga: la de lectura
+        # salía absoluta y la de parseo relativa, en la misma salida (auditoría D-10).
+        relativa = ruta.relative_to(base_relativa).as_posix()
+        # La frontera del árbol es la raíz que declara `cosmos.toml`. Un enlace simbólico
+        # que apunta fuera de ella entraba como nodo de pleno derecho (auditoría D-11):
+        # lo que se mide y se aplana tiene que estar dentro de lo que se declara. Se
+        # dice, no se calla: un nodo que desaparece sin ruido es peor que un error.
+        if not ruta_resuelta.is_relative_to(raiz_resuelta):
+            arbol.errores.append(ErrorCarga(relativa, None, f"enlace simbólico fuera del árbol: apunta a {ruta_resuelta}"))
+            continue
+        # Y dentro tampoco (revisión R-40): un enlace a otro nodo del árbol lo cargaba dos veces —
+        # `pueblo 306 → 307`, +29 tokens de presupuesto— y el rojo que salía (E06/E18) señalaba al
+        # ORIGINAL, no al enlace. Se denuncia el enlace y no se carga: un nodo vive en un sitio.
+        if ruta.is_symlink() or any(padre.is_symlink() for padre in ruta.relative_to(raiz_path).parents
+                                   if (raiz_path / padre).is_symlink()):
+            arbol.errores.append(ErrorCarga(relativa, None, f"enlace simbólico dentro del árbol: apunta a {ruta_resuelta}; un nodo vive en un solo sitio"))
+            continue
         try:
-            contenido = ruta.read_text(encoding="utf-8")
+            # `utf-8-sig`: un BOM (Windows, editores con la codificación heredada) hacía
+            # que el fichero no empezara por `---` y el nodo desaparecía en silencio, con
+            # E05 o E02 culpando a un fichero inocente (auditoría D-04).
+            contenido = ruta.read_text(encoding="utf-8-sig")
         except (OSError, UnicodeError) as exc:
-            arbol.errores.append(ErrorCarga(str(ruta), None, f"no se puede leer: {exc}"))
+            arbol.errores.append(ErrorCarga(relativa, None, f"no se puede leer: {exc}"))
             continue
         if not contenido.startswith("---"):
             continue
-        relativa = ruta.relative_to(base_relativa).as_posix()
         try:
             datos, lineas = parsear_frontmatter(contenido, relativa)
         except ValueError as exc:
@@ -415,6 +467,15 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         destino_rel = compilacion.get("destino", ".claude/skills")
         modo_compilacion = compilacion.get("modo", "symlink")
         manifiesto_rel = compilacion.get("manifiesto", ".cosmos/compilado.json")
+        # `[nichos] activos` vivía solo en el CLI (`nichos_de_configuracion`): un llamante de la
+        # librería que validaba un config con nichos activos veía E19 contra un manifiesto que sí
+        # los declaraba (el test del árbol de ejemplo, ciclo 2). Un solo lector del TOML.
+        nichos_tabla = datos.get("nichos", {})
+        if not isinstance(nichos_tabla, dict):
+            raise ErrorConfiguracion("[nichos] debe ser una tabla TOML")
+        activos = nichos_tabla.get("activos", [])
+        if not isinstance(activos, list) or any(not isinstance(valor, str) for valor in activos):
+            raise ErrorConfiguracion("[nichos].activos debe ser una lista de nombres")
     except (KeyError, TypeError) as exc:
         raise ErrorConfiguracion(f"falta un umbral o ruta obligatoria en {ruta_path}: {exc}") from exc
     if any(not isinstance(valor, int) or isinstance(valor, bool) or valor < 0 for valor in valores.values()):
@@ -445,6 +506,7 @@ def cargar_configuracion(ruta: str | Path | None = None) -> Configuracion:
         destino_compilacion=(base / destino_rel).resolve(),
         modo_compilacion=modo_compilacion,
         manifiesto_compilacion=(base / manifiesto_rel).resolve(),
+        nichos=tuple(dict.fromkeys(activos)) or None,
         encontrada=True,
         ruta=ruta_path,
     )

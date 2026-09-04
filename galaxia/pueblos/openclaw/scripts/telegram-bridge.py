@@ -16,7 +16,7 @@ import requests
 
 # ── Configuración (editar antes de usar) ─────────────────────────────────────
 BOT_TOKEN      = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-ALLOWED_USER_ID = int(os.environ.get("<agencia>_TELEGRAM_USER_ID", "0"))
+ALLOWED_USER_ID = int(os.environ.get("OPENCLAW_TELEGRAM_USER_ID", "0"))
 WORKSPACE      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # ej. D:/tu-workspace
 CLAUDE_TIMEOUT = 600  # segundos máximos por respuesta (10 min)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -28,11 +28,11 @@ MAX_MSG_LEN = 4000  # Telegram limit es 4096, dejamos margen
 def validate_config():
     if not BOT_TOKEN:
         print("ERROR: Variable de entorno TELEGRAM_BOT_TOKEN no definida.")
-        print("Ejecuta: set TELEGRAM_BOT_TOKEN=tu_token_aqui")
+        print("Ejecuta: export TELEGRAM_BOT_TOKEN=tu_token_aqui")
         sys.exit(1)
     if ALLOWED_USER_ID == 0:
-        print("ERROR: Variable de entorno <agencia>_TELEGRAM_USER_ID no definida.")
-        print("Ejecuta: set <agencia>_TELEGRAM_USER_ID=tu_id_de_telegram")
+        print("ERROR: Variable de entorno OPENCLAW_TELEGRAM_USER_ID no definida.")
+        print("Ejecuta: export OPENCLAW_TELEGRAM_USER_ID=tu_id_de_telegram")
         sys.exit(1)
 
 
@@ -126,20 +126,26 @@ CONTEXT_PREFIX = (
 
 
 def run_claude(prompt: str) -> str:
-    """Ejecuta claude -p en el workspace y devuelve el output."""
+    """Ejecuta claude -p en el workspace y devuelve el output.
+
+    Auditoría F-08: antes usaba shell=True con `%_PROMPT%` (sintaxis de CMD de
+    Windows: en el POSIX sh de macOS/Linux NO expande, así que el mensaje nunca llegaba a
+    claude) y añadía `--dangerously-skip-permissions` sin condición. Ahora el prompt viaja
+    como argumento de una lista (sin shell, sin inyección posible) y el salto de permisos
+    solo se activa si el operador lo pide EXPLÍCITAMENTE con OPENCLAW_SIN_PERMISOS=1.
+    """
     full_prompt = CONTEXT_PREFIX + prompt
+    orden = ["claude", "-p", full_prompt, "--output-format", "text"]
+    if os.environ.get("OPENCLAW_SIN_PERMISOS") == "1":
+        orden.append("--dangerously-skip-permissions")
     try:
-        env = os.environ.copy()
-        env["_<agencia>_PROMPT"] = full_prompt
         result = subprocess.run(
-            'claude -p "%_<agencia>_PROMPT%" --output-format text --dangerously-skip-permissions',
+            orden,
             capture_output=True,
             text=True,
             encoding="utf-8",
             cwd=WORKSPACE,
             timeout=CLAUDE_TIMEOUT,
-            shell=True,
-            env=env,
         )
         output = result.stdout.strip()
         if result.returncode != 0 and result.stderr:

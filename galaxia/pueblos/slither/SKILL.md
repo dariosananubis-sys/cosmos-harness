@@ -31,7 +31,7 @@ Que clase de fallo detecta y cual no. Detecta: patrones conocidos sobre el codig
 reentrada, variables sin inicializar, visibilidad, uso de `tx.origin`, aritmetica sospechosa,
 llamadas sin comprobar. No detecta: que la logica economica del contrato sea incorrecta, que una
 invariante se rompa tras una secuencia concreta de llamadas (eso es `echidna`), ni nada sobre un
-contrato del que solo hay bytecode (eso es `mythril`). Un `slither` limpio significa "no hay
+contrato del que solo hay bytecode (eso lo hacía `mythril`, retirado del catálogo el 2026-09-03). Un `slither` limpio significa "no hay
 patrones conocidos", no "el contrato es seguro" — es el falso verde mas caro del nicho.
 
 Necesita el codigo fuente y que compile. Sin `solc` de la version correcta, no analiza nada.

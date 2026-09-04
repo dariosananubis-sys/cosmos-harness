@@ -3,6 +3,7 @@ cosmos: pueblo
 nombre: reel-a-texto
 padre: audiovisual/video
 resumen: Deja un video publicado en transcripcion mas fotogramas clave, que es lo unico de un video que un modelo lee.
+origen: propio
 ---
 
 Herramienta propia, no publica. Tres guiones en la cosecha de este arbol:

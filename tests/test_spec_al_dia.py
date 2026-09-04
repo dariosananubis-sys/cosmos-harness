@@ -31,6 +31,11 @@ def _mares_en_la_spec() -> list[str]:
     return sorted(re.findall(r"^\| `([a-z-]+)` \|", tabla, flags=re.M))
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class LaSpecCuadraConElArbol(unittest.TestCase):
     def test_los_mares_de_la_spec_son_los_del_disco(self) -> None:
         disco, spec = _mares_en_disco(), _mares_en_la_spec()

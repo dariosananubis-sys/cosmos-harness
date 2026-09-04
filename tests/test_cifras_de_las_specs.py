@@ -59,6 +59,11 @@ def _ultimo_codigo() -> int:
     return int(max(codigos_comprobados())[1:])
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 @dataclass(frozen=True)
 class Cifra:
     fichero: str

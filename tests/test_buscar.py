@@ -23,6 +23,11 @@ RAIZ = Path(__file__).resolve().parent.parent
 ARBOL = cargar_arbol(RAIZ / "galaxia")
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class ElVerboEncuentra(unittest.TestCase):
     def test_codigo_duplicado_lleva_a_las_reglas_de_refactorizacion(self) -> None:
         hallazgos = buscar_nodos(ARBOL, "hay codigo duplicado por todo el proyecto")

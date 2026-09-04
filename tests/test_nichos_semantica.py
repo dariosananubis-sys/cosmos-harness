@@ -44,6 +44,11 @@ def _config_compilacion(directorio: Path, modo: str = "symlink") -> Path:
     return config
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class LasDosSemanticasSeFijanJuntas(unittest.TestCase):
     def test_catalogo_sin_seleccion_no_lleva_pueblos_y_lista_vacia_es_lo_mismo(self) -> None:
         for seleccion in (None, [], ()):

@@ -56,6 +56,11 @@ def niveles_muertos(arboles: list[Arbol], niveles: frozenset[str] = NIVELES_VALI
     return sorted(nivel for nivel in niveles if not vivos.get(nivel))
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class PruebasNivelesVivos(unittest.TestCase):
     def setUp(self) -> None:
         self.arboles = arboles_del_repositorio()

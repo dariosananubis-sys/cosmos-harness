@@ -34,6 +34,11 @@ def _rios(momento: str | None) -> list[str]:
     )
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class LosVerbosDeMontarNoSePaganCadaSesion(unittest.TestCase):
     def test_su_resumen_no_esta_en_el_catalogo(self) -> None:
         catalogo = catalogo_visible(ARBOL, ["ciberseguridad"])

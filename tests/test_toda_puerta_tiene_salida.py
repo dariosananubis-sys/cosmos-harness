@@ -40,6 +40,11 @@ from cosmos.validar import codigos_comprobados
 RAIZ = Path(__file__).resolve().parent.parent
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class TodoLoQueBloqueaAceptaSuSalida(unittest.TestCase):
     def test_cada_invariante_comprobada_tiene_valvula(self) -> None:
         faltan = [c for c in codigos_comprobados() if c not in CODIGOS]

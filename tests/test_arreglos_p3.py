@@ -59,6 +59,11 @@ def _config_compilacion(directorio: Path, modo: str = "symlink") -> Path:
     return config
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class D04_UnBomNoHaceDesaparecerUnNodo(unittest.TestCase):
     def test_el_nodo_con_bom_se_carga(self) -> None:
         with TemporaryDirectory() as tmp:

@@ -18,6 +18,11 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class ElBloqueDeEstadoEsLaSalidaDelComando(unittest.TestCase):
     def test_el_bloque_coincide_con_cosmos_estado(self) -> None:
         texto = (RAIZ / "PROGRESS.md").read_text(encoding="utf-8")

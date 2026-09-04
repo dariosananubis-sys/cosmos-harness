@@ -106,6 +106,11 @@ AFIRMACIONES: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
 }
 
 
+from tests._integrado import solo_en_el_origen
+
+solo_en_el_origen()  # cifras y listas del catálogo del origen, no del motor
+
+
 class NingunaNormaSePierdeAlCondensar(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

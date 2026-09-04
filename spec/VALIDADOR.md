@@ -35,12 +35,12 @@ existe para quitar.
 | `E09` | `cosmos` es uno de los 14 niveles válidos | nivel desconocido |
 | `E10` | Todo nodo de agua declara `moja` (lista, vacía solo en `rio` y `lluvia`, y **obligatoriamente vacía** en `lluvia`) | agua sin alcance |
 | `E11` | Solo `oceano` puede cubrirlo todo: ningún otro agua tiene cobertura total ni patrones que no nombren nada (`NUCLEO.md` §9) | océano encubierto |
-| `E12` | El número de océanos no supera el umbral configurado | exceso de contexto global |
+| `E12` | El número de océanos no supera el umbral configurado. Con `[compilacion] vista = "anfitrion"` se cuentan solo los océanos del anfitrión: son los que `compilar` lleva al runtime; los de COSMOS viven en el árbol y no entran en ese arnés (`COMPILACION.md` §«Se paga lo que se compila») | exceso de contexto global |
 | `E13` | `ilumina` / `orbita` apuntan a un nodo existente y del tipo correcto | adjunto colgado del aire |
 | `E14` | Como mucho una estrella por sólido | contexto duplicado |
 | `E15` | El índice generado coincide con el que está en disco | índice desincronizado |
 | `E16` | El presupuesto de contexto de entrada no se supera | fuga de contexto |
-| `E17` | Dos nodos que se pagan a la vez no repiten una afirmación con otras palabras (`NUCLEO.md` §10) | solapamiento entre co-cargables |
+| `E17` | Dos nodos que se pagan a la vez no repiten una afirmación con otras palabras (`NUCLEO.md` §10). Un título, un enlace `[[nota]]`, una ruta o un slug no son afirmaciones: son etiquetas y referencias (medido 2026-09-04: 40 de 63 pares en un arnés real eran cabeceras «Orden literal de … (fecha)» o la misma nota citada). En vista anfitrión, co-cargables son solo los nodos del anfitrión | solapamiento entre co-cargables |
 | `E18` | El nombre de un pueblo es único en toda la galaxia: la vista plana no puede colisionar (`COMPILACION.md`) | nombre de pueblo repetido |
 | `E19` | El manifiesto de la vista plana coincide con el destino en disco (`COMPILACION.md`) | vista plana desincronizada |
 | `E20` | Todo destino de `usa:` existe y no es el propio nodo (`COMPOSICION.md`, `FRONTMATTER.md`) | vecino inexistente |

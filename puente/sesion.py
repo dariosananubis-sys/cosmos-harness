@@ -555,7 +555,8 @@ def revisar_arbol(config, saltados: frozenset[str]) -> Revision:
     resultado = validar_arbol(arbol, configuracion=config, omitir_codigos=saltados)
     nichos = normalizar_nichos(arbol, list(config.nichos) if config.nichos else None)
     medicion = medir_casos(
-        arbol, metodo=config.metodo, presupuesto=config.entrada, nichos=nichos
+        arbol, metodo=config.metodo, presupuesto=config.entrada, nichos=nichos,
+        solo_anfitrion=config.vista_compilacion == "anfitrion",
     )
     # El juez del presupuesto es uno solo, en `medir.veredicto_de_presupuesto`. Este
     # comentario decía «mismo criterio que `cosmos medir`» y era falso: el comando

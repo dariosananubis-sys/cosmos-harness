@@ -161,3 +161,13 @@ ficheros que ya no tienen nodo; el arreglo es `cosmos compilar`, nunca editar el
 Lo que no se genera: la memoria del anfitrión (`REGISTRO.md`, se indexa donde está), `CLAUDE.md`
 y los ajustes del runtime (`.claude/settings.json`, hooks): eso sigue siendo del arnés y de
 `cosmos enganchar`.
+
+### Se paga lo que se compila
+
+Con `[compilacion] vista = "anfitrion"` el árbol tiene dos poblaciones: los nodos del anfitrión, que
+`compilar` lleva al runtime, y el catálogo genérico de COSMOS, que se **busca** (`buscar`, `acertar`)
+pero no se carga. El validador y el medidor lo saben: E12 cuenta solo los océanos del anfitrión, E17
+compara solo entre nodos del anfitrión, y `medir` suma solo su agua. Sin esto, organizar un arnés real
+el 2026-09-04 dio 12 océanos (5 de COSMOS que nadie leía), 63 solapamientos (40 contra agua que no
+entraba) y una entrada inflada con reglas que el runtime no conocía. Lo que **sí** se mide igual es el
+índice y el catálogo: son la aproximación de COSMOS a lo que el anfitrión inyecta por su cuenta.

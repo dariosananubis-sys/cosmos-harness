@@ -190,7 +190,14 @@ def _seleccionar_contador(metodo: str) -> tuple[Callable[[str], int], str, str |
     return contar_aprox, "aprox", None, True
 
 
-def agua_condicional(arbol: Arbol) -> list[Nodo]:
+def es_de_runtime(nodo: Nodo, solo_anfitrion: bool) -> bool:
+    """En vista anfitrión, solo lo que `compilar` lleva al runtime se paga: los nodos con
+    `anfitrion`. El resto del árbol (el catálogo genérico de COSMOS) se busca, no se carga."""
+
+    return not solo_anfitrion or "anfitrion" in nodo.datos
+
+
+def agua_condicional(arbol: Arbol, *, solo_anfitrion: bool = False) -> list[Nodo]:
     """Agua que no está en la entrada y se carga sola al tocar un fichero que moja.
 
     NUCLEO §3. Son los mares y lagos: entran por `paths:`, sin que nadie los
@@ -204,6 +211,7 @@ def agua_condicional(arbol: Arbol) -> list[Nodo]:
         for nodo in arbol.nodos
         if nodo.cosmos in NIVELES_AGUA
         and nodo.cosmos != "oceano"
+        and es_de_runtime(nodo, solo_anfitrion)
         and isinstance(nodo.datos.get("moja"), list)
         and nodo.datos["moja"]
         and cuerpo(nodo)
@@ -317,6 +325,7 @@ def _bloques_contexto_inicial(
     *,
     con_rios: bool = True,
     herramientas: tuple[str, ...] | None = None,
+    solo_anfitrion: bool = False,
 ) -> list[tuple[str, str]]:
     indice_real = generar_indice(arbol) if indice is None else indice
     bloques: list[tuple[str, str]] = []
@@ -324,7 +333,7 @@ def _bloques_contexto_inicial(
         bloques.append(("índice de galaxia", indice_real.rstrip("\n")))
     for nodo in sorted((n for n in arbol.nodos if n.cosmos == "oceano"), key=lambda n: n.nombre):
         contenido = cuerpo(nodo)
-        if contenido:
+        if contenido and es_de_runtime(nodo, solo_anfitrion):
             bloques.append((f"oceano/{nodo.nombre}", contenido))
     catalogo = catalogo_visible(arbol, nichos, con_rios=con_rios, herramientas=herramientas)
     if catalogo:
@@ -349,7 +358,7 @@ def contexto_inicial(
     return "\n".join(texto for _, texto in _bloques_contexto_inicial(arbol, indice, nichos, con_rios=con_rios, herramientas=herramientas))
 
 
-def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
+def _detalle_agua(arbol: Arbol, contador, *, solo_anfitrion: bool = False) -> list[ParteMedida]:
     """Toda el agua condicional del árbol, que es la definición de NUCLEO §3.
 
     Aquí vivía un cálculo que agrupaba los mares «por extensión» y publicaba solo
@@ -381,7 +390,7 @@ def _detalle_agua(arbol: Arbol, contador) -> list[ParteMedida]:
 
     return [
         ParteMedida(f"{nodo.cosmos}/{nodo.nombre}", contador(cuerpo(nodo)))
-        for nodo in agua_condicional(arbol)
+        for nodo in agua_condicional(arbol, solo_anfitrion=solo_anfitrion)
     ]
 
 
@@ -467,10 +476,11 @@ def medir_arbol(
     indice: str | None = None,
     nichos: list[str] | tuple[str, ...] | None = None,
     herramientas: tuple[str, ...] | None = None,
+    solo_anfitrion: bool = False,
 ) -> ResultadoMedicion:
     contador, metodo_real, tokenizador, estimado = _seleccionar_contador(metodo)
     seleccion = normalizar_nichos(arbol, nichos)
-    partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion, herramientas=herramientas)
+    partes_entrada = _bloques_contexto_inicial(arbol, indice, seleccion, herramientas=herramientas, solo_anfitrion=solo_anfitrion)
 
     # Tres clases de contenido, tres factores. El índice y el catálogo son listas densas
     # en símbolos y tokenizan un 15 % peor que una ficha (fallo F01); el agua y los
@@ -507,7 +517,7 @@ def medir_arbol(
     universo = entrada + resto
     descarga: float | str = "no_definida" if universo == 0 else 1 - entrada / universo
     contador_agua = contar_estructura if metodo_real == "aprox" else contador
-    detalle_agua = _detalle_agua(arbol, contador_agua)
+    detalle_agua = _detalle_agua(arbol, contador_agua, solo_anfitrion=solo_anfitrion)
     return ResultadoMedicion(
         entrada=entrada,
         universo=universo,
@@ -539,6 +549,7 @@ def medir_casos(
     indice: str | None = None,
     nichos: list[str] | tuple[str, ...] | None = None,
     herramientas: tuple[str, ...] | None = None,
+    solo_anfitrion: bool = False,
 ) -> ResumenMedicion:
     """Mide el caso base, cada nicho y, si se pidió, una selección concreta.
 
@@ -547,11 +558,11 @@ def medir_casos(
     tiene que valer para cualquier perfil.
     """
 
-    base = medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=None)
+    base = medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=None, solo_anfitrion=solo_anfitrion)
     por_nicho = [
         (
             nombre,
-            medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=[nombre]),
+            medir_arbol(arbol, metodo=metodo, presupuesto=presupuesto, indice=indice, nichos=[nombre], solo_anfitrion=solo_anfitrion),
         )
         for nombre in nombres_nichos(arbol)
     ]
@@ -568,6 +579,7 @@ def medir_casos(
             indice=indice,
             nichos=seleccion_nichos,
             herramientas=herramientas,
+            solo_anfitrion=solo_anfitrion,
         )
         if seleccion_nichos is not None
         else None

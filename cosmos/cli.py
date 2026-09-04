@@ -325,7 +325,8 @@ def _delta_frente_a_head(arbol: Arbol, config: Configuracion, ahora) -> str:
         with tarfile.open(fileobj=io.BytesIO(exportado.stdout)) as tar:
             tar.extractall(tmp, filter="data")
         antes_arbol = cargar_arbol(Path(tmp) / rel_arbol)
-        antes = medir_casos(antes_arbol, metodo=config.metodo, presupuesto=config.entrada)
+        antes = medir_casos(antes_arbol, metodo=config.metodo, presupuesto=config.entrada,
+                            solo_anfitrion=config.vista_compilacion == "anfitrion")
         oceanos_antes = {n.nombre: contar_estructura(cuerpo(n)) for n in antes_arbol.nodos if n.cosmos == "oceano"}
     oceanos_ahora = {n.nombre: contar_estructura(cuerpo(n)) for n in arbol.nodos if n.cosmos == "oceano"}
     pueblos_antes = sum(1 for n in antes_arbol.nodos if n.cosmos == "pueblo")
@@ -1017,7 +1018,8 @@ def ejecutar(argv: list[str] | None = None) -> int:
         if args.comando == "medir":
             nichos = normalizar_nichos(arbol, _nichos(_nichos_medicion(args), config))
             resultado_medicion = medir_casos(arbol, metodo=args.metodo or config.metodo, presupuesto=config.entrada,
-                                             nichos=nichos, herramientas=_herramientas_del_perfil())
+                                             nichos=nichos, herramientas=_herramientas_del_perfil(),
+                                             solo_anfitrion=config.vista_compilacion == "anfitrion")
             vista = _vista_compilada(arbol, config)
             if args.json:
                 datos = json.loads(casos_json(resultado_medicion))

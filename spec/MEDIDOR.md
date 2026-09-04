@@ -54,6 +54,13 @@ E16 siempre se evalúa contra el peor nicho individual, aunque el caso base quep
 explícita puede ser más cara que ese peor nicho; el comando la compara con el presupuesto y lo dice,
 pero no convierte esa combinación elegida a mano en una propiedad global del árbol.
 
+**En vista anfitrión se paga lo que se compila.** Con `[compilacion] vista = "anfitrion"`, los océanos
+y el agua condicional que entran en la medida son solo los nodos con `anfitrion`: los que `compilar`
+lleva a `.claude/rules`. El agua genérica de COSMOS sigue en el árbol —se busca con `buscar` y se
+mide en el Universo— pero no se carga en ese arnés, y contarla inflaba la entrada con reglas que
+nadie leía (`COMPILACION.md` §«Se paga lo que se compila»). El índice y el catálogo se miden igual
+que siempre: son la aproximación de COSMOS a lo que el anfitrión inyecta por su cuenta.
+
 ## Honestidad del método: no se dice «medido» si es estimado
 
 Regla dura, y es la más importante de esta spec.

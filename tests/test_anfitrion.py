@@ -268,5 +268,51 @@ class LaVistaNoCambiaPorEjecutarSusGuiones(unittest.TestCase):
             self.assertNotEqual(compilador._hash_actual(vista, "copia"), esperado, "un fichero nuevo sí lo es")
 
 
+class EnVistaAnfitrionSePagaLoQueSeCompila(unittest.TestCase):
+    """El agua genérica de COSMOS vive en el árbol del arnés y no entra en su runtime: E12, E17 y
+    el medidor cuentan solo los nodos con `anfitrion` cuando `vista = "anfitrion"`."""
+
+    def _arbol(self, tmp: str):
+        base = Path(tmp)
+        (base / "galaxia.md").write_text("---\ncosmos: galaxia\nnombre: g\nresumen: Arbol de prueba.\n---\n", encoding="utf-8")
+        (base / "web.md").write_text('---\ncosmos: sistema-solar\nnombre: web\npadre: ""\nresumen: Un sitio que carga.\n---\n', encoding="utf-8")
+        frase = "Un valor mostrado en pantalla no es un valor conocido por el sistema.\n"
+        (base / "oceano-cosmos.md").write_text('---\ncosmos: oceano\nnombre: cosmos\nmoja: ["**"]\nresumen: Regla global del catalogo generico, que el arnes no compila.\n---\n\n' + frase, encoding="utf-8")
+        (base / "oceano-arnes.md").write_text('---\ncosmos: oceano\nnombre: arnes\nmoja: ["**"]\nresumen: Regla siempre activa del arnes.\nanfitrion: claude-code\nname: arnes\npaths:\n  - "**"\n---\n\n' + frase, encoding="utf-8")
+        (base / "lago-cosmos.md").write_text('---\ncosmos: lago\nnombre: lago-cosmos\nmoja: ["src/**"]\nresumen: Regla condicional del catalogo generico sobre src, sin compilar.\n---\n\nOtra cosa distinta que dice el lago generico del catalogo.\n', encoding="utf-8")
+        return base, cargar_arbol(base)
+
+    def test_e12_e17_y_medir_ignoran_el_agua_generica_en_vista_anfitrion(self) -> None:
+        from cosmos.medir import _bloques_contexto_inicial, agua_condicional
+
+        with tempfile.TemporaryDirectory() as tmp:
+            base, arbol = self._arbol(tmp)
+            comun = dict(arbol=base, indice=base / "COSMOS.md", oceanos=1)
+            omitir = {"E15", "E16", "E19", "E22"}
+            generico = validador.validar_arbol(arbol, configuracion=Configuracion(**comun), omitir_codigos=omitir)
+            self.assertEqual(sorted(set(generico.codigos())), ["E12", "E17"], "sin vista anfitrión, los dos océanos cuentan y la frase repetida solapa")
+            anfitrion = validador.validar_arbol(arbol, configuracion=Configuracion(**comun, vista_compilacion="anfitrion"), omitir_codigos=omitir)
+            self.assertEqual(anfitrion.codigos(), [], "en vista anfitrión solo se pagan los nodos que se compilan")
+            self.assertEqual([n.nombre for n in agua_condicional(arbol)], ["lago-cosmos"])
+            self.assertEqual(agua_condicional(arbol, solo_anfitrion=True), [])
+            bloques = [nombre for nombre, _ in _bloques_contexto_inicial(arbol)]
+            self.assertEqual([b for b in bloques if b.startswith("oceano/")], ["oceano/arnes", "oceano/cosmos"])
+            bloques = [nombre for nombre, _ in _bloques_contexto_inicial(arbol, solo_anfitrion=True)]
+            self.assertEqual([b for b in bloques if b.startswith("oceano/")], ["oceano/arnes"])
+
+    def test_un_titulo_un_enlace_o_una_ruta_no_son_afirmaciones(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base, _ = self._arbol(tmp)
+            (base / "lago-cosmos.md").write_text(
+                '---\ncosmos: lago\nnombre: lago-cosmos\nmoja: ["src/**"]\nresumen: Lago con titulos y enlaces.\n---\n\n'
+                "# Orden literal de Dario (2026-07-30)\n\nVer [[feedback-informes-siempre-en-mac2]].\n"
+                "src/x/docs/manual/guia\nEsta frase si afirma algo con contenido propio.\n",
+                encoding="utf-8",
+            )
+            arbol = cargar_arbol(base)
+            lago = next(n for n in arbol.nodos if n.nombre == "lago-cosmos")
+            self.assertEqual([texto for _, texto in validador._afirmaciones(lago)], ["Esta frase si afirma algo con contenido propio"])
+
+
 if __name__ == "__main__":
     unittest.main()

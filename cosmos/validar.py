@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 from .compilar import errores_runtime, errores_vista, manifiesto_runtime
 from .generar import generar_indice
-from .medir import medir_casos, veredicto_de_presupuesto
+from .medir import es_de_runtime, medir_casos, veredicto_de_presupuesto
 from .modelo import (
     NIVELES_ADJUNTOS,
     NIVELES_AGUA,
@@ -80,6 +80,12 @@ NIVELES_CO_CARGABLES = frozenset({"oceano", "mar", "lago", "estrella"})
 MINIMO_PALABRAS_AFIRMACION = 4
 MINIMO_PALABRAS_COMPARTIDAS = 3
 MARCAS_MARKDOWN = re.compile(r"[`*_>#|\[\]]")
+# Un título es una etiqueta y un enlace a otra nota es una referencia: ninguno afirma nada
+# propio. Con los dos dentro, «Orden literal de Darío (2026-07-30)» y «Orden literal de
+# Darío (2026-08-12)» —dos cabeceras— eran un solapamiento del 60 %, y dos reglas que
+# citan la misma nota, uno del 100 % (medido 2026-09-04: 40 de 63 pares eran esto).
+TITULOS_MARKDOWN = re.compile(r"^[ \t]*#{1,6}[ \t].*$", re.M)
+ENLACES_WIKI = re.compile(r"\[\[[^\]]*\]\]")
 CORTES_DE_FRASE = re.compile(r"[.;:\n]+")
 CAMPOS_COMUNES = {"cosmos", "nombre", "resumen"}
 CAMPOS_POR_NIVEL = {
@@ -432,7 +438,10 @@ def _comprobar_e11(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
 
 
 def _comprobar_e12(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
-    oceanos = [nodo for nodo in arbol.nodos if nodo.cosmos == "oceano"]
+    # En vista anfitrión solo se cuentan los océanos que se compilan (los del anfitrión):
+    # los de COSMOS viven en el árbol y no entran en ese runtime.
+    solo_anfitrion = config.vista_compilacion == "anfitrion"
+    oceanos = [nodo for nodo in arbol.nodos if nodo.cosmos == "oceano" and es_de_runtime(nodo, solo_anfitrion)]
     if len(oceanos) <= config.oceanos:
         return []
     return [_error("E12", oceanos[config.oceanos], f"hay {len(oceanos)} océanos; máximo configurado {config.oceanos}", "Reduce el alcance de reglas globales o cambia el umbral conscientemente.")]
@@ -488,7 +497,8 @@ INVARIANTE_PRESUPUESTO = "E16"
 
 
 def _comprobar_e16(arbol: Arbol, config: Configuracion, _: Path) -> list[ErrorValidacion]:
-    casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada)
+    casos = medir_casos(arbol, metodo=config.metodo, presupuesto=config.entrada,
+                        solo_anfitrion=config.vista_compilacion == "anfitrion")
     medicion = casos.peor
     # NUCLEO §3: se compara lo que se paga sin invocar nada, y el agua que entra
     # por `paths:` se paga sin invocarla. Comparar solo `entrada` dejaba fuera del
@@ -591,9 +601,15 @@ def _comprobar_e21(arbol: Arbol, _: Configuracion, __: Path) -> list[ErrorValida
 def _afirmaciones(nodo: Nodo) -> list[tuple[frozenset[str], str]]:
     """Las frases del cuerpo con al menos cuatro palabras con contenido (NUCLEO §10)."""
 
-    texto = MARCAS_MARKDOWN.sub(" ", cuerpo(nodo))
+    sin_titulos = ENLACES_WIKI.sub(" ", TITULOS_MARKDOWN.sub(" ", cuerpo(nodo)))
+    texto = MARCAS_MARKDOWN.sub(" ", sin_titulos)
     afirmaciones: list[tuple[frozenset[str], str]] = []
     for frase in CORTES_DE_FRASE.split(texto):
+        # Se cuentan palabras separadas por espacio ANTES de normalizar: una ruta o un slug
+        # (`src/x/docs/manual/guia`, `feedback-informes-en-mac2`) se parten en cinco «palabras»
+        # al normalizar y pasaban por afirmaciones con las que solapar.
+        if len(frase.split()) < MINIMO_PALABRAS_AFIRMACION:
+            continue
         palabras = frozenset(
             palabra for palabra in _normalizar(frase).split() if palabra not in PALABRAS_VACIAS_E17
         )
@@ -602,16 +618,24 @@ def _afirmaciones(nodo: Nodo) -> list[tuple[frozenset[str], str]]:
     return afirmaciones
 
 
-def _co_cargables(arbol: Arbol) -> list[Nodo]:
+def _co_cargables(arbol: Arbol, *, solo_anfitrion: bool = False) -> list[Nodo]:
     """Los nodos que se pagan a la vez sin que nadie los invoque (NUCLEO §10).
 
     Océanos siempre; mares y lagos en cuanto su `moja` casa con un fichero que se
     toca; estrellas al descender a su sólido. Los pueblos se invocan y se
     pagan una vez: su duplicación la vigila E18, no esta.
+
+    Con `solo_anfitrion` (`[compilacion] vista = "anfitrion"`) cuentan solo los nodos del
+    anfitrión: son los únicos que `compilar` lleva al runtime, y el agua genérica de COSMOS
+    no se carga en ese arnés. Medido el 2026-09-04: 40 de 63 solapamientos eran contra agua
+    que nunca entraba.
     """
 
     return sorted(
-        (nodo for nodo in arbol.nodos if nodo.cosmos in NIVELES_CO_CARGABLES and cuerpo(nodo)),
+        (
+            nodo for nodo in arbol.nodos
+            if nodo.cosmos in NIVELES_CO_CARGABLES and cuerpo(nodo) and es_de_runtime(nodo, solo_anfitrion)
+        ),
         key=lambda nodo: nodo.ruta_relativa,
     )
 
@@ -654,7 +678,7 @@ def solape_de_afirmaciones(
 
 
 def _comprobar_e17(arbol: Arbol, config: Configuracion, __: Path) -> list[ErrorValidacion]:
-    nodos = _co_cargables(arbol)
+    nodos = _co_cargables(arbol, solo_anfitrion=config.vista_compilacion == "anfitrion")
     errores = []
     cache: dict[int, list[tuple[frozenset[str], str]]] = {id(n): _afirmaciones(n) for n in nodos}
     for indice, primero in enumerate(nodos):

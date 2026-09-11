@@ -268,10 +268,10 @@ MUTACIONES = (
     Mutacion(
         "M30",
         "puente/sesion.py",
-        "        for posicion, canal in enumerate(decision.canales):\n            actualizado[canal] = salida if posicion == 0 else \"\"\n",
-        "        pass\n",
-        "puente.tests.test_sesion.Redaccion.test_el_texto_redactado_vuelve_por_los_dos_canales",
-        "sustituyendo solo 'output', el valor crudo sigue entrando por el canal que lo trajo",
+        '            "updatedToolOutput": decision.respuesta,\n',
+        '            "updatedToolOutput": {"stdout": decision.salida},\n',
+        "puente.tests.test_sesion.Redaccion.test_la_reescritura_respeta_el_esquema_entero_de_la_respuesta",
+        "devolviendo solo el canal tapado, el runtime descarta la reescritura y el valor crudo entra al contexto (comprobado 2026-09-11)",
     ),
     # --- Núcleo: hasta el 2026-09-02 `mutaciones.py` no tocaba ni `cosmos/medir.py`
     # ni `cosmos/validar.py`, y cinco sabotajes del medidor y del validador no
@@ -409,18 +409,10 @@ MUTACIONES = (
     Mutacion(
         "M47",
         "puente/sesion.py",
-        '        actualizado: dict[str, object] = {}\n        if decision.codigo_salida is not None:\n            actualizado["exit_code"] = decision.codigo_salida\n',
-        '        actualizado: dict[str, object] = {"output": salida, "exit_code": decision.codigo_salida or 0}\n',
+        "        return {\n            clave: (_reescribir_texto(hijo, transformar) if clave in _CAMPOS_TEXTO else hijo)\n            for clave, hijo in valor.items()\n        }\n",
+        "        return {\"output\": transformar(_texto_anidado(valor)), \"exit_code\": 0}\n",
         "puente.tests.test_sesion.Redaccion.test_la_reescritura_no_inventa_exit_code_ni_output",
         "la reescritura vuelve a fabricar output y exit_code 0: el modelo lee como salida estandar y exito lo que fue error (B11)",
-    ),
-    Mutacion(
-        "M48",
-        "puente/sesion.py",
-        "    codigo: int | None = None\n",
-        "    codigo: int | None = 0\n",
-        "puente.tests.test_sesion.Redaccion.test_la_reescritura_no_inventa_exit_code_ni_output",
-        "el 0 por defecto vuelve: un exit_code que nadie dijo entra al contexto como hecho (B11)",
     ),
     Mutacion(
         "M49",
@@ -931,6 +923,30 @@ MUTACIONES = (
         "                filas = inventariar_maquina(arbol, raiz_clon=_base_repositorio(config).resolve())\n",
         "tests.test_revision_c.ElInventarioNoDiceOkSinMirar.test_c19_estado_maquina_admite_directorio",
         "C-19: `estado --maquina` ignora --directorio y dice que el perfil falta",
+    ),
+    Mutacion(
+        "M112",
+        "cosmos/guardarrailes.py",
+        "    vivos = [s for s in ultimos.values() if not s.cerrado]\n",
+        "    vivos = list(ultimos.values())\n",
+        "tests.test_guardarrailes.ValvulaCerrable.test_un_salto_cerrado_no_esta_activo_ni_caducado",
+        "sin el filtro de cerrados, cerrar un salto no lo saca de la lista y el aviso de caducado vuelve para siempre",
+    ),
+    Mutacion(
+        "M113",
+        "puente/secretos.py",
+        "        if etiqueta in omitir:\n            continue\n",
+        "        pass\n",
+        "puente.tests.test_sesion.Redaccion.test_las_rutas_y_correos_de_la_maquina_no_se_tapan_en_sesion",
+        "sin la exclusion de sesion, G05 tapa las rutas y correos de la propia maquina y avisa cuarenta veces por nada",
+    ),
+    Mutacion(
+        "M114",
+        "puente/sesion.py",
+        "        if resultado.returncode != 0:\n            salida = (resultado.stdout or \"\") + (resultado.stderr or \"\")\n",
+        "        if False:\n            salida = (resultado.stdout or \"\") + (resultado.stderr or \"\")\n",
+        "puente.tests.test_sesion.VerificacionDeclarada.test_en_rojo_bloquea_con_la_salida_y_hasta_el_tope",
+        "ignorando el codigo de salida, la verificacion declarada da verde a una suite que fallo: el oceano verificar vuelve a ser exhortacion",
     ),
 )
 

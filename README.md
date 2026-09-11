@@ -52,11 +52,11 @@ escáner de secretos y el gate. Hace falta `python3` 3.11 o posterior y `git`; n
 
 ```
 git clone <repo> ~/cosmos && cd ~/cosmos
-python3 -m cosmos instalar --autonomia auto --modelos --lanzador
+python3 -m cosmos instalar --autonomia auto --modelos --lanzador --puntero
 #   1/4 arrancar: compila la vista plana y valida el clon
 #   2/4 configurar: pregunta oficios y herramientas, abre ~/.cosmos/credenciales.txt para rellenarlo
 #   3/4 la máquina: el runtime deja de pedir permiso (ajustes de usuario), todos los modelos en /model,
-#       y `cosmos` en el PATH
+#       `cosmos` en el PATH y el puntero al catálogo en ~/.claude/CLAUDE.md
 #   4/4 estado --maquina: qué hay y qué falta, trivalente (ok / falta / no_comprobado)
 python3 -m cosmos configurar --comprobar     # cuando el fichero de credenciales esté relleno
 python3 -m cosmos enganchar --sesion         # el gate en cada commit y los guardarraíles de sesión
@@ -132,9 +132,19 @@ python3 -m cosmos configurar --autonomia libre      # bypassPermissions + acepta
 python3 -m cosmos configurar --autonomia manual     # deshace: el fichero vuelve byte a byte
 python3 -m cosmos configurar --modelos instalar     # todos los modelos de la cuenta en /model, para siempre (macOS: agente launchd + hook)
 python3 -m cosmos configurar --modelos estado       # qué hay; el acceso de la cuenta a cada id se declara no_comprobado (hace falta red)
-python3 -m cosmos configurar --lanzador             # ~/.local/bin/cosmos apuntando a este clon
+python3 -m cosmos configurar --lanzador             # ~/.local/bin/cosmos apuntando a este clon; sirve desde cualquier directorio
+python3 -m cosmos configurar --puntero              # ~/.claude/CLAUDE.md: cómo buscar y abrir una ficha desde cualquier repositorio
 python3 -m cosmos estado --maquina                  # el inventario de la máquina, trivalente
 ```
+
+El puntero es la pieza que hace que el catálogo exista fuera del clon. Medido el 2026-09-11 en una
+máquina con el alta hecha: ningún repositorio tenía el bloque de `proyectar`, el clon no tiene
+`CLAUDE.md` y el hook de arranque solo dice la entrada medida, así que 309 fichas eran invisibles
+para cualquier sesión porque nada nombraba el verbo que las busca. El bloque va en la memoria de
+**usuario** del runtime (entra en toda sesión de la máquina), dice solo dos verbos y los nombres de
+los océanos —ni índice ni catálogo: eso se paga al bajar, en el repositorio proyectado— y el
+comando publica lo que cuesta. `--puntero quitar` lo deshace byte a byte si nadie tocó el resto, y
+`estado --maquina` dice si el bloque coincide con lo que este clon escribiría hoy.
 
 `--autonomia` es lo que hace verdadera la promesa del océano `autonomia`: G01 avisa en cada arranque
 si la carta promete libertad y los ajustes de usuario arrancan en manual (y dice `desconocido`
@@ -213,7 +223,7 @@ Cuatro piezas que comprueban, y cuatro enganches que las ejecutan sin que nadie 
 |---|---|---|
 | pre-commit | Antes de cada commit, sobre la **instantánea del índice** (no sobre lo que haya sucio en disco): validar, las dos suites, secretos y los canarios `P01`/`P02` | `cosmos enganchar` |
 | pre-push | Antes de cada push: el escáner de secretos sobre todo lo versionado, la última puerta local antes de que algo salga del disco | `cosmos enganchar` |
-| **sesión** | Mientras un agente trabaja: cinco guardarraíles que avisan, protegen lo generado y tapan secretos antes de que lleguen al modelo | `cosmos enganchar --sesion` |
+| **sesión** | Mientras un agente trabaja: seis guardarraíles que avisan, protegen lo generado, tapan secretos antes de que lleguen al modelo y ejecutan la verificación que el repositorio declara antes de dar un turno por cerrado | `cosmos enganchar --sesion` |
 | CI | En cada push y cada PR, en Linux y macOS y con el Python mínimo (3.11): todo lo anterior más las mutaciones y la calibración | ya está en `.github/workflows/cosmos.yml` |
 
 (`cosmos arrancar` no es un enganche: es lo primero que se ejecuta tras clonar, porque la vista
@@ -241,12 +251,13 @@ python3 -m cosmos saltar --listar
 
 | Propiedad | Regla |
 |---|---|
-| Acotada | Un código concreto (`E00`..`E22`), de sesión (`G01`..`G05`) o del gate (`P01`, `P02`); nunca «todo» |
+| Acotada | Un código concreto (`E00`..`E22`), de sesión (`G01`..`G06`) o del gate (`P01`, `P02`); nunca «todo» |
 | Con motivo | Obligatorio. Sin `--motivo` no hay salto |
 | Caducable | Obligatorio, máximo 30 días. Sin `--caduca` no hay salto |
 | Registrada | Log que solo crece en `.cosmos/saltos.log`; renovar añade línea, no reescribe |
 | Visible | Con un salto vivo la salida dice `verde (1 salto activo: E16, caduca en 5 d)`, nunca «verde» a secas |
 | Ruidosa al caducar | Al vencer vuelve el rojo y el mensaje recuerda el motivo que se escribió |
+| Cerrable | Si el motivo desaparece antes de la caducidad, `cosmos saltar G03 --cerrar --motivo "..."` lo cierra: deja de avisar sin esperar a vencer, y el registro guarda el salto y su cierre |
 
 La palabra «verde» no aparece nunca sola habiendo saltos activos. Un verde que oculta un salto es
 una mentira, y basta una para que nadie vuelva a creerse ninguna.

@@ -40,3 +40,10 @@ manifiesto = ".cosmos/compilado-galaxia.json"
 #     comando lo dice. Acótala aquí o con --nicho si un runtime escanea el destino.
 [nichos]
 activos = []
+
+# Lo que este repositorio exige ver en verde antes de dar un turno por cerrado (G06). Corre solo
+# cuando el árbol de trabajo cambió desde la última pasada en verde de la sesión; la suite del
+# núcleo (más de un minuto) queda para el gate de pre-commit y el CI.
+[sesion]
+verificacion = ["python3 -m unittest discover -s puente/tests -t . -q"]
+verificacion_segundos = 120

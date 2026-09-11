@@ -26,6 +26,7 @@ from cosmos.guardarrailes import (
     ErrorSalto,
     ahora_utc,
     analizar_duracion,
+    cerrar_salto,
     desenganchar,
     enganchar,
     enganchar_sesion,
@@ -464,6 +465,89 @@ class NichosEnConfiguracion(unittest.TestCase):
         self.assertIsNotNone(nichos_de_configuracion.__doc__)
         self.assertIsNone(nichos_de_configuracion(REPO_COSMOS / "cosmos.toml"))
 
+
+
+
+class ValvulaCerrable(unittest.TestCase):
+    """Un salto cuyo motivo desapareció antes de caducar se cierra; no se deja vencer.
+
+    Sin esto, la única forma de callar un salto era esperar a que caducara, y al caducar
+    avisaba en cada arranque para siempre («SALTO CADUCADO … vuelve a exigirse») aunque el
+    árbol estuviera en verde: un aviso que no pide nada acaba ignorado, y con él los que sí.
+    """
+
+    def setUp(self) -> None:
+        self.temporal = tempfile.TemporaryDirectory(prefix="cosmos-cierre-")
+        self.base = Path(self.temporal.name)
+        self.log = ruta_saltos(self.base)
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def test_un_salto_cerrado_no_esta_activo_ni_caducado(self) -> None:
+        ahora = ahora_utc()
+        registrar_salto(self.log, "G03", "guion de alta", timedelta(days=1), ahora=ahora - timedelta(days=3))
+        cerrar_salto(self.log, "G03", "guion ya escrito", ahora=ahora)
+        activos, caducados = estado_saltos(self.log, ahora=ahora)
+        self.assertEqual([], activos)
+        self.assertEqual([], caducados)
+        lineas = self.log.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(2, len(lineas), "cerrar añade una línea; el registro nunca se reescribe")
+        self.assertTrue(json.loads(lineas[1])["cerrado"])
+
+    def test_cerrar_exige_motivo_y_un_salto_que_exista(self) -> None:
+        with self.assertRaises(ErrorSalto):
+            cerrar_salto(self.log, "G03", "nada que cerrar")
+        registrar_salto(self.log, "G03", "obras", timedelta(days=1))
+        with self.assertRaises(ErrorSalto):
+            cerrar_salto(self.log, "G03", "   ")
+        with self.assertRaises(ErrorSalto):
+            cerrar_salto(self.log, "todo", "apagar")
+
+    def test_tras_cerrar_se_puede_volver_a_saltar(self) -> None:
+        ahora = ahora_utc()
+        registrar_salto(self.log, "E16", "primera", timedelta(days=2), ahora=ahora)
+        cerrar_salto(self.log, "E16", "ya no hace falta", ahora=ahora)
+        registrar_salto(self.log, "E16", "segunda", timedelta(days=2), ahora=ahora)
+        activos, caducados = estado_saltos(self.log, ahora=ahora)
+        self.assertEqual(["segunda"], [salto.motivo for salto in activos])
+        self.assertEqual([], caducados)
+
+
+class ValvulaCerradaEnLaSalida(ValvulaEnLaSalida):
+    """La salida deja de recordar un salto caducado en cuanto se cierra, y dice cómo cerrarlo."""
+
+    def test_el_aviso_de_caducado_dice_como_cerrarlo(self) -> None:
+        registrar_salto(ruta_saltos(self.base), "E16", "obras de agosto", timedelta(days=1),
+                        ahora=ahora_utc() - timedelta(days=9))
+        codigo, salida = self.ejecutar(["validar", "--config", str(self.config)])
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("SALTO CADUCADO", salida)
+        self.assertIn("--cerrar", salida)
+
+    def test_un_salto_cerrado_deja_de_avisar(self) -> None:
+        registrar_salto(ruta_saltos(self.base), "E16", "obras de agosto", timedelta(days=1),
+                        ahora=ahora_utc() - timedelta(days=9))
+        codigo, salida = self.ejecutar(
+            ["saltar", "E16", "--cerrar", "--motivo", "las obras acabaron", "--config", str(self.config)]
+        )
+        self.assertEqual(0, codigo, salida)
+        self.assertIn("cerrado", salida)
+        codigo, salida = self.ejecutar(["validar", "--config", str(self.config)])
+        self.assertEqual(0, codigo, salida)
+        self.assertNotIn("SALTO CADUCADO", salida)
+        self.assertIn("COSMOS  verde  0 errores", salida)
+
+    def test_cerrar_sin_motivo_o_con_caduca_no_es_un_cierre(self) -> None:
+        registrar_salto(ruta_saltos(self.base), "E16", "obras", timedelta(days=2))
+        codigo, salida = self.ejecutar(["saltar", "E16", "--cerrar", "--config", str(self.config)])
+        self.assertNotEqual(0, codigo, salida)
+        codigo, salida = self.ejecutar(
+            ["saltar", "E16", "--cerrar", "--motivo", "x", "--caduca", "7d", "--config", str(self.config)]
+        )
+        self.assertNotEqual(0, codigo, salida)
+        activos, _ = estado_saltos(ruta_saltos(self.base))
+        self.assertEqual(["obras"], [salto.motivo for salto in activos], "un cierre mal pedido no cierra nada")
 
 if __name__ == "__main__":
     unittest.main()

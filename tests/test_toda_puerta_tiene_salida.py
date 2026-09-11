@@ -58,10 +58,17 @@ class TodoLoQueBloqueaAceptaSuSalida(unittest.TestCase):
     def test_los_guards_que_existen_son_los_que_tienen_valvula(self) -> None:
         """Ni uno de menos (quedaría atrapado) ni uno de más (mentiría sobre lo que hay)."""
 
+        from puente import sesion
         from puente.sesion import MANEJADORES
 
         self.assertTrue(MANEJADORES, "no hay manejadores de sesión que vigilar")
-        self.assertEqual(len(CODIGOS_SESION), 5)
+        # Los códigos que el guard de sesión DECLARA (`CODIGO_* = "G0x"`) son exactamente los que
+        # la válvula acepta. Decía `5` escrito a mano y G06 nació sin salida hasta que esta prueba
+        # se puso roja; contarlos en el módulo es lo que impide que vuelva a pasar.
+        declarados = sorted(v for k, v in vars(sesion).items()
+                            if k.startswith("CODIGO_") and isinstance(v, str) and v.startswith("G"))
+        self.assertEqual(declarados, sorted(CODIGOS_SESION))
+        self.assertGreaterEqual(len(declarados), 6)
 
     def test_no_se_puede_saltar_todo_de_golpe(self) -> None:
         """La salida es acotada o no es una salida: es apagar el sistema."""

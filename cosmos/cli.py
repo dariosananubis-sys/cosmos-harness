@@ -32,6 +32,7 @@ from .guardarrailes import (
     enganchar_sesion,
     estado_saltos,
     normalizar_codigo,
+    cerrar_salto,
     registrar_salto,
     ruta_saltos,
     sufijo_saltos,
@@ -119,7 +120,7 @@ def _parser() -> argparse.ArgumentParser:
                         help="con --maquina: dónde viven el perfil y las credenciales (por defecto ~/.cosmos)")
     estado.add_argument("--maquina", action="store_true",
                         help="inventario de la máquina, trivalente (ok / falta / no_comprobado): python3, git, claude, "
-                             "tmux, llavero, perfil, credenciales, autonomía, vigilante de modelos, lanzador")
+                             "tmux, llavero, perfil, credenciales, autonomía, vigilante de modelos, lanzador, puntero")
 
     validar = base("validar", f"comprueba las invariantes {rango_comprobado()}")
     validar.add_argument("--json", action="store_true", help="emite JSON")
@@ -196,6 +197,10 @@ def _parser() -> argparse.ArgumentParser:
                                  "los ajustes de usuario, cada ~/.claude.json vigilado y, en macOS, ~/Library/LaunchAgents)")
     configurar.add_argument("--lanzador", nargs="?", const="instalar", choices=("instalar", "quitar"), metavar="ACCION",
                             help="pone 'cosmos' en el PATH (~/.local/bin/cosmos apuntando a este clon) o lo quita")
+    configurar.add_argument("--puntero", nargs="?", const="instalar", choices=("instalar", "quitar"), metavar="ACCION",
+                            help="escribe en la memoria de USUARIO del runtime (~/.claude/CLAUDE.md) el puntero al "
+                                 "catálogo —cómo buscar y abrir una ficha desde cualquier repositorio— o lo quita; "
+                                 "no lleva índice ni océanos y dice lo que cuesta")
     configurar.add_argument("--forzar", action="store_true",
                             help="con --modelos instalar o --lanzador: pisa un fichero ajeno con el mismo nombre")
 
@@ -213,6 +218,7 @@ def _parser() -> argparse.ArgumentParser:
                           help="además, fija el grado de autonomía de la máquina (auto | libre)")
     instalar.add_argument("--modelos", action="store_true", help="además, instala el vigilante de modelos")
     instalar.add_argument("--lanzador", action="store_true", help="además, pone 'cosmos' en el PATH")
+    instalar.add_argument("--puntero", action="store_true", help="además, escribe el puntero al catálogo en ~/.claude/CLAUDE.md")
     instalar.add_argument("--forzar", action="store_true", help="pisa un maxcode/ultracode/cosmos ajeno")
     instalar.add_argument("--seco", action="store_true", help="enseña lo que haría en la máquina sin escribir")
 
@@ -240,11 +246,30 @@ def _parser() -> argparse.ArgumentParser:
     saltar.add_argument("--motivo", help="obligatorio: por qué se salta")
     saltar.add_argument("--caduca", help="obligatorio: días de vigencia, como '7d' (máximo 30d)")
     saltar.add_argument("--listar", action="store_true", help="muestra los saltos vivos y los vencidos")
+    saltar.add_argument("--cerrar", action="store_true",
+                        help="cierra el salto de ese código porque su motivo ya no existe (exige --motivo, no --caduca); "
+                             "deja de avisar sin esperar a que caduque")
     return parser
 
 
+def _config_por_defecto(ruta: Path) -> Path:
+    """`cosmos.toml` del directorio actual y, si no lo hay, el del clon que exporta el lanzador.
+
+    Desde otro directorio, `cargar_configuracion` devolvía una configuración por defecto sobre
+    un árbol vacío y `cosmos buscar` decía «sin resultados» (medido el 2026-09-11 desde /tmp
+    con el shim del PATH): un silencio que no se distingue de «esa herramienta no existe».
+    """
+
+    if ruta != Path("cosmos.toml") or ruta.is_file():
+        return ruta
+    raiz = os.environ.get("COSMOS_RAIZ")
+    if raiz and (Path(raiz) / "cosmos.toml").is_file():
+        return Path(raiz) / "cosmos.toml"
+    return ruta
+
+
 def _configuracion(args: argparse.Namespace) -> Configuracion:
-    config = cargar_configuracion(args.config)
+    config = cargar_configuracion(_config_por_defecto(args.config))
     raiz = getattr(args, "raiz", None)
     if raiz is None:
         return config
@@ -403,6 +428,8 @@ def _configurar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -
         return _modelos(args.modelos, perfil, seco=args.seco, forzar=args.forzar)
     if getattr(args, "lanzador", None):
         return _lanzador(args.lanzador, config, forzar=args.forzar, seco=args.seco)
+    if getattr(args, "puntero", None):
+        return _puntero(args.puntero, config, arbol, seco=args.seco)
 
     if args.comprobar or args.llavero:
         datos = cfg.leer_perfil(perfil) or {}
@@ -655,6 +682,43 @@ def _lanzador(accion: str, config: Configuracion, *, forzar: bool, seco: bool = 
     return 0
 
 
+def _puntero(accion: str, config: Configuracion, arbol: Arbol, *, seco: bool = False) -> int:
+    """El puntero al catálogo en la memoria de usuario del runtime: se escribe, se quita, se mide."""
+
+    from . import configurar as cfg
+    from .medir import contar_aprox
+
+    ruta = cfg.PUNTERO
+    raiz = _base_repositorio(config).resolve()
+    oceanos = sorted(n.nombre for n in arbol.nodos if n.cosmos == "oceano")
+    bloque = cfg.contenido_puntero(oceanos, raiz)
+    coste = contar_aprox(bloque)
+    if seco:
+        if accion == "quitar":
+            que = "no hay puntero" if cfg.puntero_vigente(ruta) is None else "quitaría el bloque (byte a byte si nadie tocó el resto)"
+        else:
+            vigente = cfg.puntero_vigente(ruta)
+            que = ("ya está al día" if vigente == bloque else
+                   f"{'sustituiría' if vigente else 'añadiría'} el bloque de COSMOS ({coste} tokens estimados por sesión)")
+        sys.stdout.write(f"COSMOS  configurar  puntero  {accion}  (seco)\n\n  {cfg.abreviar_home(ruta)}: {que}\n")
+        return 0
+    if accion == "quitar":
+        ruta, estado = cfg.quitar_puntero()
+        texto = {"ausente": "no había puntero", "restaurado": f"{cfg.abreviar_home(ruta)} devuelto byte a byte",
+                 "eliminado": f"{cfg.abreviar_home(ruta)} eliminado: solo tenía el bloque de COSMOS",
+                 "podado": f"{cfg.abreviar_home(ruta)} sin el bloque de COSMOS (el resto lo había cambiado alguien, se conserva)"}[estado]
+        sys.stdout.write(f"COSMOS  configurar  puntero  quitar\n\n  {texto}\n")
+        return 0
+    ruta, estado = cfg.instalar_puntero(oceanos, raiz)
+    sys.stdout.write(
+        f"COSMOS  configurar  puntero  {estado}\n\n"
+        f"  {cfg.abreviar_home(ruta)}: el bloque entre {cfg.MARCA_PUNTERO_INICIO} y {cfg.MARCA_PUNTERO_FIN}\n"
+        f"  Cuesta {coste} tokens (estimado) en cada sesión de esta máquina; no lleva índice ni océanos.\n"
+        "  Se quita con: cosmos configurar --puntero quitar\n"
+    )
+    return 0
+
+
 def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> int:
     """Todo el alta de una máquina nueva en un comando, delegando en los verbos que ya existen.
 
@@ -679,7 +743,7 @@ def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> 
     else:
         args_cfg = argparse.Namespace(directorio=args.directorio, no_abrir=args.no_abrir, comprobar=False, llavero=False,
                                       seco=False, oficios=args.oficios or "", herramientas=args.herramientas or "",
-                                      autonomia=None, modelos=None, lanzador=None, forzar=False,
+                                      autonomia=None, modelos=None, lanzador=None, puntero=None, forzar=False,
                                       alta_autonomia=args.autonomia, alta_modelos=args.modelos, alta_forzar=args.forzar)
         # Con oficios por bandera el alta es no interactiva y no pregunta por la máquina: eso lo
         # deciden los flags de instalar. Sin banderas, `configurar` pregunta lo suyo y también por
@@ -690,7 +754,7 @@ def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> 
     directorio = args.directorio or cfg.DIRECTORIO
     perfil = directorio / cfg.PERFIL.name
     interactivo = not args.oficios and not args.herramientas
-    sys.stdout.write("\n== 3/4  la máquina: autonomía, modelos, lanzador ==\n")
+    sys.stdout.write("\n== 3/4  la máquina: autonomía, modelos, lanzador, puntero ==\n")
     if args.autonomia and not (interactivo and not args.seco):
         _autonomia(args.autonomia, directorio, seco=args.seco)
     if args.modelos and not (interactivo and not args.seco):
@@ -700,8 +764,13 @@ def _instalar(args: argparse.Namespace, config: Configuracion, arbol: Arbol) -> 
             sys.stdout.write(f"  (seco) lanzador en {cfg.LANZADOR}\n")
         else:
             _lanzador("instalar", config, forzar=args.forzar)
-    if not (args.autonomia or args.modelos or args.lanzador):
-        sys.stdout.write("  Nada pedido (--autonomia, --modelos, --lanzador): la máquina se queda como está.\n")
+    if args.puntero:
+        if args.seco:
+            sys.stdout.write(f"  (seco) puntero en {cfg.abreviar_home(cfg.PUNTERO)}\n")
+        else:
+            _puntero("instalar", config, arbol)
+    if not (args.autonomia or args.modelos or args.lanzador or args.puntero):
+        sys.stdout.write("  Nada pedido (--autonomia, --modelos, --lanzador, --puntero): la máquina se queda como está.\n")
     sys.stdout.write("\n== 4/4  estado de la máquina ==\n")
     filas = inventariar_maquina(arbol, directorio=directorio, raiz_clon=_base_repositorio(config).resolve())
     sys.stdout.write(formatear_maquina(filas))
@@ -951,6 +1020,19 @@ def _saltar(args: argparse.Namespace, config: Configuracion) -> int:
                 f"\nCADUCADO  {salto.codigo}  venció el {salto.caduca.date().isoformat()}"
                 f"\n          «{salto.motivo}»\n"
             )
+        return 0
+    if getattr(args, "cerrar", False):
+        if not args.motivo or args.caduca:
+            raise ErrorSalto(
+                "cerrar un salto exige --motivo (por qué ya no hace falta) y no lleva --caduca: "
+                "un cierre no vence, consta."
+            )
+        salto = cerrar_salto(log, args.codigo, args.motivo)
+        sys.stdout.write(
+            f"COSMOS  saltar  {salto.codigo} cerrado\n\n"
+            f"Motivo: «{salto.motivo}»\nRegistrado en {log}\n"
+            "Deja de avisar; el registro conserva el salto y su cierre.\n"
+        )
         return 0
     if not args.motivo or not args.caduca:
         raise ErrorSalto(

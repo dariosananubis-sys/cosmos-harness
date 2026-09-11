@@ -188,5 +188,128 @@ class ElPerfilConservaLaTablaDeModelos(unittest.TestCase):
             self.assertEqual(cfg.leer_modelos(Path(tmp) / "no-existe.toml"), {})
 
 
+
+
+class ElPunteroEsReversible(unittest.TestCase):
+    """`configurar --puntero`: el bloque entra en la memoria de usuario y sale sin dejar rastro.
+
+    Medido el 2026-09-11: con el lanzador en el PATH y 309 fichas en el catálogo, ninguna sesión
+    de la máquina sabía que existía `cosmos buscar`, porque nada lo nombraba fuera del clon.
+    """
+
+    OCEANOS = ["verificar", "secretos", "autonomia"]
+
+    def setUp(self) -> None:
+        self.temporal = TemporaryDirectory(prefix="puntero-")
+        self.casa = Path(self.temporal.name)
+        self.ruta = self.casa / ".claude" / "CLAUDE.md"
+        self.respaldo = self.casa / ".cosmos" / "puntero-respaldo.json"
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def _instalar(self):
+        return cfg.instalar_puntero(self.OCEANOS, RAIZ, self.ruta, respaldo=self.respaldo)
+
+    def _quitar(self):
+        return cfg.quitar_puntero(self.ruta, respaldo=self.respaldo)
+
+    def test_crea_el_fichero_con_el_bloque_y_lo_quita_entero(self) -> None:
+        ruta, estado = self._instalar()
+        self.assertEqual(estado, "creado")
+        texto = ruta.read_text(encoding="utf-8")
+        self.assertTrue(texto.startswith(cfg.MARCA_PUNTERO_INICIO))
+        self.assertIn("cosmos buscar", texto)
+        self.assertIn("cosmos abrir", texto)
+        self.assertIn("autonomia, secretos, verificar", texto, "los océanos se nombran, ordenados")
+        # Sin la línea del clon: la ruta de un temporal lleva dígitos y no es una cifra del catálogo.
+        sin_ruta = "\n".join(l for l in texto.splitlines() if not l.startswith("Clon:"))
+        self.assertNotRegex(sin_ruta, r"\d{3}", "el puntero no lleva cifras: envejecen en silencio")
+        self.assertEqual(self._instalar()[1], "al día")
+        self.assertEqual(self._quitar()[1], "eliminado")
+        self.assertFalse(ruta.exists())
+        self.assertFalse(self.respaldo.exists())
+
+    def test_respeta_lo_ajeno_y_lo_devuelve_byte_a_byte(self) -> None:
+        original = "# Mis notas\n\nNo tocar.\n\n"
+        self.ruta.parent.mkdir(parents=True)
+        self.ruta.write_text(original, encoding="utf-8")
+        ruta, estado = self._instalar()
+        self.assertEqual(estado, "actualizado")
+        texto = ruta.read_text(encoding="utf-8")
+        self.assertTrue(texto.startswith(original), "lo de fuera de las marcas no se toca")
+        self.assertEqual(texto.count(cfg.MARCA_PUNTERO_INICIO), 1)
+        # Reinstalar con otros océanos sustituye el bloque donde está, sin duplicarlo.
+        cfg.instalar_puntero(["custodia"], RAIZ, self.ruta, respaldo=self.respaldo)
+        texto = ruta.read_text(encoding="utf-8")
+        self.assertEqual(texto.count(cfg.MARCA_PUNTERO_INICIO), 1)
+        self.assertIn("(custodia)", texto)
+        self.assertEqual(self._quitar()[1], "restaurado")
+        self.assertEqual(ruta.read_bytes(), original.encode("utf-8"))
+
+    def test_si_alguien_cambio_el_resto_se_poda_y_se_conserva(self) -> None:
+        self.ruta.parent.mkdir(parents=True)
+        self.ruta.write_text("# Mío\n", encoding="utf-8")
+        self._instalar()
+        with self.ruta.open("a", encoding="utf-8") as fichero:
+            fichero.write("\nAñadido después.\n")
+        ruta, estado = self._quitar()
+        self.assertEqual(estado, "podado")
+        texto = ruta.read_text(encoding="utf-8")
+        self.assertNotIn(cfg.MARCA_PUNTERO_INICIO, texto)
+        self.assertIn("# Mío", texto)
+        self.assertIn("Añadido después.", texto)
+
+    def test_quitar_sin_puntero_no_es_error(self) -> None:
+        self.assertEqual(self._quitar()[1], "ausente")
+        self.ruta.parent.mkdir(parents=True)
+        self.ruta.write_text("sin bloque\n", encoding="utf-8")
+        self.assertEqual(self._quitar()[1], "ausente")
+        self.assertEqual(self.ruta.read_text(encoding="utf-8"), "sin bloque\n")
+
+
+class ElPunteroPorLaCLI(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporal = TemporaryDirectory(prefix="puntero-cli-")
+        self.casa = Path(self.temporal.name)
+        self.entorno = {"HOME": str(self.casa), "CLAUDE_CONFIG_DIR": str(self.casa / "claude-config")}
+        self.ruta = self.casa / ".claude" / "CLAUDE.md"
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def test_en_seco_no_escribe_y_de_verdad_escribe_dice_el_coste_y_se_quita(self) -> None:
+        r = _cosmos(self.entorno, "--puntero", "--seco")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse(self.ruta.exists(), "--puntero --seco escribió")
+        r = _cosmos(self.entorno, "--puntero")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("puntero  creado", r.stdout)
+        self.assertRegex(r.stdout, r"Cuesta \d+ tokens \(estimado\)")
+        self.assertNotIn(str(self.casa), r.stdout, "la salida enseña la ruta de la máquina en vez de ~")
+        self.assertTrue(self.ruta.is_file())
+        estado = subprocess.run([sys.executable, "-m", "cosmos", "estado", "--maquina"],
+                                capture_output=True, text=True, cwd=RAIZ, env={**os.environ, **self.entorno})
+        self.assertRegex(estado.stdout, r"puntero \.+ ok")
+        r = _cosmos(self.entorno, "--puntero", "quitar")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertFalse(self.ruta.exists())
+        estado = subprocess.run([sys.executable, "-m", "cosmos", "estado", "--maquina"],
+                                capture_output=True, text=True, cwd=RAIZ, env={**os.environ, **self.entorno})
+        self.assertRegex(estado.stdout, r"puntero \.+ falta")
+
+
+class ElLanzadorSirveDesdeCualquierDirectorio(unittest.TestCase):
+    def test_desde_un_directorio_sin_cosmos_toml_se_usa_el_del_clon(self) -> None:
+        """Medido el 2026-09-11: desde /tmp, `cosmos buscar` decía «sin resultados» sobre un árbol vacío."""
+
+        with TemporaryDirectory() as tmp:
+            ruta = Path(tmp) / "bin" / "cosmos"
+            cfg.instalar_lanzador(RAIZ, ruta)
+            r = subprocess.run([str(ruta), "estado"], capture_output=True, text=True, cwd=tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertRegex(r.stdout, r"pueblo\s+\d+", "desde fuera del clon, el shim tiene que ver la galaxia")
+            self.assertNotIn("sistema-solar      0", r.stdout)
+
 if __name__ == "__main__":
     unittest.main()

@@ -51,16 +51,23 @@ manifiesto = ".cosmos/compilado.json"
 """
 
 
-def _repositorio(base: Path, *, entrada: int = 4000, lecturas: tuple[str, ...] = ()) -> Path:
+def _repositorio(base: Path, *, entrada: int = 4000, lecturas: tuple[str, ...] = (),
+                 verificacion: tuple[str, ...] = (), segundos: int | None = None) -> Path:
     """Un repositorio con árbol mínimo, para no depender de la galaxia real."""
 
     raiz = repo_git(base / "repo")
     (raiz / "arbol").mkdir(parents=True, exist_ok=True)
     arbol_minimo(raiz / "arbol")
     texto = CONFIG.format(entrada=entrada)
+    seccion: list[str] = []
     if lecturas:
-        listado = ", ".join(json.dumps(ruta) for ruta in lecturas)
-        texto += f"\n[sesion]\nlecturas_exigidas = [{listado}]\n"
+        seccion.append(f"lecturas_exigidas = [{', '.join(json.dumps(r) for r in lecturas)}]")
+    if verificacion:
+        seccion.append(f"verificacion = [{', '.join(json.dumps(c) for c in verificacion)}]")
+    if segundos is not None:
+        seccion.append(f"verificacion_segundos = {segundos}")
+    if seccion:
+        texto += "\n[sesion]\n" + "\n".join(seccion) + "\n"
     (raiz / "cosmos.toml").write_text(texto, encoding="utf-8")
     return raiz
 
@@ -487,10 +494,38 @@ class Redaccion(unittest.TestCase):
         )
         actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
         actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
-        # `output` es la única vía de entrega cuando la respuesta llegó como cadena;
-        # `exit_code` no vino y no se fabrica.
-        self.assertEqual({"output"}, set(actualizado))
-        self.assertNotIn(falso, actualizado["output"])
+        # Una respuesta que llegó como cadena vuelve como cadena: el runtime exige el esquema
+        # de la herramienta, y envolverla en `{"output": ...}` era inventar una forma.
+        self.assertIsInstance(actualizado, str)
+        self.assertNotIn(falso, actualizado)
+        self.assertIn("TOKEN=", actualizado)
+
+    def test_la_reescritura_respeta_el_esquema_entero_de_la_respuesta(self) -> None:
+        # Comprobado el 2026-09-11 en Claude Code 2.1.268 con una sesión `-p`: el runtime solo
+        # honra `updatedToolOutput` si trae la respuesta ENTERA de la herramienta (`Bash` devuelve
+        # stdout, stderr, interrupted e isImage). Con `{"stdout": ...}` a secas lo descartaba en
+        # silencio: el valor crudo entraba al contexto y G05 anunciaba encima haberlo tapado.
+        falso = "ghp_" + "f" * 36
+        respuesta = {"stdout": f"TOKEN={falso}\nresto\n", "stderr": "", "interrupted": False, "isImage": False}
+        decision = self._post_bruto(respuesta)
+        actualizado = json.loads(sesion.como_json(decision, "PostToolUse"))
+        actualizado = actualizado["hookSpecificOutput"]["updatedToolOutput"]
+        self.assertEqual(set(respuesta), set(actualizado), "faltan o sobran campos: el runtime lo descarta")
+        self.assertIs(actualizado["interrupted"], False)
+        self.assertIs(actualizado["isImage"], False)
+        self.assertEqual(actualizado["stderr"], "")
+        self.assertNotIn(falso, actualizado["stdout"])
+        self.assertIn("resto", actualizado["stdout"])
+
+    def test_las_rutas_y_correos_de_la_maquina_no_se_tapan_en_sesion(self) -> None:
+        # El escáner del repositorio sí los persigue (repo público-limpio); el guard de sesión
+        # no: el modelo trabaja en ESTA máquina y tapar sus rutas lo deja ciego. Medido el
+        # 2026-09-11: cuarenta avisos de G05 en una sesión, ninguno por una credencial.
+        # Compuesto en tiempo de ejecución: escrito entero sería un hallazgo del escáner del
+        # repositorio (ruta personal y correo), que bloquearía el commit de su propia prueba.
+        salida = '"/Users/' + 'alguien/proyecto": {\ncontacto persona@' + 'servidor-interno.local\n'
+        self.assertEqual(self._post(salida).accion, "pasar")
+        self.assertEqual(redactar_texto(salida)[1], 2, "el escáner del repositorio los sigue viendo")
 
     def test_un_exit_code_real_se_conserva(self) -> None:
         falso = "ghp_" + "e" * 36
@@ -502,9 +537,15 @@ class Redaccion(unittest.TestCase):
 
     def test_tapa_lo_que_devuelve_una_lectura(self) -> None:
         falso = "AKIA" + "0123456789ABCDEF"
-        decision = self._post_bruto({"file": {"content": f"AWS_SECRET={falso}\n"}}, "Read")
+        respuesta = {"type": "text", "file": {"filePath": "/x/.env", "content": f"AWS_SECRET={falso}\n", "numLines": 1}}
+        decision = self._post_bruto(respuesta, "Read")
         self.assertEqual(decision.accion, "reescribir")
         self.assertNotIn(falso, decision.salida)
+        # La forma anidada de `Read` vuelve entera, con solo `file.content` tocado.
+        self.assertEqual(decision.respuesta["type"], "text")
+        self.assertEqual(decision.respuesta["file"]["filePath"], "/x/.env")
+        self.assertEqual(decision.respuesta["file"]["numLines"], 1)
+        self.assertNotIn(falso, decision.respuesta["file"]["content"])
 
     def test_tapa_lo_que_devuelve_un_grep(self) -> None:
         falso = "AKIA" + "FEDCBA9876543210"
@@ -519,6 +560,8 @@ class Redaccion(unittest.TestCase):
         )
         self.assertEqual(decision.accion, "reescribir")
         self.assertNotIn(falso, decision.salida)
+        self.assertEqual(decision.respuesta["content"][0]["type"], "text")
+        self.assertNotIn(falso, decision.respuesta["content"][0]["text"])
 
     def test_una_herramienta_fuera_de_la_lista_pasa(self) -> None:
         falso = "ghp_" + "c" * 36
@@ -532,6 +575,10 @@ class Redaccion(unittest.TestCase):
         self.assertEqual(decision.accion, "reescribir")
         self.assertIn("apartada", decision.salida)
         self.assertLess(len(decision.salida), 4000)
+        # Lo que se devuelve conserva la forma de la respuesta y lleva el aviso donde iba el texto.
+        self.assertEqual({"output", "exit_code"}, set(decision.respuesta))
+        self.assertIn("apartada", decision.respuesta["output"])
+        self.assertEqual(decision.respuesta["exit_code"], 0)
 
     def test_la_valvula_deja_ver_la_salida_cruda(self) -> None:
         registrar_salto(ruta_saltos(self.raiz), "G05", "depurando un pipeline", timedelta(days=1))
@@ -587,6 +634,107 @@ class CierreEnRojo(unittest.TestCase):
         for linea in decision.motivo.splitlines():
             if "verde" in linea:
                 self.assertIn("salto activo", linea)
+
+
+class VerificacionDeclarada(unittest.TestCase):
+    """G06: lo que el repositorio declara en `[sesion] verificacion` se ejecuta al cerrar.
+
+    Hasta el 2026-09-11 el océano `verificar` («nada se declara hecho sin haberlo visto
+    funcionar») era una exhortación; ahora hay un guard que la ejecuta, y solo cuando el
+    árbol de trabajo cambió desde la última pasada en verde.
+    """
+
+    def setUp(self) -> None:
+        self.temporal = tempfile.TemporaryDirectory(prefix="sesion-verificacion-")
+        self.base = Path(self.temporal.name)
+        # La marca vive FUERA del repositorio: dentro cambiaría el árbol que G06 mira.
+        self.marca = self.base / "ejecuciones.txt"
+
+    def tearDown(self) -> None:
+        self.temporal.cleanup()
+
+    def _repo(self, *comandos: str, entrada: int = 4000, segundos: int | None = None) -> Path:
+        raiz = _en_verde(_repositorio(self.base / f"r{len(list(self.base.iterdir()))}", entrada=entrada,
+                                      verificacion=comandos, segundos=segundos))
+        return raiz
+
+    def _anota(self) -> str:
+        # Comillas simples dentro, dobles fuera: la ruta del temporal no lleva ninguna de las dos.
+        return f"{sys.executable} -c \"open('{self.marca}', 'a').write('x')\""
+
+    def _cerrar(self, raiz: Path):
+        return _decidir(raiz, _evento(raiz, hook_event_name="Stop"))
+
+    def _ejecuciones(self) -> int:
+        return len(self.marca.read_text(encoding="utf-8")) if self.marca.is_file() else 0
+
+    def _commit_todo(self, raiz: Path) -> None:
+        subprocess.run(["git", "-C", str(raiz), "add", "-A"], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(raiz), "commit", "-q", "--allow-empty", "-m", "todo"], check=True, capture_output=True)
+
+    def test_sin_verificacion_declarada_el_mecanismo_calla(self) -> None:
+        raiz = _en_verde(_repositorio(self.base / "sin"))
+        decision = self._cerrar(raiz)
+        self.assertEqual(decision.accion, "informar")
+        self.assertNotIn("verificación", decision.motivo)
+
+    def test_con_el_arbol_limpio_no_se_ejecuta_nada(self) -> None:
+        raiz = self._repo(self._anota())
+        self._commit_todo(raiz)
+        self.assertEqual(self._cerrar(raiz).accion, "informar")
+        self.assertEqual(self._ejecuciones(), 0, "lo commiteado ya pasó por el gate: aquí no se repite")
+
+    def test_en_verde_deja_cerrar_y_no_se_repite_hasta_que_algo_cambia(self) -> None:
+        raiz = self._repo(self._anota())
+        (raiz / "obra.md").write_text("primera\n", encoding="utf-8")
+        decision = self._cerrar(raiz)
+        self.assertEqual(decision.accion, "informar")
+        self.assertIn("verificación declarada en verde", decision.motivo)
+        self.assertEqual(self._ejecuciones(), 1)
+        self.assertEqual(self._cerrar(raiz).accion, "informar")
+        self.assertEqual(self._ejecuciones(), 1, "sin cambios desde el verde, no se paga otra vez")
+        (raiz / "obra.md").write_text("segunda, más larga\n", encoding="utf-8")
+        self._cerrar(raiz)
+        self.assertEqual(self._ejecuciones(), 2, "un cambio nuevo exige otra pasada")
+
+    def test_en_rojo_bloquea_con_la_salida_y_hasta_el_tope(self) -> None:
+        raiz = self._repo(f"{sys.executable} -c \"print('detalle del fallo'); import sys; sys.exit(3)\"")
+        (raiz / "obra.md").write_text("cambio\n", encoding="utf-8")
+        for intento in range(sesion.TOPE_AVISOS):
+            decision = self._cerrar(raiz)
+            self.assertEqual(decision.accion, "bloquear", f"aviso {intento + 1}")
+            self.assertIn("salió 3", decision.motivo)
+            self.assertIn("detalle del fallo", decision.motivo)
+            self.assertIn("cosmos saltar G06", decision.motivo)
+            self.assertEqual(json.loads(sesion.como_json(decision, "Stop"))["decision"], "block")
+        ultima = self._cerrar(raiz)
+        self.assertEqual(ultima.accion, "informar")
+        self.assertIn("verificación declarada en rojo", ultima.motivo)
+        registro = sesion.ruta_cierres(raiz)
+        self.assertTrue(registro.is_file())
+        self.assertIn("verificación declarada en rojo", registro.read_text(encoding="utf-8"))
+
+    def test_la_valvula_deja_cerrar_sin_ejecutar(self) -> None:
+        raiz = self._repo(self._anota() + " && exit 5")
+        (raiz / "obra.md").write_text("cambio\n", encoding="utf-8")
+        registrar_salto(ruta_saltos(raiz), "G06", "la suite tarda; se arregla mañana", timedelta(days=1))
+        self.assertEqual(self._cerrar(raiz).accion, "informar")
+        self.assertEqual(self._ejecuciones(), 0)
+
+    def test_un_comando_que_no_termina_bloquea_diciendo_el_presupuesto(self) -> None:
+        raiz = self._repo(f"{sys.executable} -c \"import time; time.sleep(5)\"", segundos=1)
+        (raiz / "obra.md").write_text("cambio\n", encoding="utf-8")
+        decision = self._cerrar(raiz)
+        self.assertEqual(decision.accion, "bloquear")
+        self.assertIn("no terminó en 1 s", decision.motivo)
+
+    def test_el_arbol_en_rojo_manda_antes_que_la_verificacion(self) -> None:
+        raiz = _repositorio(self.base / "rojo", entrada=50, verificacion=(self._anota(),))
+        (raiz / "obra.md").write_text("cambio\n", encoding="utf-8")
+        decision = self._cerrar(raiz)
+        self.assertEqual(decision.accion, "bloquear")
+        self.assertIn("EXCEDIDO", decision.motivo)
+        self.assertEqual(self._ejecuciones(), 0, "con el árbol en rojo no se gasta en verificar nada")
 
 
 class Arranque(unittest.TestCase):

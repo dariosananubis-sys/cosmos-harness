@@ -46,7 +46,7 @@ molestia, y con razón.
 Pre-commit, pre-push y CI son **de repositorio**: miran lo que ya está escrito, cuando ya está
 escrito. El de sesión es el único que actúa mientras se decide, y por eso se trató aparte.
 
-## El enganche de sesión: cinco mecanismos
+## El enganche de sesión: seis mecanismos
 
 Los otros dos enganches llegan tarde por construcción. El commit ya se escribió; el CI corre sobre
 algo que alguien ya decidió. Un agente que se pasa siete horas trabajando **no cruza ninguno de los
@@ -65,6 +65,7 @@ toca es asunto de aquel repositorio y no entra aquí.
 | **G03** | `PreToolUse` | `permissionDecision: "deny"` sobre rutas de veredicto | La herramienta no llega a ejecutarse |
 | **G04** | `PreToolUse` | Marca de lectura atada a sesión + SHA-256, borrada en `PreCompact` | No se escribe sin haber leído lo que el repositorio exija |
 | **G05** | `PostToolUse` | `updatedToolOutput`: redacción por patrón de VALOR y desvío de salidas enormes | Reescribe lo que el modelo VE de una ejecución ya ocurrida |
+| **G06** | `Stop` | Ejecuta `[sesion] verificacion` con presupuesto de tiempo, **solo si el árbol de trabajo cambió** desde la última pasada en verde; contador propio y tope | No se cierra un turno con la verificación declarada en rojo |
 
 ### Lo que hace que cada uno no sea decorativo
 
@@ -131,17 +132,60 @@ una traza con el entorno volcado— entraba en claro y sin contar para el desví
 
 | Canal | Estado |
 |---|---|
-| `Bash` · `output`, `stdout`, `stderr` | **Tapado**, y el texto redactado vuelve por los mismos canales que lo trajeron |
-| `Read` | **Tapado**: el cableado enruta `PostToolUse` a `Bash` y `Read` |
-| `Grep`, `Glob`, `Task` | El guard los tapa **si el evento llega**, pero hoy el cableado no los enruta (`EVENTOS_SESION` filtra `PostToolUse` por `Bash\|Read`). **No cubiertos en la práctica** |
-| Respuesta anidada (`Read` con `file.content`, `Task` con bloques) | Se **lee** para decidir y avisar; que la sustitución llegue depende de que el runtime honre `updatedToolOutput` fuera de `Bash`, y eso no se puede comprobar desde aquí |
+| `Bash` · `stdout`, `stderr` | **Tapado, y comprobado en el runtime** (2026-09-11, Claude Code 2.1.268, sesión `-p` real): el modelo lee `[REDACTADO: …]` |
+| `Read` (`file.content`) | **Tapado**: la respuesta anidada vuelve entera con solo el texto sustituido. Comprobado en el runtime el 2026-09-11 |
+| `Grep`, `Glob`, `Task` | El cableado los enruta y el guard devuelve su forma con el texto tapado; **que el runtime honre la sustitución en estas tres no se ha comprobado** en una sesión real |
 
-Las dos últimas filas son **límite declarado, no cobertura**. La tercera se cierra ampliando el
-filtro de `EVENTOS_SESION`; la cuarta, el día que se pueda medir el runtime — hasta entonces se dice,
-igual que se dijo con `exit2`. Una cobertura declarada de más tranquiliza sin proteger, que es peor
-que una honesta de menos.
+**Lo que se descubrió al comprobarlo, y por qué esta tabla decía «tapado» sin serlo.** Hasta el
+2026-09-11 el guard devolvía en `updatedToolOutput` **solo el canal tapado** (`{"stdout": …}`), y el
+runtime exige el esquema entero de la respuesta (`stdout`, `stderr`, `interrupted`, `isImage` en
+`Bash`); lo que no lo respeta se descarta **en silencio**. El resultado, medido con una clave de
+prueba en una sesión de verdad: el valor entraba en claro y, debajo, G05 anunciaba «los valores
+reales no llegaron aquí». Un guardarraíl decorativo que además tranquiliza es peor que ninguno —
+es la misma lección que el auditor de fugas que nadie ejecutaba (`research/PATRONES-HARNESS.md`,
+A1), un piso más abajo. Desde entonces se devuelve la respuesta original con sus campos de texto
+sustituidos, la prueba `test_la_reescritura_respeta_el_esquema_entero_de_la_respuesta` fija la forma
+y la mutación M30 la ve fallar. La fila de `Grep`/`Glob`/`Task` sigue siendo límite declarado, no
+cobertura: se cierra el día que se compruebe en el runtime, y hasta entonces se dice.
 
-### Válvula: los cinco se saltan igual que las invariantes
+**Lo que G05 no tapa a propósito.** El catálogo es el del escáner del repositorio, que persigue
+también correos, teléfonos y rutas absolutas de la máquina del autor (repo público-limpio). En
+sesión esas tres etiquetas se omiten (`puente.secretos.SOLO_REPOSITORIO`): el modelo trabaja en la
+máquina de esa persona y tapar `/Users/<yo>/…` en la salida de un `ls` lo deja ciego, y un aviso
+por cada ruta enseña a ignorar los avisos que sí importan — medido el 2026-09-11: cuarenta avisos
+de G05 en una sesión, ninguno por una credencial. Sigue siendo **un** catálogo con una lista de
+exclusión, no dos catálogos.
+
+**El umbral de «salida enorme» y el del runtime.** Claude Code corta la salida de `Bash` a 30.000
+caracteres por defecto (`bashOutputMaxChars`) y las respuestas MCP a 25.000 tokens
+(`MAX_MCP_OUTPUT_TOKENS`), guardando el resto a fichero con una vista previa: para `Bash`, el corte
+nativo llega antes que los 50 KB de G05. El desvío de G05 sirve para `Read`, `Grep` y `Task`, y el
+tope nativo se puede bajar en los ajustes de usuario (12.000 caracteres es un valor razonable): es
+la palanca barata, y no es de COSMOS.
+
+**G06 — el océano `verificar` deja de ser una exhortación.** «Nada se declara hecho sin haberlo
+visto funcionar» se pagaba en cada sesión como océano y dependía de que el modelo se acordara en el
+turno 40: es la definición de exhortación de `GOAL.md` §2, en el propio arnés que la proscribe. El
+modo de fallo que Anthropic dice haber observado en sus agentes de sesión larga es justo ese («la
+tendencia a marcar una funcionalidad como completa sin probarla»), y la regla de ejemplo del plugin
+oficial `hookify` (`require-tests-stop`) lo ataca mal: comprueba que la palabra `pytest` **aparezca**
+en el transcript, así que un `pytest` que falló la satisface. G06 exige el **código de salida**.
+
+Qué comandos, lo dice cada repositorio en `[sesion] verificacion` (vacío por defecto: se trae el
+mecanismo, no la política), con `verificacion_segundos` como presupuesto total de reloj (120 s si
+no se dice). Cuándo: en cada `Stop`, **solo si el árbol de trabajo cambió** desde la última pasada
+en verde de esa sesión —una huella de `git status --porcelain` más tamaño y fecha de cada fichero
+listado—, así que un turno que solo leyó no paga nada y un árbol limpio tampoco (lo commiteado ya
+pasó por el gate). Cómo falla: `decision: "block"` con el comando, su código de salida y las
+últimas doce líneas de su salida; contador propio y tope de `TOPE_AVISOS`, como G02, y al cuarto
+se deja cerrar y queda en `cierres.log`. Un comando que no termina en el presupuesto **bloquea
+diciendo que no terminó**: una verificación que no acabó no es una verificación en verde. Y G02 va
+antes: con el árbol de COSMOS en rojo no se gasta en verificar nada.
+
+Este repositorio declara la suite del puente (ocho segundos); la del núcleo (más de un minuto)
+sigue en el gate de pre-commit y en el CI, donde se paga una vez por commit y no una por turno.
+
+### Válvula: los seis se saltan igual que las invariantes
 
 `cosmos saltar G03 --motivo "..." --caduca 7d`. Mismas reglas: acotado a un código, motivo
 obligatorio, caducidad de 30 días como máximo, registro que solo crece, y ninguna salida dice
@@ -189,7 +233,7 @@ Dos formas de caer en él, las dos medidas en este repositorio:
    | | Si el guard no puede evaluar |
    |---|---|
    | `PreToolUse` (G03, G04) | **Deniega**, diciendo que deniega porque no pudo mirar |
-   | El resto (G01, G02, G05) | Pasa, y **escribe la línea** en `.cosmos/cierres.log` |
+   | El resto (G01, G02, G05, G06) | Pasa, y **escribe la línea** en `.cosmos/cierres.log` |
 
    La asimetría no es capricho. G03 y G04 existen **para denegar**: si no pueden decidir,
    lo único coherente con su trabajo es negarse, y la válvula sigue ahí para seguir
@@ -277,10 +321,18 @@ cosmos saltar E16 --motivo "importando 40 skills, se reorganiza el lunes" --cadu
 | **Registrada** | Log append-only en `.cosmos/saltos.log`, que nunca se reescribe |
 | **Visible** | Con un salto activo, toda salida dice `verde (1 salto activo: E16, caduca en 5 d)` |
 | **Ruidosa al caducar** | Al vencer vuelve el rojo, y el mensaje recuerda el motivo que se escribió |
+| **Cerrable** | `cosmos saltar G03 --cerrar --motivo "..."` cuando el motivo desaparece antes de vencer: una línea más en el registro, con `cerrado`, y ese código deja de estar activo y de avisar |
 
 Un salto **nunca** se convierte en permanente por inercia. Si al caducar sigue haciendo falta, se
 renueva a mano, con motivo nuevo, y el log guarda las dos entradas. Que renovar cueste un minuto es
 el punto: es lo que distingue una excepción de una costumbre.
+
+Y un salto caducado **tampoco avisa para siempre**. Hasta el 2026-09-11 la única salida de un salto
+era dejarlo vencer, y al vencer avisaba en cada arranque, cada cierre y cada `validar` («vuelve a
+exigirse») aunque el árbol estuviera en verde y el motivo llevara días resuelto — medido con el
+G03 de un guion de alta de máquina: dos días de aviso sin nada que arreglar. Un aviso que no pide
+nada se aprende a ignorar, y con él los que sí piden. Por eso cerrar es un verbo: exige lo mismo
+que abrir (código concreto y motivo), no borra nada y el propio aviso de caducado dice cómo hacerlo.
 
 La palabra «verde» no aparece nunca sola habiendo saltos activos. Un verde que oculta un salto es
 una mentira, y basta una para que nadie vuelva a creerse ninguno.

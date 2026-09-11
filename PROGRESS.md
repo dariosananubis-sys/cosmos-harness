@@ -7,6 +7,32 @@ envejece en silencio (auditoría F, afirmación 3: «sobre el mismo árbol actua
 y `tests/test_progress_generado.py` reejecuta el comando y compara el bloque: si divergen, la suite
 se pone roja (revisión R-19). Lo que cuenta hoy lo dice el comando.
 
+## Estado al cierre de la tanda del 2026-09-11 (barrido de GitHub, G05 comprobado, G06, alta)
+
+- Cuatro informes de investigación en `research/2026-09-11/` (harnesses, tokens, calidad, nativo),
+  con estrellas, licencia y último commit verificados ese día y las funciones nativas de Claude
+  Code 2.1.268 contrastadas con su documentación. De ahí salieron seis fichas nuevas en
+  `agentes-ia/instrumentacion` (`cwc-long-running-agents`, `claude-plugins-official`, `superpowers`,
+  `oh-my-claudecode`, `claude-code-hooks`, `ripwire`): `agentes-ia` queda a 11 tokens de ser el
+  peor nicho y el margen global sigue en 31.
+- **G05 no tapaba nada en el runtime.** Devolvía en `updatedToolOutput` solo el canal tapado y
+  Claude Code descarta en silencio lo que no respeta el esquema entero de la respuesta: el valor
+  entraba en claro y el guard anunciaba haberlo tapado. Comprobado con sesiones `claude -p`
+  reales antes y después (`spec/GUARDARRAILES.md`, «Lo que se descubrió al comprobarlo»); ahora
+  vuelve la respuesta original con sus textos sustituidos, y las rutas y correos de la propia
+  máquina ya no se tapan en sesión (`SOLO_REPOSITORIO`: daban cuarenta avisos falsos por sesión).
+- **G06**: `[sesion] verificacion` se ejecuta al cerrar solo si el árbol de trabajo cambió desde
+  la última pasada en verde; el océano `verificar` deja de ser una exhortación. Este repositorio
+  declara la suite del puente.
+- La válvula se puede **cerrar** (`cosmos saltar G03 --cerrar --motivo "..."`): un salto caducado
+  avisaba para siempre aunque el árbol estuviera en verde.
+- Alta de máquina: `cosmos configurar --puntero` escribe en la memoria de usuario del runtime cómo
+  buscar y abrir el catálogo desde cualquier repositorio (159 tokens estimados; antes 309 fichas
+  eran invisibles fuera del clon), y el lanzador `cosmos` sirve desde cualquier directorio
+  (`COSMOS_RAIZ`; desde `/tmp` buscaba en un árbol vacío y decía «sin resultados»).
+- Mutaciones: 113 (M30 y M47 reancladas al código nuevo; M48 retirada porque el campo que vigilaba
+  ya no existe; M112–M114 nuevas: cierre de saltos, exclusión de sesión de G05, código de salida de G06).
+
 ## Estado al cierre de la tanda del 2026-09-04 (autonomía, modelos, coherencia)
 
 - Informes de la tanda en `progress/mejoras-2026-09-04/`: `A-autonomia.md` (15 propuestas),
@@ -45,7 +71,7 @@ COSMOS  estado
     sistema-solar      25
     continente          8
     pais               79
-    pueblo            308
+    pueblo            315
     mar                 6
     oceano              5
     rio                19
@@ -54,7 +80,7 @@ COSMOS  estado
 
   Herramientas por oficio
     ciberseguridad         35
-    agentes-ia             27
+    agentes-ia             34
     trading                22
     web                    21
     infraestructura        16
@@ -85,9 +111,9 @@ COSMOS  estado
     trabajo             9   abrir, buscar, estado, gate, medir, memoria, saltar, secretos, validar
 
   Contrato de pueblo (spec/PUEBLO.md) — lo que E21 no bloquea y hay que saldar por tandas
-    sin rival nombrado           68 de 308   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 62 más
-    sin apartado de avisos       37 de 308   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 31 más
-    sin fecha de comprobacion    54 de 308   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
+    sin rival nombrado           68 de 315   acceso-remoto, advertools, alcance-y-excepcion, amass, auditor-de-skills, aviso-por-chat, … y 62 más
+    sin apartado de avisos       37 de 315   auto-editor, bevy, chonkie, dagster, datasette, difftastic, … y 31 más
+    sin fecha de comprobacion    54 de 315   auto-editor, bevy, blacklight, compose-multiplatform, dagster, dask, … y 48 más
 
   Niveles sin un solo nodo
     lago, luna, planeta, provincia

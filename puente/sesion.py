@@ -6,7 +6,7 @@ COSMOS se enganchaba en tres sitios —pre-commit, CI y arranque— y los tres s
 en que un agente edita, mide y decide, no había nada. Este módulo es el enganche
 que faltaba en `spec/GUARDARRAILES.md`.
 
-Cinco mecanismos, cada uno con su código de válvula (`cosmos saltar G0x`):
+Seis mecanismos, cada uno con su código de válvula (`cosmos saltar G0x`):
 
 | Código | Evento | Efecto |
 |---|---|---|
@@ -15,6 +15,7 @@ Cinco mecanismos, cada uno con su código de válvula (`cosmos saltar G0x`):
 | G03 | `PreToolUse` | Deniega escribir a mano sobre las rutas de veredicto |
 | G04 | `PreToolUse` | Exige haber leído entero lo que la configuración declare, en ESTA sesión |
 | G05 | `PostToolUse` | Reescribe la salida ya ocurrida: tapa secretos y aparta lo enorme |
+| G06 | `Stop` | Ejecuta la verificación que el repositorio declaró, solo si algo cambió desde la última en verde |
 
 Contrato con el runtime, deliberadamente estrecho: **un evento JSON por la
 entrada estándar, una decisión por la salida**. La decisión se renderiza en dos
@@ -26,8 +27,10 @@ Nada se instala solo al importar este módulo. El cableado lo pone
 `cosmos enganchar --sesion` y lo quita `cosmos desenganchar`.
 
 Presupuesto: los guards de `PreToolUse`/`PostToolUse` corren en CADA llamada a
-una herramienta y no cargan el árbol; los de `SessionStart`/`Stop` sí lo cargan,
-y corren una vez. Jamás red, jamás subprocesos.
+una herramienta y no cargan el árbol ni lanzan procesos; los de `SessionStart`/`Stop`
+sí lo cargan. Jamás red. El único que lanza procesos es G06, y lanza exactamente los
+comandos que el repositorio declaró, con presupuesto de tiempo y solo cuando el árbol
+de trabajo cambió desde la última verificación en verde.
 """
 
 from __future__ import annotations
@@ -38,6 +41,7 @@ import json
 import os
 import re
 import shlex
+import subprocess
 import sys
 import tomllib
 from dataclasses import dataclass
@@ -62,7 +66,7 @@ from cosmos.modelo import (
 )
 from cosmos.validar import validar_arbol
 
-from .secretos import redactar_texto
+from .secretos import SOLO_REPOSITORIO, redactar_texto
 
 EVENTOS = ("SessionStart", "PreToolUse", "PostToolUse", "PreCompact", "Stop")
 
@@ -71,12 +75,17 @@ CODIGO_CIERRE = "G02"
 CODIGO_VEREDICTO = "G03"
 CODIGO_LECTURA = "G04"
 CODIGO_REDACCION = "G05"
+CODIGO_VERIFICACION = "G06"
 
 # Ni una sola vez (avisar y callarse no verifica nada) ni infinitas (un bucle sin
 # salida se desinstala el mismo día). Tres, y después se deja cerrar anotándolo.
 TOPE_AVISOS = 3
 MAX_BYTES = 50_000
 MAX_LINEAS = 2_000
+# G06: presupuesto total de reloj para los comandos declarados, salvo que `[sesion]
+# verificacion_segundos` diga otra cosa. Un Stop que tarda minutos se desinstala el mismo día.
+SEGUNDOS_VERIFICACION = 120
+LINEAS_DE_FALLO = 12
 
 HERRAMIENTAS_ESCRITURA = ("Write", "Edit", "MultiEdit", "NotebookEdit")
 # G05 mira todo lo que devuelve texto al contexto, no solo el shell: un `.env`
@@ -119,12 +128,12 @@ class Decision:
     accion: str = "pasar"
     motivo: str = ""
     salida: str | None = None
-    # Trivalente: `None` = la respuesta no traía código de salida. Publicar 0 en su
-    # lugar es inventar el valor tranquilizador (regla 14 del arnés): lo que no se
-    # observó se dice como «no lo sé», nunca como el defecto cómodo.
-    codigo_salida: int | None = None
     contexto: str = ""
     canales: tuple[str, ...] = ()
+    # La respuesta ENTERA de la herramienta con sus campos de texto ya sustituidos: es lo único
+    # que el runtime acepta como `updatedToolOutput` (ver `como_json`). `salida` es el texto
+    # unido, para decidir y para las pruebas; `respuesta` es lo que se devuelve.
+    respuesta: object = None
 
     @property
     def bloquea(self) -> bool:
@@ -148,27 +157,18 @@ def como_json(decision: Decision, evento: str) -> str:
     elif decision.accion == "bloquear":
         cuerpo = {"decision": "block", "reason": decision.motivo}
     elif decision.accion == "reescribir":
-        salida = decision.salida or ""
-        # Solo los campos que la respuesta traía: la reescritura anterior fabricaba
-        # `{"output": ..., "exit_code": 0}` siempre, así que una respuesta que solo
-        # tenía `stderr` aparecía además como salida estándar, y el `exit_code: 0`
-        # no lo había dicho nadie — lo ponía el valor por defecto del `.get`.
-        actualizado: dict[str, object] = {}
-        if decision.codigo_salida is not None:
-            actualizado["exit_code"] = decision.codigo_salida
-        # El texto ya redactado vuelve por los mismos canales que lo trajeron: si
-        # el runtime entrega `stdout` y `stderr` por separado, sustituir solo
-        # `output` deja el valor crudo entrando por el otro. El primero lleva el
-        # texto y los demás se vacían, para que nada sin redactar sobreviva.
-        for posicion, canal in enumerate(decision.canales):
-            actualizado[canal] = salida if posicion == 0 else ""
-        if not decision.canales:
-            # Respuesta que llegó como cadena suelta o forma anidada: no hay canal
-            # que sustituir clave a clave, y `output` es la única vía de entrega.
-            actualizado["output"] = salida
+        # El runtime solo honra `updatedToolOutput` si el valor respeta el esquema ENTERO de la
+        # respuesta de la herramienta (referencia de hooks: «el valor debe respetar el esquema»).
+        # Comprobado el 2026-09-11 en Claude Code 2.1.268 con una sesión `-p` de verdad: con
+        # `{"stdout": ...}` a secas —sin `stderr`, `interrupted` e `isImage`— el runtime lo
+        # descartaba en silencio, el valor crudo entraba al contexto y G05 anunciaba encima
+        # haberlo tapado: un guardarraíl decorativo que además tranquilizaba. Con la respuesta
+        # completa y solo los campos de texto sustituidos, el modelo lee `[REDACTADO: …]`.
+        # Así que se devuelve la respuesta ORIGINAL con sus textos ya redactados: ni un campo
+        # inventado (B11: aquel `{"output": ..., "exit_code": 0}` de siempre) ni uno de menos.
         especifico: dict[str, object] = {
             "hookEventName": evento,
-            "updatedToolOutput": actualizado,
+            "updatedToolOutput": decision.respuesta,
         }
         if decision.contexto:
             especifico["additionalContext"] = decision.contexto
@@ -498,6 +498,23 @@ def lecturas_exigidas(config) -> list[Path]:
     return rutas
 
 
+def verificacion_declarada(config) -> tuple[list[str], int]:
+    """Los comandos que el repositorio exige ver en verde antes de dar un turno por cerrado.
+
+    Vacío por defecto: se trae el mecanismo, no la política. El océano `verificar` («nada se
+    declara hecho sin haberlo visto funcionar») era hasta el 2026-09-11 una exhortación que el
+    modelo tenía que recordar en el turno 40; con esto es un guardarraíl que la ejecuta.
+    """
+
+    seccion = _seccion_sesion(config.ruta)
+    valores = seccion.get("verificacion", [])
+    comandos = [v.strip() for v in valores if isinstance(v, str) and v.strip()] if isinstance(valores, list) else []
+    segundos = seccion.get("verificacion_segundos", SEGUNDOS_VERIFICACION)
+    if not isinstance(segundos, int) or isinstance(segundos, bool) or segundos <= 0:
+        segundos = SEGUNDOS_VERIFICACION
+    return comandos, segundos
+
+
 def rutas_de_veredicto(config) -> tuple[Path, ...]:
     """Artefactos cuyo valor entero es «los produjo COSMOS», no «alguien los escribió».
 
@@ -672,6 +689,12 @@ def al_cerrar(entrada: dict, config, base: Path) -> Decision:
     if revision.verde:
         if estado:
             _escribe_atomico(ruta, {"avisos": 0})
+        if CODIGO_VERIFICACION not in saltados:
+            veredicto = verificar_al_cerrar(entrada, config, base)
+            if veredicto is not None:
+                if veredicto.bloquea:
+                    return Decision("bloquear", _con_valvula(veredicto.motivo, activos, caducados))
+                return Decision("informar", _con_valvula(f"{revision.titulo}\n{veredicto.motivo}", activos, caducados))
         return Decision("informar", _con_valvula(revision.titulo, activos, caducados))
 
     avisos = int(estado.get("avisos", 0) or 0) + 1
@@ -696,6 +719,130 @@ def al_cerrar(entrada: dict, config, base: Path) -> Decision:
             caducados,
         ),
     )
+
+
+# --- G06: la verificación declarada ---------------------------------------
+
+
+def ruta_verificacion(base: Path, session_id: str | None) -> Path:
+    return directorio_sesion(base, session_id) / "verificacion.json"
+
+
+def huella_del_trabajo(base: Path) -> str | None:
+    """Qué hay sin commitear, y en qué estado: lo que decide si hay algo nuevo que verificar.
+
+    `git status --porcelain` nombra lo cambiado y lo sin seguir; a cada ruta se le suma tamaño y
+    fecha de modificación, porque el mismo fichero «modificado» puede haber cambiado otra vez
+    desde la última verificación. Sin git (o con git roto) devuelve ``None``: no se puede saber,
+    y eso no es «no cambió nada».
+    """
+
+    try:
+        resultado = subprocess.run(
+            ["git", "-C", str(base), "status", "--porcelain=v1", "--untracked-files=all"],
+            capture_output=True, text=True, check=False, timeout=20,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if resultado.returncode != 0:
+        return None
+    resumen = hashlib.sha256()
+    for linea in resultado.stdout.splitlines():
+        relativa = linea[3:].split(" -> ")[-1]
+        # Lo que COSMOS escribe para sí (vista, manifiesto, saltos, estado de sesión) no es
+        # trabajo que verificar: sin esta línea, la propia marca de «verificado en verde» que
+        # G06 deja en `.cosmos/sesion/` cambiaba la huella y la verificación se repetía en cada
+        # turno aunque nadie hubiera tocado nada (visto fallar el 2026-09-11 en su prueba).
+        if relativa.startswith(".cosmos/") or relativa.startswith("\".cosmos/"):
+            continue
+        resumen.update(linea.encode("utf-8", "replace") + b"\n")
+        ruta = Path(base) / relativa
+        try:
+            st = ruta.stat()
+            resumen.update(f"{st.st_size}:{st.st_mtime_ns}".encode())
+        except OSError:
+            resumen.update(b"ausente")
+    return resumen.hexdigest()
+
+
+def verificar_al_cerrar(entrada: dict, config, base: Path) -> Decision | None:
+    """G06 — ejecuta lo declarado en `[sesion] verificacion` y no deja cerrar si algo sale mal.
+
+    Solo corre cuando el árbol de trabajo cambió desde la última pasada en verde de ESTA sesión
+    (o cuando hay cambios y nunca se verificó): un turno que solo leyó no paga nada. Un árbol
+    limpio tampoco paga: lo que se commiteó ya pasó por el gate. Contador propio y tope de
+    `TOPE_AVISOS`, como G02: al cuarto se deja cerrar y queda anotado. ``None`` = nada que decir.
+    """
+
+    comandos, presupuesto = verificacion_declarada(config)
+    if not comandos:
+        return None
+    huella = huella_del_trabajo(base)
+    ruta = ruta_verificacion(base, entrada.get("session_id"))
+    estado = _lee_json(ruta)
+    if huella is not None and huella == estado.get("verde"):
+        return None
+    if huella is not None and not _hay_cambios(base):
+        return None
+    inicio = datetime.now(timezone.utc)
+    fallo: tuple[str, str] | None = None
+    for comando in comandos:
+        restante = presupuesto - (datetime.now(timezone.utc) - inicio).total_seconds()
+        if restante <= 0:
+            fallo = (comando, f"no llegó a ejecutarse: se agotaron los {presupuesto} s del presupuesto")
+            break
+        try:
+            resultado = subprocess.run(
+                comando, shell=True, cwd=str(base), capture_output=True, text=True,
+                check=False, timeout=restante,
+            )
+        except subprocess.TimeoutExpired:
+            fallo = (comando, f"no terminó en {presupuesto} s (sube [sesion] verificacion_segundos o acota el comando)")
+            break
+        except OSError as exc:
+            fallo = (comando, f"no se pudo lanzar: {exc}")
+            break
+        if resultado.returncode != 0:
+            salida = (resultado.stdout or "") + (resultado.stderr or "")
+            cola = "\n".join(salida.splitlines()[-LINEAS_DE_FALLO:])
+            fallo = (comando, f"salió {resultado.returncode}\n{cola}")
+            break
+    duracion = (datetime.now(timezone.utc) - inicio).total_seconds()
+    if fallo is None:
+        # Se guarda la huella de DESPUÉS de correr: lo que los propios comandos dejan escrito
+        # (cachés, informes) forma parte del estado verificado, no de un cambio nuevo.
+        _escribe_atomico(ruta, {"verde": huella_del_trabajo(base), "avisos": 0})
+        return Decision("informar", f"verificación declarada en verde ({len(comandos)} comando(s), {duracion:.1f} s)")
+
+    avisos = int(estado.get("avisos", 0) or 0) + 1
+    _escribe_atomico(ruta, {"verde": estado.get("verde"), "avisos": avisos})
+    comando, detalle = fallo
+    if avisos <= TOPE_AVISOS:
+        return Decision(
+            "bloquear",
+            "No cierres todavía: la verificación que este repositorio declara no está en verde.\n"
+            f"COSMOS  sesion  rojo  `{comando}` {detalle}\n"
+            "Arréglalo y vuelve a cerrar, o abre la válvula acotada:\n"
+            f"  cosmos saltar {CODIGO_VERIFICACION} --motivo \"...\" --caduca 7d\n"
+            f"(aviso {avisos} de {TOPE_AVISOS}; después se deja cerrar y queda anotado)",
+        )
+    anotar_cierre(base, entrada.get("session_id"), f"verificación declarada en rojo: {comando} {detalle.splitlines()[0]}", avisos)
+    return Decision(
+        "informar",
+        f"verificación declarada en rojo (`{comando}`); se cierra igualmente tras {TOPE_AVISOS} avisos; "
+        f"queda anotado en {ruta_cierres(base)}.",
+    )
+
+
+def _hay_cambios(base: Path) -> bool:
+    try:
+        resultado = subprocess.run(
+            ["git", "-C", str(base), "status", "--porcelain=v1", "--untracked-files=all"],
+            capture_output=True, text=True, check=False, timeout=20,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return True
+    return resultado.returncode != 0 or bool(resultado.stdout.strip())
 
 
 def anotar_cierre(base: Path, session_id: str | None, titulo: str, avisos: int) -> None:
@@ -859,20 +1006,22 @@ def _texto_anidado(valor: object) -> str:
     return ""
 
 
-def _respuesta(entrada: dict) -> tuple[str, int | None, tuple[str, ...]]:
-    """Todo el texto que la herramienta devuelve, y por qué claves se puede reescribir.
+def _respuesta(entrada: dict) -> tuple[str, tuple[str, ...]]:
+    """Todo el texto que la herramienta devuelve, y por qué claves llegó.
 
     Leía `output` y, a falta de él, `stdout`. `stderr` —que es justo donde salen
     las fugas típicas: `curl -v`, un `git push` con el token en la URL del remoto,
     una traza con el entorno volcado— entraba en el contexto sin pasar por la
-    redacción y sin contar para el desvío de salidas enormes.
+    redacción y sin contar para el desvío de salidas enormes. El código de salida
+    ya no se extrae: la respuesta vuelve entera y copiada (`_reescribir_texto`),
+    así que un `exit_code` que la herramienta no dijo no puede aparecer (B11).
     """
 
     respuesta = entrada.get("tool_response")
     if isinstance(respuesta, str):
-        return respuesta, None, ()
+        return respuesta, ()
     if not isinstance(respuesta, dict):
-        return "", None, ()
+        return "", ()
     canales = tuple(
         clave for clave in _CANALES if isinstance(respuesta.get(clave), str) and respuesta[clave]
     )
@@ -883,16 +1032,40 @@ def _respuesta(entrada: dict) -> tuple[str, int | None, tuple[str, ...]]:
         anidado = _texto_anidado(respuesta)
         if anidado:
             partes.append(anidado)
-    # `None` cuando la respuesta no trae código de salida (o trae basura): un 0 por
-    # defecto era un hecho inventado que el modelo leía como «terminó bien».
-    codigo: int | None = None
-    if "exit_code" in respuesta or "exitCode" in respuesta:
-        bruto = respuesta.get("exit_code", respuesta.get("exitCode"))
-        try:
-            codigo = int(bruto)
-        except (TypeError, ValueError):
-            codigo = None
-    return "\n".join(partes), codigo, canales
+    return "\n".join(partes), canales
+
+
+# Campos de una respuesta por los que entra texto al contexto. La recursión entra en `file`
+# (`Read` anida `file.content`) y en las listas (`Task` trocea `content` en bloques con `text`).
+_CAMPOS_TEXTO = frozenset({"output", "stdout", "stderr", "content", "text", "file"})
+
+
+def _reescribir_texto(valor: object, transformar) -> object:
+    """Copia de la respuesta con cada campo de texto pasado por `transformar`; la forma no cambia."""
+
+    if isinstance(valor, str):
+        return transformar(valor)
+    if isinstance(valor, dict):
+        return {
+            clave: (_reescribir_texto(hijo, transformar) if clave in _CAMPOS_TEXTO else hijo)
+            for clave, hijo in valor.items()
+        }
+    if isinstance(valor, list):
+        return [_reescribir_texto(hijo, transformar) for hijo in valor]
+    return valor
+
+
+def _con_un_solo_texto(valor: object, texto: str) -> object:
+    """La misma forma, con `texto` en el primer campo de texto y los demás vacíos."""
+
+    pendiente = [texto]
+
+    def _primero(_: str) -> str:
+        if pendiente:
+            return pendiente.pop()
+        return ""
+
+    return _reescribir_texto(valor, _primero)
 
 
 def apartar_salida(base: Path, texto: str) -> Path:
@@ -927,13 +1100,15 @@ def despues_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
         _marcar_si_procede(entrada, config, base)
     if CODIGO_REDACCION in saltados or herramienta not in HERRAMIENTAS_VIGILADAS:
         return PASAR
-    texto, codigo, canales = _respuesta(entrada)
+    texto, canales = _respuesta(entrada)
     if not texto:
         return PASAR
 
-    redactado, tapados = redactar_texto(texto)
+    # En sesión se tapan credenciales, no rutas ni correos de la propia máquina (`SOLO_REPOSITORIO`).
+    redactado, tapados = redactar_texto(texto, omitir=SOLO_REPOSITORIO)
     bytes_ = len(redactado.encode("utf-8", "replace"))
     lineas = len(redactado.splitlines())
+    original = entrada.get("tool_response")
     if bytes_ > MAX_BYTES or lineas > MAX_LINEAS:
         destino = apartar_salida(base, redactado)
         cola = "\n".join(redactado.splitlines()[-12:])
@@ -942,21 +1117,20 @@ def despues_de_la_herramienta(entrada: dict, config, base: Path) -> Decision:
             "Busca dentro con grep o lee rangos concretos; no la cargues entera.\n"
             f"Últimas líneas:\n{cola}"
         )
-        contexto = f"[COSMOS G05] {tapados} valor(es) tapado(s) antes de entrar al contexto." if tapados else ""
+        contexto = f"[COSMOS G05] {tapados} valor(es) con forma de secreto tapado(s) en la salida de {herramienta}." if tapados else ""
         return Decision(
-            "reescribir", salida=aviso, codigo_salida=codigo, contexto=contexto, canales=canales
+            "reescribir", salida=aviso, contexto=contexto, canales=canales,
+            respuesta=_con_un_solo_texto(original, aviso),
         )
     if tapados:
         return Decision(
             "reescribir",
             salida=redactado,
-            codigo_salida=codigo,
-            contexto=(
-                f"[COSMOS G05] {tapados} valor(es) con forma de secreto tapado(s) antes de entrar "
-                "al contexto. Los valores reales no llegaron aquí; si crees que se filtraron antes, "
-                "rota esas credenciales."
-            ),
+            # Una línea: el aviso se paga en tokens cada vez que salta, y lo que importa —el valor—
+            # ya no está. La consigna de rotar solo vale si se filtró ANTES, y eso no lo sabe el guard.
+            contexto=f"[COSMOS G05] {tapados} valor(es) con forma de secreto tapado(s) en la salida de {herramienta}.",
             canales=canales,
+            respuesta=_reescribir_texto(original, lambda trozo: redactar_texto(trozo, omitir=SOLO_REPOSITORIO)[0]),
         )
     return PASAR
 

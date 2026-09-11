@@ -548,7 +548,8 @@ def contenido_lanzador(raiz: Path, interprete: str | None = None) -> str:
         "#!/usr/bin/env bash\n"
         f"# {MARCA_LANZADOR}: lo escribe 'cosmos configurar --lanzador' y lo quita '--lanzador quitar'.\n"
         f"COSMOS_RAIZ={json.dumps(str(raiz))}\n"
-        f"exec env PYTHONPATH=\"$COSMOS_RAIZ${{PYTHONPATH:+:$PYTHONPATH}}\" {json.dumps(python)} -m cosmos \"$@\"\n"
+        # `COSMOS_RAIZ` viaja al proceso: desde un directorio sin `cosmos.toml` la CLI cae al del clon.
+        f"exec env COSMOS_RAIZ=\"$COSMOS_RAIZ\" PYTHONPATH=\"$COSMOS_RAIZ${{PYTHONPATH:+:$PYTHONPATH}}\" {json.dumps(python)} -m cosmos \"$@\"\n"
     )
 
 
@@ -600,3 +601,130 @@ def quitar_lanzador(ruta: Path | None = None) -> tuple[Path, str]:
 
 def en_el_path(ruta: Path) -> bool:
     return str(ruta.parent) in os.environ.get("PATH", "").split(os.pathsep)
+
+
+# --- El puntero en la memoria de usuario del runtime ------------------------------------------
+#
+# Medido el 2026-09-11 en una máquina con COSMOS instalado y `cosmos` en el PATH: ningún
+# repositorio tenía el bloque de `proyectar`, el clon no tiene CLAUDE.md y el hook de arranque
+# solo dice la entrada medida. Resultado: 309 fichas que ningún agente podía encontrar, porque
+# nada nombraba el verbo que las busca. El puntero es lo mínimo estructural —qué verbo busca y
+# qué verbo abre— en la memoria de USUARIO del runtime, que entra en toda sesión de la máquina.
+# No lleva el índice ni los océanos: eso se paga al bajar, en el repositorio proyectado, no en
+# cada sesión. Reversible (`--puntero quitar`, byte a byte si nadie tocó el resto) y con fila en
+# `estado --maquina`, como el lanzador.
+
+MARCA_PUNTERO_INICIO = "<!-- cosmos:puntero -->"
+MARCA_PUNTERO_FIN = "<!-- cosmos:puntero:fin -->"
+PUNTERO = Path.home() / ".claude" / "CLAUDE.md"
+RESPALDO_PUNTERO = "puntero-respaldo.json"
+
+
+def contenido_puntero(oceanos, raiz: Path) -> str:
+    """El bloque entero, con las marcas. Sin cifras: un número aquí envejece en silencio."""
+
+    nombres = ", ".join(sorted(str(o) for o in oceanos))
+    reglas = f" Reglas de todo el universo: `cosmos abrir oceano/<nombre>` ({nombres})." if nombres else ""
+    return (
+        f"{MARCA_PUNTERO_INICIO}\n"
+        "# COSMOS\n\n"
+        "Hay un catálogo de herramientas por oficio fuera de este contexto; se carga solo al pedirlo.\n"
+        "`cosmos buscar <qué hay que hacer>` nombra la ficha y su oficio; `cosmos abrir <nombre>` la carga\n"
+        f"entera: repositorio, instalación, uso, rival y avisos.{reglas}\n"
+        f"Clon: {abreviar_home(raiz)} (`python3 -m cosmos` si `cosmos` no está en el PATH).\n"
+        f"{MARCA_PUNTERO_FIN}"
+    )
+
+
+def puntero_vigente(ruta: Path) -> str | None:
+    """El bloque tal como está en disco, de marca a marca; ``None`` si no hay fichero o bloque."""
+
+    try:
+        texto = ruta.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+    inicio = texto.find(MARCA_PUNTERO_INICIO)
+    fin = texto.find(MARCA_PUNTERO_FIN)
+    if inicio == -1 or fin == -1 or fin < inicio:
+        return None
+    return texto[inicio: fin + len(MARCA_PUNTERO_FIN)]
+
+
+def _ruta_respaldo_puntero(respaldo: Path | None) -> Path:
+    return respaldo or (DIRECTORIO / RESPALDO_PUNTERO)
+
+
+def instalar_puntero(oceanos, raiz: Path, ruta: Path | None = None, *, respaldo: Path | None = None) -> tuple[Path, str]:
+    """Escribe el bloque entre marcas: lo sustituye si ya está, lo añade al final si no.
+
+    Lo de fuera de las marcas no se toca, y los bytes del fichero previo se guardan para que
+    `quitar` lo devuelva idéntico si nadie tocó el resto (misma regla que el cableado de sesión).
+    """
+
+    ruta = ruta or PUNTERO
+    bloque = contenido_puntero(oceanos, raiz)
+    existia = ruta.is_file()
+    texto = ruta.read_text(encoding="utf-8") if existia else ""
+    vigente = puntero_vigente(ruta) if existia else None
+    if vigente == bloque:
+        return ruta, "al día"
+    guarda = _ruta_respaldo_puntero(respaldo)
+    if not guarda.is_file():
+        # Solo la primera vez: reinstalar no puede guardar como «original» un fichero que ya
+        # llevaba el bloque (la misma trampa que la revisión C-02 encontró en `enganchar`).
+        escribir_privado(guarda, json.dumps({"esquema": 1, "existia": existia, "original": texto}, ensure_ascii=False) + "\n")
+    if vigente is not None:
+        nuevo = texto.replace(vigente, bloque, 1)
+    else:
+        separador = "" if not texto or texto.endswith("\n\n") else ("\n" if texto.endswith("\n") else "\n\n")
+        nuevo = f"{texto}{separador}{bloque}\n"
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    ruta.write_text(nuevo, encoding="utf-8")
+    return ruta, "actualizado" if existia else "creado"
+
+
+def _sin_puntero(texto: str) -> str:
+    inicio = texto.find(MARCA_PUNTERO_INICIO)
+    fin = texto.find(MARCA_PUNTERO_FIN)
+    if inicio == -1 or fin == -1 or fin < inicio:
+        return texto
+    return texto[:inicio] + texto[fin + len(MARCA_PUNTERO_FIN):]
+
+
+def quitar_puntero(ruta: Path | None = None, *, respaldo: Path | None = None) -> tuple[Path, str]:
+    """Quita el bloque. Si el resto no cambió desde que se instaló, devuelve el fichero byte a byte."""
+
+    ruta = ruta or PUNTERO
+    guarda = _ruta_respaldo_puntero(respaldo)
+    if not ruta.is_file():
+        guarda.unlink(missing_ok=True)
+        return ruta, "ausente"
+    texto = ruta.read_text(encoding="utf-8")
+    if puntero_vigente(ruta) is None:
+        guarda.unlink(missing_ok=True)
+        return ruta, "ausente"
+    guardado: dict = {}
+    if guarda.is_file():
+        try:
+            guardado = json.loads(guarda.read_text(encoding="utf-8"))
+        except ValueError:
+            guardado = {}
+    original = guardado.get("original") if isinstance(guardado, dict) else None
+    if isinstance(original, str) and "existia" in guardado:
+        intacto = _sin_puntero(texto).strip() == _sin_puntero(original).strip()
+        if intacto and guardado["existia"]:
+            ruta.write_text(original, encoding="utf-8")
+            guarda.unlink(missing_ok=True)
+            return ruta, "restaurado"
+        if intacto and not guardado["existia"]:
+            ruta.unlink()
+            guarda.unlink(missing_ok=True)
+            return ruta, "eliminado"
+    podado = _sin_puntero(texto)
+    if not podado.strip():
+        ruta.unlink()
+        guarda.unlink(missing_ok=True)
+        return ruta, "eliminado"
+    ruta.write_text(podado.rstrip("\n") + "\n", encoding="utf-8")
+    guarda.unlink(missing_ok=True)
+    return ruta, "podado"

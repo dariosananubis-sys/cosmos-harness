@@ -28,3 +28,6 @@ modelos-ajustes.json
 # Lo que `pip install -e .` deja atrás.
 *.egg-info/
 build/
+
+# Ajustes locales del runtime (modo de permisos de ESTA máquina): nunca se versionan.
+.claude/settings.local.json

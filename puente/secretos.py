@@ -595,16 +595,30 @@ def _redaccion(etiqueta: str, coincidencia: re.Match[bytes]) -> bytes:
     return marca
 
 
-def redactar_texto(texto: str) -> tuple[str, int]:
+# Patrones que protegen el REPOSITORIO público (quién es la persona, dónde vive su disco, cómo
+# contactarla) y que no son credenciales. El guard de sesión los omite: en una sesión el modelo
+# trabaja en la máquina de esa persona y necesita ver sus rutas —tapar `/Users/<yo>/…` en la
+# salida de un `ls` lo deja ciego— y un aviso por cada ruta o correo enseña a ignorar los avisos
+# que sí importan (medido el 2026-09-11: cuarenta avisos de G05 en una sesión, ninguno por una
+# credencial). Es UNA lista de exclusión sobre el MISMO catálogo, no un segundo catálogo:
+# `spec/GUARDARRAILES.md` explica por qué dos catálogos garantizan que uno se queda atrás.
+SOLO_REPOSITORIO = frozenset({"correo electrónico", "teléfono", "ruta de máquina personal"})
+
+
+def redactar_texto(texto: str, *, omitir: frozenset[str] = frozenset()) -> tuple[str, int]:
     """Devuelve (texto redactado, número de valores tapados).
 
     Conserva el resto del texto intacto: quien lee sigue viendo el error, el
     nombre del campo y el contexto; lo único que desaparece es el valor.
+    `omitir` nombra etiquetas del catálogo que NO se tapan (el guard de sesión
+    pasa `SOLO_REPOSITORIO`); el escáner del repositorio no omite ninguna.
     """
 
     datos = texto.encode("utf-8", "surrogateescape")
     total = 0
     for etiqueta, patron in PATRONES:
+        if etiqueta in omitir:
+            continue
         cuenta = 0
 
         def _sustituir(coincidencia: re.Match[bytes], _etiqueta: str = etiqueta) -> bytes:

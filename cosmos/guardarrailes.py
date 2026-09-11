@@ -41,7 +41,7 @@ CODIGOS_INVARIANTES = _invariantes_vigentes()
 # Guardarraíles de sesión (`puente/sesion.py`). Tienen código propio porque la
 # válvula es obligatoria en TODO guardarraíl duro, no solo en el validador: uno
 # sin salida acotada acaba arrancado de raíz un viernes, y ya no vuelve.
-CODIGOS_SESION = ("G01", "G02", "G03", "G04", "G05")
+CODIGOS_SESION = ("G01", "G02", "G03", "G04", "G05", "G06")
 # Comprobaciones del gate de pre-commit (`puente/gate.py`) que no son invariantes del
 # árbol sino de su DIFERENCIA con HEAD: un resumen que se vacía no rompe E00–E20 y aun
 # así es la palanca más barata para subir la contra-métrica (auditoría B-01). Código
@@ -74,9 +74,11 @@ class Salto:
     motivo: str
     creado: datetime
     caduca: datetime
+    # Un cierre es una línea más del registro, no un borrado: el salto existió y se dice.
+    cerrado: bool = False
 
     def activo(self, ahora: datetime) -> bool:
-        return ahora < self.caduca
+        return not self.cerrado and ahora < self.caduca
 
     def dias_restantes(self, ahora: datetime) -> int:
         """Días enteros que quedan, redondeando hacia arriba: 0 solo si ya venció."""
@@ -86,13 +88,16 @@ class Salto:
             return 0
         return -(-int(restante.total_seconds()) // 86400)
 
-    def como_dict(self) -> dict[str, str]:
-        return {
+    def como_dict(self) -> dict[str, str | bool]:
+        datos: dict[str, str | bool] = {
             "codigo": self.codigo,
             "motivo": self.motivo,
             "creado": self.creado.isoformat(),
             "caduca": self.caduca.isoformat(),
         }
+        if self.cerrado:
+            datos["cerrado"] = True
+        return datos
 
 
 def ahora_utc() -> datetime:
@@ -149,6 +154,30 @@ def registrar_salto(
     return salto
 
 
+def cerrar_salto(log: Path, codigo: str, motivo: str, *, ahora: datetime | None = None) -> Salto:
+    """Cierra el último salto de un código: una línea más, con `cerrado` y su motivo.
+
+    Hasta el 2026-09-11 la única salida de un salto era dejarlo caducar, y al caducar avisaba
+    en cada arranque, cada cierre y cada `validar` para siempre («vuelve a exigirse») aunque el
+    árbol estuviera en verde y el motivo llevara días resuelto. Un aviso que no pide nada se
+    aprende a ignorar, y con él los que sí piden. Cerrar exige lo mismo que abrir —código
+    concreto y motivo— y no borra: el registro solo crece.
+    """
+
+    momento = ahora or ahora_utc()
+    texto = motivo.strip()
+    if not texto:
+        raise ErrorSalto("--motivo es obligatorio también al cerrar: por qué ya no hace falta")
+    limpio = normalizar_codigo(codigo)
+    ultimo = next((s for s in reversed(leer_saltos(log)) if s.codigo == limpio), None)
+    if ultimo is None or ultimo.cerrado:
+        raise ErrorSalto(f"no hay ningún salto de {limpio} que cerrar en {log}")
+    salto = Salto(limpio, texto, momento, momento, cerrado=True)
+    with log.open("a", encoding="utf-8") as fichero:
+        fichero.write(json.dumps(salto.como_dict(), ensure_ascii=False, sort_keys=True) + "\n")
+    return salto
+
+
 def leer_saltos(log: Path) -> list[Salto]:
     """Lee el registro entero. Una línea corrupta se ignora: nunca deja el árbol sin validar."""
 
@@ -165,6 +194,7 @@ def leer_saltos(log: Path) -> list[Salto]:
                 str(datos["motivo"]),
                 datetime.fromisoformat(str(datos["creado"])),
                 datetime.fromisoformat(str(datos["caduca"])),
+                cerrado=bool(datos.get("cerrado", False)),
             )
         except (ValueError, KeyError, TypeError):
             continue
@@ -176,7 +206,8 @@ def leer_saltos(log: Path) -> list[Salto]:
 def estado_saltos(log: Path, *, ahora: datetime | None = None) -> tuple[list[Salto], list[Salto]]:
     """Devuelve (activos, caducados) mirando solo la última entrada de cada código.
 
-    Renovar es escribir otra línea: la nueva manda y la vieja queda en el registro.
+    Renovar es escribir otra línea: la nueva manda y la vieja queda en el registro. Cerrar
+    también: la última línea lleva `cerrado` y ese código no está en ninguna de las dos listas.
     """
 
     momento = ahora or ahora_utc()
@@ -185,8 +216,9 @@ def estado_saltos(log: Path, *, ahora: datetime | None = None) -> tuple[list[Sal
         previo = ultimos.get(salto.codigo)
         if previo is None or salto.creado >= previo.creado:
             ultimos[salto.codigo] = salto
-    activos = sorted((s for s in ultimos.values() if s.activo(momento)), key=lambda s: s.codigo)
-    caducados = sorted((s for s in ultimos.values() if not s.activo(momento)), key=lambda s: s.codigo)
+    vivos = [s for s in ultimos.values() if not s.cerrado]
+    activos = sorted((s for s in vivos if s.activo(momento)), key=lambda s: s.codigo)
+    caducados = sorted((s for s in vivos if not s.activo(momento)), key=lambda s: s.codigo)
     return activos, caducados
 
 
@@ -225,7 +257,8 @@ def anotar_salida(
                 "",
                 f"SALTO CADUCADO  {salto.codigo}  venció el {salto.caduca.date().isoformat()}",
                 f"     vuelve a exigirse; motivo que se escribió: «{salto.motivo}»",
-                f"     Renueva con 'cosmos saltar {salto.codigo} --motivo \"...\" --caduca 7d' o arregla el árbol.",
+                f"     Renueva con 'cosmos saltar {salto.codigo} --motivo \"...\" --caduca 7d', arregla el árbol,",
+                f"     o si ya no hace falta ciérralo: 'cosmos saltar {salto.codigo} --cerrar --motivo \"...\"'.",
             ]
         )
     if avisos:

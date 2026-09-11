@@ -302,6 +302,19 @@ def inventariar_maquina(arbol: Arbol, *, directorio=None, raiz_clon=None) -> lis
             en_path = str(lanzador.parent) in os.environ.get("PATH", "").split(os.pathsep)
             filas.append(FilaMaquina("lanzador", "ok" if en_path else "falta",
                                      f"{lanzador} -> {apunta}" + ("" if en_path else f"  ({lanzador.parent} no está en el PATH)")))
+
+    puntero = cfg.PUNTERO
+    vigente = cfg.puntero_vigente(puntero)
+    if vigente is None:
+        filas.append(FilaMaquina("puntero", "falta", f"{puntero} sin el bloque de COSMOS -> cosmos configurar --puntero"))
+    elif raiz_clon is None:
+        filas.append(FilaMaquina("puntero", "no_comprobado", f"{puntero} lleva el bloque; sin clon de referencia no se compara"))
+    else:
+        oceanos = sorted(n.nombre for n in arbol.nodos if n.cosmos == "oceano")
+        if vigente == cfg.contenido_puntero(oceanos, Path(raiz_clon).resolve()):
+            filas.append(FilaMaquina("puntero", "ok", f"{puntero} apunta a este clon y nombra sus océanos"))
+        else:
+            filas.append(FilaMaquina("puntero", "desactualizado", f"{puntero} no coincide con lo que este clon escribiría -> cosmos configurar --puntero"))
     return filas
 
 

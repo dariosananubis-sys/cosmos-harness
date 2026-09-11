@@ -298,6 +298,12 @@ def inventariar_maquina(arbol: Arbol, *, directorio=None, raiz_clon=None) -> lis
             filas.append(FilaMaquina("lanzador", "falta", f"{lanzador} apunta a un clon que ya no existe ({apunta}) -> cosmos configurar --lanzador"))
         elif raiz_clon is not None and Path(raiz_clon).resolve() != apunta.resolve():
             filas.append(FilaMaquina("lanzador", "desactualizado", f"{lanzador} apunta a {apunta}, no a este clon"))
+        elif lanzador.read_text(encoding="utf-8") != cfg.contenido_lanzador(apunta):
+            # Decía «ok» con un shim de una plantilla anterior: el 2026-09-12 el instalado no
+            # exportaba COSMOS_RAIZ y `cosmos buscar` desde otro directorio decía «sin resultados»
+            # mientras el inventario daba verde. Se compara con lo que este clon escribiría hoy.
+            filas.append(FilaMaquina("lanzador", "desactualizado",
+                                     f"{lanzador} no es el shim que este clon escribiría hoy -> cosmos configurar --lanzador"))
         else:
             en_path = str(lanzador.parent) in os.environ.get("PATH", "").split(os.pathsep)
             filas.append(FilaMaquina("lanzador", "ok" if en_path else "falta",

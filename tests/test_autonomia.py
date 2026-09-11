@@ -299,6 +299,35 @@ class ElPunteroPorLaCLI(unittest.TestCase):
         self.assertRegex(estado.stdout, r"puntero \.+ falta")
 
 
+class ElInventarioDetectaUnLanzadorViejo(unittest.TestCase):
+    """`estado --maquina` decía «lanzador ok» con un shim de otra plantilla (2026-09-12)."""
+
+    def test_un_shim_de_una_plantilla_anterior_sale_desactualizado_y_reinstalar_lo_arregla(self) -> None:
+        with TemporaryDirectory(prefix="lanzador-viejo-") as tmp:
+            casa = Path(tmp)
+            binario = casa / ".local" / "bin"
+            binario.mkdir(parents=True)
+            viejo = (
+                "#!/usr/bin/env bash\n"
+                f"# {cfg.MARCA_LANZADOR}: lo escribe 'cosmos configurar --lanzador' y lo quita '--lanzador quitar'.\n"
+                f"COSMOS_RAIZ={json.dumps(str(RAIZ))}\n"
+                f'exec env PYTHONPATH="$COSMOS_RAIZ${{PYTHONPATH:+:$PYTHONPATH}}" {json.dumps(sys.executable)} -m cosmos "$@"\n'
+            )
+            (binario / "cosmos").write_text(viejo, encoding="utf-8")
+            (binario / "cosmos").chmod(0o755)
+            entorno = {"HOME": str(casa), "CLAUDE_CONFIG_DIR": str(casa / "claude-config"),
+                       "PATH": f"{binario}{os.pathsep}{os.environ.get('PATH', '')}"}
+            estado = subprocess.run([sys.executable, "-m", "cosmos", "estado", "--maquina"],
+                                    capture_output=True, text=True, cwd=RAIZ, env={**os.environ, **entorno})
+            self.assertRegex(estado.stdout, r"lanzador \.+ desactualizado")
+            self.assertIn("--lanzador", estado.stdout)
+            r = _cosmos(entorno, "--lanzador")
+            self.assertEqual(r.returncode, 0, r.stderr)
+            estado = subprocess.run([sys.executable, "-m", "cosmos", "estado", "--maquina"],
+                                    capture_output=True, text=True, cwd=RAIZ, env={**os.environ, **entorno})
+            self.assertRegex(estado.stdout, r"lanzador \.+ ok")
+
+
 class ElLanzadorSirveDesdeCualquierDirectorio(unittest.TestCase):
     def test_desde_un_directorio_sin_cosmos_toml_se_usa_el_del_clon(self) -> None:
         """Medido el 2026-09-11: desde /tmp, `cosmos buscar` decía «sin resultados» sobre un árbol vacío."""

@@ -951,9 +951,26 @@ MUTACIONES = (
 )
 
 
+def _purgar_bytecode(raiz: Path) -> None:
+    for pycache in raiz.rglob("__pycache__"):
+        shutil.rmtree(pycache, ignore_errors=True)
+
+
 def _ejecutar(prueba: str, raiz: Path) -> int:
+    """Corre la prueba dueña sobre la instantánea SIN fiarse de ningún bytecode.
+
+    Python reutiliza un `.pyc` si el fuente tiene el mismo tamaño y la misma fecha (en
+    segundos) que la que el `.pyc` recuerda. Dos mutaciones seguidas sobre el mismo fichero,
+    las dos del mismo tamaño que el original (`if habia:` -> `if False:`), escritas dentro del
+    mismo segundo, hacían que la segunda importara el bytecode compilado de la primera: la
+    mutación no llegaba a ejecutarse y salía «VERDE (la prueba no vigila nada)». Solo cuando la
+    máquina iba lo bastante rápida — M89 en el CI de Linux 3.11 el 2026-09-11 y una vez en
+    local con otra suite en paralelo — y nunca al repetirla sola. Sin bytecode no hay carrera.
+    """
+
+    _purgar_bytecode(raiz)
     return subprocess.run(
-        [sys.executable, "-m", "unittest", prueba],
+        [sys.executable, "-B", "-m", "unittest", prueba],
         cwd=raiz,
         capture_output=True,
         check=False,
